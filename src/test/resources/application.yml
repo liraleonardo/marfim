@@ -1,0 +1,40 @@
+spring:
+  profiles:
+    active: "test"
+  jackson:
+    serialization.write_dates_as_timestamps: false
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    url: jdbc:postgresql://${postgres.url:localhost}:5432/marfim-test
+    username: ${postgres.user:postgres}
+    password: ${postgres.password:docker}
+  jpa:
+    database: POSTGRESQL
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+    hibernate:
+      ddl-auto: validate
+  liquibase:
+    change-log: classpath:liquibase/changelog/master.xml
+    enabled: true
+    contexts: test
+
+oauth:
+  clientId: clientId@oauth
+  clientSecret: clientSecret@oauth
+  userInfoUrl: userInfoUrl@oauth
+  appName: appName@oauth
+  appSecret: appSecret@oauth
+
+server:
+  port: ${port:10344}
+  address: localhost
+  error:
+    include-stacktrace: never
+
+info:
+  app:
+    profiles: ${spring.profiles.active}
+    server:
+      port: ${server.port}
+

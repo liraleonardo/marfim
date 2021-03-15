@@ -56,16 +56,7 @@ dependencies {
 
 	// Tests
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.springframework.security:spring-security-test'
-	testImplementation "org.springframework.boot:spring-boot-test"
 
-//	testImplementation group: 'org.mockito', name: 'mockito-all', version: '1.10.19' // aparentemente já tem instalado
-	testImplementation group: 'org.mockito', name: 'mockito-junit-jupiter'
-
-	testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.15.2'
-	testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: '1.15.2'
-
-	implementation group: 'com.github.database-rider', name: 'rider-junit5', version: '1.23.0'
 
 }
 

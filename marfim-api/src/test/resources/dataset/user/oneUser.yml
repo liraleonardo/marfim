@@ -1,0 +1,4 @@
+marfim.user:
+  - name: user name
+    email: user@email.com
+    password: password

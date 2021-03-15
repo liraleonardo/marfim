@@ -1,0 +1,36 @@
+spring:
+  profiles:
+    active: "dev"
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    url: jdbc:postgresql://${postgres.url:localhost}:5432/marfim
+    username: ${postgres.user:postgres}
+    password: ${postgres.password:docker}
+  jpa:
+    database: POSTGRESQL
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+  liquibase:
+    change-log: classpath:liquibase/changelog/master.xml
+    enabled: true
+
+
+oauth:
+  clientId: ${google.clientId:clientId}
+  clientSecret: ${google.clientSecret:clientSecret}
+  userInfoUrl: https://www.googleapis.com/oauth2/v3/userinfo
+  appName: Marfim-dev
+  appSecret: ${google.clientSecret:clientSecret} #TODO: change
+
+
+server:
+  port: ${port:8082}
+  error:
+    include-stacktrace: never
+
+info:
+  app:
+    profiles: ${spring.profiles.active}
+    server:
+      port: ${server.port}
+

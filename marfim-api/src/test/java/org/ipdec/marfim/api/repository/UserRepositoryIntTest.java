@@ -2,15 +2,12 @@ package org.ipdec.marfim.api.repository;
 
 import com.github.database.rider.core.api.dataset.DataSet;
 import com.github.database.rider.core.api.dataset.ExpectedDataSet;
-import com.github.database.rider.junit5.api.DBRider;
 import org.ipdec.marfim.api.model.User;
 import org.ipdec.marfim.util.AbstractDBTest;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.LocalDateTime;
@@ -21,9 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest       // Os testes compartilham o mesmo contexto de aplicação inclusive o banco
 //@DataJpaTest            // Todos os testes viram transações que serão revertidas ao final
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@DBRider
-public class AnotherUserRepositoryTest extends AbstractDBTest {
+public class UserRepositoryIntTest extends AbstractDBTest {
 
     @Autowired
     private UserRepository userRepository;

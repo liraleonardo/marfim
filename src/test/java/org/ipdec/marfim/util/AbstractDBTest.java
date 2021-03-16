@@ -1,7 +1,7 @@
 package org.ipdec.marfim.util;
 
+import com.github.database.rider.junit5.api.DBRider;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -13,6 +13,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @ActiveProfiles("test")
 @ContextConfiguration(initializers = AbstractDBTest.DockerPostgreDataSourceInitializer.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@DBRider
 @Testcontainers
 public abstract class AbstractDBTest {
 

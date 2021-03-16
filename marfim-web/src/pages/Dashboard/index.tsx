@@ -2,7 +2,14 @@ import React, { useEffect, useState } from 'react';
 
 import { FiPower } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
-import { Container, Header, HeaderContent, Profile } from './styles';
+import {
+  Container,
+  Header,
+  HeaderContent,
+  Profile,
+  Content,
+  UserCard,
+} from './styles';
 import logoImg from '../../assets/logo.jpg';
 import defaultImg from '../../assets/default.jpg';
 import { useAuth, User } from '../../hooks/auth';
@@ -13,14 +20,13 @@ const Dashboard: React.FC = () => {
   const { signOut, user } = useAuth();
   const { addToast } = useToast();
 
-  const [apiData, setApiData] = useState('');
+  const [users, setUsers] = useState<User[]>([]);
 
   useEffect(() => {
     api
       .get('user')
       .then((response) => {
-        const users: any[] = response.data;
-        setApiData(JSON.stringify(users));
+        setUsers(response.data);
       })
       .catch((err) => {
         // console.log(err.response.);
@@ -53,9 +59,21 @@ const Dashboard: React.FC = () => {
           </button>
         </HeaderContent>
       </Header>
-      <span>
-        Resultado da Requisição: <br /> {apiData || '(sem resultados)'}
-      </span>
+      <Content>
+        {users.length === 0 && <p> sem resultados </p>}
+
+        {users.map((userCard) => (
+          <UserCard key={userCard.id}>
+            <div>
+              <img src={userCard.avatarUrl || defaultImg} alt={userCard.name} />
+              <div>
+                <strong>{userCard.name}</strong>
+                <span>{userCard.email}</span>
+              </div>
+            </div>
+          </UserCard>
+        ))}
+      </Content>
     </Container>
   );
 };

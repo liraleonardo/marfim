@@ -5,7 +5,7 @@ import org.ipdec.marfim.api.dto.AuthDTO;
 import org.ipdec.marfim.api.model.User;
 import org.ipdec.marfim.api.repository.UserRepository;
 import org.ipdec.marfim.security.MarfimUserDetails;
-import org.ipdec.marfim.security.MyUserDetailsService;
+import org.ipdec.marfim.security.MarfimUserDetailsService;
 import org.ipdec.marfim.security.auth.google.GoogleJWTToken;
 import org.ipdec.marfim.security.auth.marfim.MarfimJWTToken;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +23,7 @@ public class LoginGoogleService {
     UserRepository userRepository;
 
     @Autowired
-    MyUserDetailsService userDetailsService;
+    MarfimUserDetailsService userDetailsService;
 
 
     @Autowired

@@ -2,7 +2,7 @@ package org.ipdec.marfim.config;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.ipdec.marfim.security.MyUserDetailsService;
+import org.ipdec.marfim.security.MarfimUserDetailsService;
 import org.ipdec.marfim.security.auth.*;
 import org.ipdec.marfim.security.auth.marfim.MarfimJWTToken;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,13 +20,13 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 @EnableWebSecurity
 public class SecurityConfigurer extends WebSecurityConfigurerAdapter {
 
-    private	final MyUserDetailsService userDetailsService;
+    private	final MarfimUserDetailsService userDetailsService;
     private	final AuthenticationExceptionEntryPoint exceptionEntryPoint;
     private	final MarfimJWTToken marfimJWTToken;
 
     @Autowired
     SecurityConfigurer(AuthenticationExceptionEntryPoint exceptionEntryPoint,
-                       MyUserDetailsService userDetailsService,
+                       MarfimUserDetailsService userDetailsService,
                        AuthenticationManagerBuilder builder,
                        MarfimJWTToken marfimJWTToken,
                        ObjectMapper mapper) throws Exception {
@@ -51,7 +51,6 @@ public class SecurityConfigurer extends WebSecurityConfigurerAdapter {
                 .userDetailsService(this.userDetailsService)
                 .oauth2ResourceServer().authenticationEntryPoint(exceptionEntryPoint)
 // TODO                .authenticationManagerResolver(new JwtIssuerAuthenticationManagerResolver("teste"))
-                .bearerTokenResolver(new MarfimBearerTokenResolver())
                 .jwt()
                 .jwtAuthenticationConverter(new MarfimJwtAuthenticationConverter())
                 .decoder(new MarfimJwtDecoder(marfimJWTToken));

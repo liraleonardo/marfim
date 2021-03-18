@@ -1,7 +1,7 @@
 package org.ipdec.marfim.security.auth;
 
 import org.ipdec.marfim.security.MarfimUserDetails;
-import org.ipdec.marfim.security.MyUserDetailsService;
+import org.ipdec.marfim.security.MarfimUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -16,11 +16,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class MarfimUsernamePasswordAuthenticationManager implements AuthenticationManager {
 
-	private MyUserDetailsService service;
+	private MarfimUserDetailsService service;
 	private PasswordEncoder encoder;
 
 	@Autowired
-	public MarfimUsernamePasswordAuthenticationManager(MyUserDetailsService service, PasswordEncoder encoder) {
+	public MarfimUsernamePasswordAuthenticationManager(MarfimUserDetailsService service, PasswordEncoder encoder) {
 		this.service = service;
 		this.encoder = encoder;
 	}

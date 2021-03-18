@@ -15,13 +15,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class MyUserDetailsService implements UserDetailsService {
+public class MarfimUserDetailsService implements UserDetailsService {
 
 
     private final UserRepository userRepository;
 
     @Autowired
-    public MyUserDetailsService(UserRepository userRepository) {
+    public MarfimUserDetailsService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 

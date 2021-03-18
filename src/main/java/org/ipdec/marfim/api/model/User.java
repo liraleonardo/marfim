@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.*;
 
 import javax.persistence.*;
@@ -21,7 +22,9 @@ import java.util.UUID;
 @Entity
 @DynamicInsert @DynamicUpdate
 @AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "user", schema = "marfim")
+@Where(clause = "enabled=true")
 public class User implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -58,6 +61,4 @@ public class User implements Serializable {
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Collection<Role> roles;
 
-    public User(){
-    }
 }

@@ -1,7 +1,9 @@
 package org.ipdec.marfim.api.model;
 
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
@@ -14,6 +16,8 @@ import java.util.Collection;
 @Inheritance(strategy = InheritanceType.JOINED)
 @DynamicInsert @DynamicUpdate
 @Table(name = "role", schema = "marfim")
+@AllArgsConstructor
+@NoArgsConstructor
 public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

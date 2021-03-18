@@ -12,6 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -56,6 +57,26 @@ public class UserRepositoryIntTest extends AbstractDBTest {
         assertThat(userFound.get().getUpdatedAt()).isNotNull();
         assertThat(userFound.get().getEnabled()).isTrue();
         assertThat(userFound.get().getRoles()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("[Integration] It should return an empty list of users")
+    @DataSet("/dataset/user/emptyUsers.yml")
+    public void shouldReturnEmptyUsersList(){
+        List<User> usersFound = userRepository.findAll();
+        assertThat(usersFound).isEmpty();
+
+    }
+
+    @Test
+    @DisplayName("[Integration] It should return all enabled users")
+    @DataSet("/dataset/user/someUsers.yml")
+    public void shouldReturnAllEnabledUsers(){
+        List<User> usersFound = userRepository.findAll();
+        assertThat(usersFound).isNotEmpty();
+        assertThat(usersFound).allMatch(User::getEnabled);
+        assertThat(usersFound).map(User::getEmail).isEqualTo(List.of("user1@email.com", "user2@email.com", "user3@email.com"));
+
     }
 
 

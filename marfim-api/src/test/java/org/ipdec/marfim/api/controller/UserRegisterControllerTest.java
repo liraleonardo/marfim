@@ -7,7 +7,7 @@ import org.ipdec.marfim.api.model.User;
 import org.ipdec.marfim.api.repository.UserRepository;
 import org.ipdec.marfim.api.service.UserRegisterService;
 import org.ipdec.marfim.config.properties.OAuthProperties;
-import org.ipdec.marfim.security.MyUserDetailsService;
+import org.ipdec.marfim.security.MarfimUserDetailsService;
 import org.ipdec.marfim.security.auth.AuthenticationExceptionEntryPoint;
 import org.ipdec.marfim.security.auth.google.GoogleJWTToken;
 import org.ipdec.marfim.security.auth.marfim.MarfimJWTToken;
@@ -32,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import({AuthenticationExceptionEntryPoint.class,
         GoogleJWTToken.class,
         OAuthProperties.class,
-        MyUserDetailsService.class,
+        MarfimUserDetailsService.class,
         MarfimJWTToken.class,
 })
 public class UserRegisterControllerTest {

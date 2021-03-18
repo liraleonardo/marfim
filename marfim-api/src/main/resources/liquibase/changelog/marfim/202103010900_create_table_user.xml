@@ -23,7 +23,7 @@
                 <constraints nullable="false"/>
             </column>
             <column defaultValueBoolean="true" name="enabled" type="BOOLEAN">
-                <constraints nullable="false"/>
+<!--                <constraints nullable="false"/>-->
             </column>
         </createTable>
     </changeSet>

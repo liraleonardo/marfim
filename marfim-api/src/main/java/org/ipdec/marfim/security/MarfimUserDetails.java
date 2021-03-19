@@ -23,7 +23,7 @@ public class MarfimUserDetails implements UserDetails {
    public MarfimUserDetails(User user) {
         this.user = user;
 
-        if(this.user.getIsSuper()){
+        if(this.user.isSuper()){
             String SUPER_USER = "SUPER_USER";
             this.roles.add(SUPER_USER);
             this.authorities.add(new Permission("ROLE_".concat(SUPER_USER),"ROLE_".concat(SUPER_USER)));

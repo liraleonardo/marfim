@@ -14,8 +14,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.ArrayList;
-
 @Service
 public class LoginGoogleService {
 
@@ -64,7 +62,7 @@ public class LoginGoogleService {
             user.setAvatarUrl(tokenPayload.get("picture").toString());
 
             user = userRepository.save(user);
-            userDetails = new MarfimUserDetails(user,new ArrayList<>(), new ArrayList<>());
+            userDetails = new MarfimUserDetails(user);
         }
 
         return new AuthDTO(marfimJWTToken.generateToken(userDetails), userDetails);

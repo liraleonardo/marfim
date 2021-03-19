@@ -9,22 +9,14 @@
                 <constraints nullable="false"/>
             </column>
             <column name="password" type="VARCHAR(255)"/>
-<!--            Como o BCrypt tem a opção de usar e adicionar um salt aleatório na própria senha que será armazenada,
-                não é necessário armazenar um salt separadamente -->
-<!--            <column name="password_salt" type="VARCHAR(50)" />-->
             <column name="name" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
             <column name="avatar_url" type="VARCHAR"/>
-            <column defaultValueComputed="now()" name="created_at" type="TIMESTAMP WITHOUT TIME ZONE">
-                <constraints nullable="false"/>
-            </column>
-            <column defaultValueComputed="now()" name="updated_at" type="TIMESTAMP WITHOUT TIME ZONE">
-                <constraints nullable="false"/>
-            </column>
-            <column defaultValueBoolean="true" name="enabled" type="BOOLEAN">
-<!--                <constraints nullable="false"/>-->
-            </column>
+            <column name="created_at" type="TIMESTAMP WITHOUT TIME ZONE" defaultValueComputed="now()"/>
+            <column name="updated_at" type="TIMESTAMP WITHOUT TIME ZONE" defaultValueComputed="now()"/>
+            <column name="enabled" type="BOOLEAN" defaultValueBoolean="true"/>
+            <column name="super" type="BOOLEAN" defaultValueBoolean="false" />
         </createTable>
     </changeSet>
     <changeSet author="leonardo (generated)" id="1614615840427-2">

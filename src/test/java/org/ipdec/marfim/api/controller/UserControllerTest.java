@@ -56,9 +56,9 @@ public class UserControllerTest {
     @Test
     @DisplayName("[Unit] It should list all users successfully without passwords")
     public void itShouldListAllUsersSuccessfullyWithoutPasswords() throws Exception {
-        User user1 = new User(UUID.randomUUID(), "user1@email.com", "password", "user1", null, LocalDateTime.now(), LocalDateTime.now(), true,new ArrayList<>());
-        User user2 = new User(UUID.randomUUID(), "user2@email.com", "password", "user2", null, LocalDateTime.now(), LocalDateTime.now(), true,new ArrayList<>());
-        User user3 = new User(UUID.randomUUID(), "user3@email.com", "password", "user3", null, LocalDateTime.now(), LocalDateTime.now(), true,new ArrayList<>());
+        User user1 = new User(UUID.randomUUID(), "user1@email.com", "password", "user1", null, LocalDateTime.now(), LocalDateTime.now(), true, false, new ArrayList<>());
+        User user2 = new User(UUID.randomUUID(), "user2@email.com", "password", "user2", null, LocalDateTime.now(), LocalDateTime.now(), true, false, new ArrayList<>());
+        User user3 = new User(UUID.randomUUID(), "user3@email.com", "password", "user3", null, LocalDateTime.now(), LocalDateTime.now(), true, false, new ArrayList<>());
         List<User> expectedUsers = List.of(user1,user2,user3);
         Mockito.when(service.findAll()).thenReturn(expectedUsers);
 

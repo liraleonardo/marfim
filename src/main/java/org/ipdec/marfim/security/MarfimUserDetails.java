@@ -25,12 +25,16 @@ public class MarfimUserDetails implements UserDetails {
         this.authorities = authorities;
         this.user = user;
 
+        if(this.user.getIsSuper()){
+            this.roles.add("SUPER_USER");
+        }
+
         List<Permission> roleAuthorities = this.roles.stream().map(role -> {
             Permission roleAuthority = new Permission();
-            roleAuthority.setName("ROLE_"+role);
+            roleAuthority.setName("ROLE_"+role.toUpperCase());
             return roleAuthority;
         }).collect(Collectors.toList());
-        authorities.addAll(roleAuthorities);
+        this.authorities.addAll(roleAuthorities);
 
     }
 

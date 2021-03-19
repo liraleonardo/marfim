@@ -34,7 +34,7 @@ public class UserRepositoryIntTest extends AbstractDBTest {
     @DataSet("/dataset/user/emptyUsers.yml")
     @ExpectedDataSet("/dataset/user/oneUser.yml")
     public void shouldSaveAFullInfoUser(){
-        User user = new User(null,"user@email.com","password","user name", "http://avatar.com/img123", LocalDateTime.now(),LocalDateTime.now(),true,new ArrayList<>());
+        User user = new User(null,"user@email.com","password","user name", "http://avatar.com/img123", LocalDateTime.now(),LocalDateTime.now(),true, false, new ArrayList<>());
         User savedUser = userRepository.save(user);
         assertThat(savedUser).usingRecursiveComparison().ignoringFields("id").isEqualTo(user);
         assertThat(savedUser.getId()).isNotNull();
@@ -45,7 +45,7 @@ public class UserRepositoryIntTest extends AbstractDBTest {
     @DataSet("/dataset/user/emptyUsers.yml")
     @ExpectedDataSet("/dataset/user/oneUser.yml")
     public void shouldSaveABasicInfoUser(){
-        User user = new User(null,"user@email.com","password","user name", null, null,null,null,null);
+        User user = new User(null,"user@email.com","password","user name", null, null,null,null,null,null);
         User savedUser = userRepository.save(user);
 
         assertThat(savedUser).usingRecursiveComparison().ignoringActualNullFields().isEqualTo(user);

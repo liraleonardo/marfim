@@ -10,6 +10,7 @@ import org.ipdec.marfim.security.MarfimUserDetailsService;
 import org.ipdec.marfim.security.auth.AuthenticationExceptionEntryPoint;
 import org.ipdec.marfim.security.auth.google.GoogleJWTToken;
 import org.ipdec.marfim.security.auth.marfim.MarfimJWTToken;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,6 +54,8 @@ public class UserControllerTest {
     @Autowired
     private ObjectMapper mapper;
 
+
+//    This Unit Test can not check the user role because of: https://stackoverflow.com/questions/32442408/preauthorize-not-working-on-controller/32443631
     @Test
     @DisplayName("[Unit] It should list all users successfully without passwords")
     public void itShouldListAllUsersSuccessfullyWithoutPasswords() throws Exception {
@@ -62,7 +65,7 @@ public class UserControllerTest {
         List<User> expectedUsers = List.of(user1,user2,user3);
         Mockito.when(service.findAll()).thenReturn(expectedUsers);
 
-        String allUsersStr = mvc.perform(get("/user").with(user("user1@email.com").roles("ADMIN")))
+        String allUsersStr = mvc.perform(get("/user").with(user("user1@email.com")))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 

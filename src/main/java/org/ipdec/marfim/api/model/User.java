@@ -64,6 +64,7 @@ public class User implements Serializable {
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Collection<Role> roles;
 
+    @JsonIgnore
     public Boolean isSuper(){
         return isSuper != null && isSuper;
     }

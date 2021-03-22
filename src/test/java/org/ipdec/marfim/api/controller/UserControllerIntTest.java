@@ -155,7 +155,6 @@ public class UserControllerIntTest extends AbstractDBTest {
 
 
     @Test
-    @Disabled("TDD - test will fail until feature is implemented")
     @DisplayName("[Unit] With role SUPER_USER It should list all users")
     @DataSet(value = {"/dataset/user/someUsers.yml"})
     public void withRoleSuperUser_itShouldListAllUsers() throws Exception {
@@ -171,6 +170,27 @@ public class UserControllerIntTest extends AbstractDBTest {
             return mapper.convertValue(object,User.class).getEmail();
         }).isEqualTo(List.of("user1@email.com","user2@email.com","user3@email.com"));
 
+    }
+
+    @Test
+    @DisplayName("[Unit] If User is super, It should list all users")
+    @DataSet(value = {"/dataset/user/someUsers.yml"})
+    public void withSuperUser_itShouldListAllUsers() throws Exception {
+        Mockito.when(encoder.matches("password","password")).thenReturn(true);
+
+        // first will obtain an user token, and then perform the GET on route /user/ with Authorization Header
+        String token = getUserToken("user3@email.com", "password");
+
+        String responseStr = mvc.perform(get("/user").header("Authorization", String.format("Bearer %s", token)))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        JacksonJsonParser jsonParser = new JacksonJsonParser();
+        List<Object> objects = jsonParser.parseList(responseStr);
+        assertThat(objects.size()).isEqualTo(3);
+        assertThat(objects).map(object -> {
+            return mapper.convertValue(object,User.class).getEmail();
+        }).isEqualTo(List.of("user1@email.com","user2@email.com","user3@email.com"));
     }
 
 

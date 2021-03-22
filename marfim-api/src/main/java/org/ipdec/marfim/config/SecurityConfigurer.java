@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.ipdec.marfim.security.MarfimUserDetailsService;
 import org.ipdec.marfim.security.auth.*;
 import org.ipdec.marfim.security.auth.marfim.MarfimJWTToken;
+import org.ipdec.marfim.security.tenant.TenantFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -14,6 +15,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationFilter;
 
 
 @Configuration
@@ -47,7 +49,7 @@ public class SecurityConfigurer extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, "/login/**").permitAll()
                 .antMatchers(HttpMethod.POST, "/user/register").permitAll()
                 .anyRequest().fullyAuthenticated()
-                .and()
+                .and().addFilterBefore(new TenantFilter(), BearerTokenAuthenticationFilter.class)
                 .userDetailsService(this.userDetailsService)
                 .oauth2ResourceServer().authenticationEntryPoint(exceptionEntryPoint)
 // TODO                .authenticationManagerResolver(new JwtIssuerAuthenticationManagerResolver("teste"))

@@ -54,11 +54,19 @@ public class User implements Serializable {
     @Column
     private Boolean enabled = true;
 
+    @Column(name="super")
+    private Boolean isSuper;
+
     @JsonIgnore
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_role", schema = "marfim",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Collection<Role> roles;
+
+    @JsonIgnore
+    public Boolean isSuper(){
+        return isSuper != null && isSuper;
+    }
 
 }

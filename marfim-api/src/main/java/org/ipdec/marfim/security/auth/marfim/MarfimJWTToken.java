@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Type;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -57,7 +58,7 @@ public class MarfimJWTToken {
 
 
 		// Token generation
-		jwtBuilder.setClaims(mapper.convertValue(userDetails, Map.class));
+		jwtBuilder.setClaims(mapper.convertValue(userDetails, HashMap.class));
 		jwtBuilder.setSubject(userDetails.getUser().getId().toString());
 		jwtBuilder.setIssuer(getProperties().getAppName());
 		jwtBuilder.setIssuedAt(new Date());
@@ -108,10 +109,10 @@ public class MarfimJWTToken {
 
 	public Jwt getJwt(String token){
 		var header = getHeader(token);
-		Map<String, Object> headerMap = mapper.convertValue(header,Map.class);
+		HashMap<String, Object> headerMap = mapper.convertValue(header, HashMap.class);
 
 		var claims = getClaims(token);
-		Map<String, Object> claimsMap = mapper.convertValue(claims,Map.class);
+		HashMap<String, Object> claimsMap = mapper.convertValue(claims,HashMap.class);
 
 		return new Jwt(token,claims.getIssuedAt().toInstant(),claims.getExpiration().toInstant(),headerMap,claimsMap);
 	}

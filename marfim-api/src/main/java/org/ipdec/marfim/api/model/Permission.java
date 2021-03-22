@@ -9,6 +9,7 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.springframework.security.core.GrantedAuthority;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 
 @Data
@@ -29,5 +30,18 @@ public class Permission implements GrantedAuthority {
     @Override
     public String getAuthority() {
         return name;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Permission)) return false;
+        Permission permission = (Permission) o;
+        return Objects.equals(getAuthority(), permission.getAuthority());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getAuthority());
     }
 }

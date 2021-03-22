@@ -10,6 +10,7 @@ import org.ipdec.marfim.api.model.Role;
 import org.ipdec.marfim.api.model.User;
 import org.ipdec.marfim.api.repository.UserRepository;
 import org.ipdec.marfim.util.AbstractDBTest;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -153,6 +154,44 @@ public class UserControllerIntTest extends AbstractDBTest {
     }
 
 
+    @Test
+    @DisplayName("[Unit] With role SUPER_USER It should list all users")
+    @DataSet(value = {"/dataset/user/someUsers.yml"})
+    public void withRoleSuperUser_itShouldListAllUsers() throws Exception {
+
+        String responseStr = mvc.perform(get("/user").with(user("user1@email.com").roles("SUPER_USER")))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        JacksonJsonParser jsonParser = new JacksonJsonParser();
+        List<Object> objects = jsonParser.parseList(responseStr);
+        assertThat(objects.size()).isEqualTo(3);
+        assertThat(objects).map(object -> {
+            return mapper.convertValue(object,User.class).getEmail();
+        }).isEqualTo(List.of("user1@email.com","user2@email.com","user3@email.com"));
+
+    }
+
+    @Test
+    @DisplayName("[Unit] If User is super, It should list all users")
+    @DataSet(value = {"/dataset/user/someUsers.yml"})
+    public void withSuperUser_itShouldListAllUsers() throws Exception {
+        Mockito.when(encoder.matches("password","password")).thenReturn(true);
+
+        // first will obtain an user token, and then perform the GET on route /user/ with Authorization Header
+        String token = getUserToken("user3@email.com", "password");
+
+        String responseStr = mvc.perform(get("/user").header("Authorization", String.format("Bearer %s", token)))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        JacksonJsonParser jsonParser = new JacksonJsonParser();
+        List<Object> objects = jsonParser.parseList(responseStr);
+        assertThat(objects.size()).isEqualTo(3);
+        assertThat(objects).map(object -> {
+            return mapper.convertValue(object,User.class).getEmail();
+        }).isEqualTo(List.of("user1@email.com","user2@email.com","user3@email.com"));
+    }
 
 
 

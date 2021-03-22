@@ -10,6 +10,7 @@ import org.ipdec.marfim.security.MarfimUserDetailsService;
 import org.ipdec.marfim.security.auth.AuthenticationExceptionEntryPoint;
 import org.ipdec.marfim.security.auth.google.GoogleJWTToken;
 import org.ipdec.marfim.security.auth.marfim.MarfimJWTToken;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,16 +54,18 @@ public class UserControllerTest {
     @Autowired
     private ObjectMapper mapper;
 
+
+//    This Unit Test can not check the user role because of: https://stackoverflow.com/questions/32442408/preauthorize-not-working-on-controller/32443631
     @Test
     @DisplayName("[Unit] It should list all users successfully without passwords")
     public void itShouldListAllUsersSuccessfullyWithoutPasswords() throws Exception {
-        User user1 = new User(UUID.randomUUID(), "user1@email.com", "password", "user1", null, LocalDateTime.now(), LocalDateTime.now(), true,new ArrayList<>());
-        User user2 = new User(UUID.randomUUID(), "user2@email.com", "password", "user2", null, LocalDateTime.now(), LocalDateTime.now(), true,new ArrayList<>());
-        User user3 = new User(UUID.randomUUID(), "user3@email.com", "password", "user3", null, LocalDateTime.now(), LocalDateTime.now(), true,new ArrayList<>());
+        User user1 = new User(UUID.randomUUID(), "user1@email.com", "password", "user1", null, LocalDateTime.now(), LocalDateTime.now(), true, false, new ArrayList<>());
+        User user2 = new User(UUID.randomUUID(), "user2@email.com", "password", "user2", null, LocalDateTime.now(), LocalDateTime.now(), true, false, new ArrayList<>());
+        User user3 = new User(UUID.randomUUID(), "user3@email.com", "password", "user3", null, LocalDateTime.now(), LocalDateTime.now(), true, false, new ArrayList<>());
         List<User> expectedUsers = List.of(user1,user2,user3);
         Mockito.when(service.findAll()).thenReturn(expectedUsers);
 
-        String allUsersStr = mvc.perform(get("/user").with(user("user1@email.com").roles("ADMIN")))
+        String allUsersStr = mvc.perform(get("/user").with(user("user1@email.com")))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 

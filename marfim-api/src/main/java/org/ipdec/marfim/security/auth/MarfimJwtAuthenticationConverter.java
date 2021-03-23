@@ -29,6 +29,7 @@ public class MarfimJwtAuthenticationConverter implements Converter<Jwt, Abstract
         List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
         authorities.forEach(item -> {
             Permission permission = new Permission();
+            permission.setCode(item.get("code"));
             permission.setName(item.get("name"));
             permission.setDescription(item.get("description"));
             GrantedAuthority grantedAuthority = permission;

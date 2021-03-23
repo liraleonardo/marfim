@@ -129,7 +129,7 @@ public class UserControllerIntTest extends AbstractDBTest {
     @DataSet(value = {"/dataset/user/someUsers.yml"})
     public void withReadUsersPermission_itShouldListAllUsers() throws Exception {
 
-        String responseStr = mvc.perform(get("/user").with(user("user1@email.com").roles("USER").authorities(new Permission("READ_USERS","Read all users"))))
+        String responseStr = mvc.perform(get("/user").with(user("user1@email.com").roles("USER").authorities(new Permission("READ_USERS","Read Users","Read all users"))))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 

@@ -8,6 +8,7 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Collection;
 
 
@@ -18,7 +19,7 @@ import java.util.Collection;
 @Table(name = "role", schema = "marfim")
 @AllArgsConstructor
 @NoArgsConstructor
-public class Role {
+public class Role implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -29,11 +30,13 @@ public class Role {
     @Column
     private String description;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Organization organization;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "role_permission", schema = "marfim",
-            joinColumns = @JoinColumn(name = "role_id"),
-            inverseJoinColumns = @JoinColumn(name = "permission_name"))
-    private Collection<Permission> permissions;
+    @Column(name = "admin")
+    private Boolean isAdmin;
+
+    @OneToMany(mappedBy = "role")
+    private Collection<RolePermission> rolePermissions;
 
 }

@@ -1,8 +1,16 @@
+marfim.organization:
+  - id: 1
+    cnpj: 12345678901234
+    name: Organization 1
+
 marfim.role:
   - id: 1
     name: ADMIN
+    organization_id: 1
+
   - id: 2
     name: USER
+    organization_id: 1
 
 marfim.user:
   - name: user1 name

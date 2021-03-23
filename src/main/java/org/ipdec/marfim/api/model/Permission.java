@@ -9,6 +9,7 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.springframework.security.core.GrantedAuthority;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Objects;
 
 
@@ -18,8 +19,11 @@ import java.util.Objects;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "permission", schema = "marfim")
-public class Permission implements GrantedAuthority {
+public class Permission implements GrantedAuthority, Serializable {
     @Id
+    @Column(nullable = false)
+    private String code;
+
     @Column(nullable = false)
     private String name;
 
@@ -29,7 +33,7 @@ public class Permission implements GrantedAuthority {
 
     @Override
     public String getAuthority() {
-        return name;
+        return code;
     }
 
     @Override

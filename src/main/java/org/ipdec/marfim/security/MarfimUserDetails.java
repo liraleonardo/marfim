@@ -5,12 +5,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.ipdec.marfim.api.model.Permission;
 import org.ipdec.marfim.api.model.Role;
+import org.ipdec.marfim.api.model.RolePermission;
 import org.ipdec.marfim.api.model.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Data
 @Service
@@ -26,7 +28,7 @@ public class MarfimUserDetails implements UserDetails {
         if(this.user.isSuper()){
             String SUPER_USER = "SUPER_USER";
             this.roles.add(SUPER_USER);
-            this.authorities.add(new Permission("ROLE_".concat(SUPER_USER),"ROLE_".concat(SUPER_USER)));
+            this.authorities.add(new Permission("ROLE_".concat(SUPER_USER),SUPER_USER, SUPER_USER));
         }
 
         Collection<Role> roles = this.user.getRoles();
@@ -37,11 +39,14 @@ public class MarfimUserDetails implements UserDetails {
 
                 //add role as authority with ROLE_ prefix
                 String roleAuthorityName = "ROLE_".concat(role.getName().toUpperCase());
-                this.authorities.add(new Permission(roleAuthorityName, roleAuthorityName));
+                this.authorities.add(new Permission(roleAuthorityName, role.getName(),role.getDescription()));
 
                 //add all permissions as authority
-                if(role.getPermissions()!=null)
-                    this.authorities.addAll(role.getPermissions());
+                if(role.getRolePermissions()!=null) {
+                    List<Permission> permissions = role.getRolePermissions().stream().map(RolePermission::getPermission).collect(Collectors.toList());
+                    this.authorities.addAll(permissions);
+                }
+
             });
 
         }

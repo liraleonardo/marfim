@@ -49,7 +49,7 @@ public class UserRegisterControllerTest {
     @DisplayName("[Unit] It should register an user on route /user/register")
     public void itShouldRegisterAnUserSuccessfully() throws Exception {
         CreateUserDTO createUser = new CreateUserDTO("user@email.com", "password", "user name");
-        User createdUser = new User(UUID.randomUUID(), createUser.getEmail(), createUser.getPassword(), createUser.getName(), null, LocalDateTime.now(), LocalDateTime.now(), true, false, new ArrayList<>());
+        User createdUser = new User(UUID.randomUUID(), createUser.getEmail(), createUser.getPassword(), createUser.getName(), null, LocalDateTime.now(), LocalDateTime.now(), true, false, new ArrayList<>(),new ArrayList<>());
         Mockito.when(service.register(createUser)).thenReturn(createdUser);
 
         mvc.perform(post("/user/register")

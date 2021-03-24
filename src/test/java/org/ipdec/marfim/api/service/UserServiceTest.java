@@ -42,9 +42,9 @@ public class UserServiceTest {
     @Test
     @DisplayName("[Unit] It should list all users")
     void shouldListAllUsers() {
-        User user1 = new User(UUID.randomUUID(), "user1@email.com", "password", "user1", null, LocalDateTime.now(), LocalDateTime.now(), true, false,new ArrayList<>());
-        User user2 = new User(UUID.randomUUID(), "user2@email.com", "password", "user2", null, LocalDateTime.now(), LocalDateTime.now(), true, false, new ArrayList<>());
-        User user3 = new User(UUID.randomUUID(), "user3@email.com", "password", "user3", null, LocalDateTime.now(), LocalDateTime.now(), true, false, new ArrayList<>());
+        User user1 = new User(UUID.randomUUID(), "user1@email.com", "password", "user1", null, LocalDateTime.now(), LocalDateTime.now(), true, false,new ArrayList<>(),new ArrayList<>());
+        User user2 = new User(UUID.randomUUID(), "user2@email.com", "password", "user2", null, LocalDateTime.now(), LocalDateTime.now(), true, false, new ArrayList<>(),new ArrayList<>());
+        User user3 = new User(UUID.randomUUID(), "user3@email.com", "password", "user3", null, LocalDateTime.now(), LocalDateTime.now(), true, false, new ArrayList<>(),new ArrayList<>());
         List<User> expectedUsers = of(user1, user2, user3);
         Mockito.when(userRepository.findAll()).thenReturn(expectedUsers);
         List<User> actualUsers = userService.findAll();

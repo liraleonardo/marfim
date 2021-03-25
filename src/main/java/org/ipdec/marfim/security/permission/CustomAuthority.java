@@ -10,6 +10,8 @@ public class CustomAuthority implements GrantedAuthority {
 
     private String permissionCode;
 
+    private Integer permissionLevel;
+
     @Getter
     private Long organizationId;
 
@@ -22,6 +24,9 @@ public class CustomAuthority implements GrantedAuthority {
 
     @Override
     public String getAuthority() {
-        return permissionCode;
+        String authority = permissionLevel == null ?
+                permissionCode :
+                permissionCode.concat("_").concat(RolePermissionLevelEnum.get(permissionLevel).getCode());
+        return authority;
     }
 }

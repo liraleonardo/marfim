@@ -7,7 +7,12 @@ public class TenantContext {
         return currentTenant.get();
     }
 
+    public static Long getLongTenant() throws NumberFormatException{
+        return getCurrentTenant() == null ? null : Long.parseLong(getCurrentTenant());
+    }
+
     public static void setCurrentTenant(String tenant) {
+        if(tenant!=null && !tenant.isEmpty() && !tenant.isBlank())
         currentTenant.set(tenant);
     }
 

@@ -23,7 +23,7 @@ public class UserController {
     //    @PreAuthorize("hasAnyAuthority('READ_USERS','MANAGE_USERS')")
 //    @PreAuthorize("hasAnyRole('COORDENADOR')")
 //    @RolesAllowed("COORDENADOR")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'READ_USERS','MANAGE_USERS')")
+    @PreAuthorize("hasAnyAuthority('USERS')")
     public List<User> findAll() {
         return userService.findAll();
     }

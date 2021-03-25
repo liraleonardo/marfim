@@ -2,6 +2,7 @@ package org.ipdec.marfim.config;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.ipdec.marfim.api.service.AuthorizationUtilService;
 import org.ipdec.marfim.security.MarfimUserDetailsService;
 import org.ipdec.marfim.security.auth.*;
 import org.ipdec.marfim.security.auth.marfim.MarfimJWTToken;
@@ -25,17 +26,19 @@ public class SecurityConfigurer extends WebSecurityConfigurerAdapter {
     private	final MarfimUserDetailsService userDetailsService;
     private	final AuthenticationExceptionEntryPoint exceptionEntryPoint;
     private	final MarfimJWTToken marfimJWTToken;
+    private final AuthorizationUtilService authorizationUtilService;
 
     @Autowired
     SecurityConfigurer(AuthenticationExceptionEntryPoint exceptionEntryPoint,
                        MarfimUserDetailsService userDetailsService,
                        AuthenticationManagerBuilder builder,
                        MarfimJWTToken marfimJWTToken,
-                       ObjectMapper mapper) throws Exception {
+                       ObjectMapper mapper, AuthorizationUtilService authorizationUtilService) throws Exception {
 
         this.userDetailsService = userDetailsService;
         this.exceptionEntryPoint = exceptionEntryPoint;
         this.marfimJWTToken = marfimJWTToken;
+        this.authorizationUtilService = authorizationUtilService;
         builder.userDetailsService(this.userDetailsService);
     }
 
@@ -54,7 +57,7 @@ public class SecurityConfigurer extends WebSecurityConfigurerAdapter {
                 .oauth2ResourceServer().authenticationEntryPoint(exceptionEntryPoint)
 // TODO                .authenticationManagerResolver(new JwtIssuerAuthenticationManagerResolver("teste"))
                 .jwt()
-                .jwtAuthenticationConverter(new MarfimJwtAuthenticationConverter())
+                .jwtAuthenticationConverter(new MarfimJwtAuthenticationConverter(authorizationUtilService))
                 .decoder(new MarfimJwtDecoder(marfimJWTToken));
 
     }

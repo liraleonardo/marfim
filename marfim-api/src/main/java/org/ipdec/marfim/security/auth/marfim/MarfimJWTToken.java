@@ -6,6 +6,7 @@ import io.jsonwebtoken.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import org.ipdec.marfim.api.model.Role;
 import org.ipdec.marfim.api.model.User;
 import org.ipdec.marfim.config.properties.OAuthProperties;
 import org.ipdec.marfim.security.MarfimUserDetails;
@@ -17,10 +18,8 @@ import org.springframework.stereotype.Component;
 import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Type;
 import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class MarfimJWTToken {
@@ -53,13 +52,21 @@ public class MarfimJWTToken {
 	}
 
 
-	public String generateToken(MarfimUserDetails userDetails) {
+	public String generateToken(User user) {
+		// Token generation
 		JwtBuilder jwtBuilder = Jwts.builder();
 
+		//adding user on token
+		jwtBuilder.setClaims(mapper.convertValue(user, HashMap.class));
 
-		// Token generation
-		jwtBuilder.setClaims(mapper.convertValue(userDetails, HashMap.class));
-		jwtBuilder.setSubject(userDetails.getUser().getId().toString());
+		//adding user role ids on token
+		List<Long> roleIdList = user.getRoles().stream().map(Role::getId).collect(Collectors.toList());
+		HashMap<String, Object> scopeClaims = new HashMap<>();
+		scopeClaims.put("roles",roleIdList);
+		jwtBuilder.addClaims(scopeClaims);
+
+		//adding other jwt claims
+		jwtBuilder.setSubject(user.getId().toString());
 		jwtBuilder.setIssuer(getProperties().getAppName());
 		jwtBuilder.setIssuedAt(new Date());
 		jwtBuilder.setExpiration(new Date(new Date().getTime() + (EXPIRES_IN_DAYS * 1000 * 3600 * 24)));

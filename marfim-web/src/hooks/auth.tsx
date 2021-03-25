@@ -48,8 +48,7 @@ export const AuthProvider: React.FC = ({ children }) => {
       password,
     });
 
-    const { token, userDetails } = response.data;
-    const { user } = userDetails;
+    const { token, user } = response.data;
 
     localStorage.setItem('@Marfim:token', token);
     localStorage.setItem('@Marfim:user', JSON.stringify(user));
@@ -105,8 +104,8 @@ export const AuthProvider: React.FC = ({ children }) => {
 
       // console.log('response', response);
 
-      const { userDetails, token } = response.data;
-      const { user } = userDetails;
+      const { user, token } = response.data;
+
       // console.log('user', user);
 
       setSignedIn(user, token);

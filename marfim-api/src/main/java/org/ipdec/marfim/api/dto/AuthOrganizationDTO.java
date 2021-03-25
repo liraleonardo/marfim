@@ -13,9 +13,9 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @AllArgsConstructor
 @NoArgsConstructor
-public class AuthDTO {
+public class AuthOrganizationDTO {
+    private Long id;
+    private String name;
+    private List<AuthOrganizationRoleDTO> userRoles;
 
-    private String token;
-    private AuthUserDTO user;
-    private List<AuthOrganizationDTO> organizations;
 }

@@ -1,5 +1,6 @@
 package org.ipdec.marfim.api.service;
 
+import lombok.AllArgsConstructor;
 import org.ipdec.marfim.api.dto.AuthDTO;
 import org.ipdec.marfim.api.dto.LoginMarfimDTO;
 import org.ipdec.marfim.security.MarfimUserDetails;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 
 @Service
+@AllArgsConstructor
 public class LoginMarfimService {
 
     @Autowired
@@ -21,6 +23,9 @@ public class LoginMarfimService {
     @Autowired
     MarfimJWTToken marfimJWTToken;
 
+    @Autowired
+    AuthenticationUtilService authenticationUtilService;
+
     public AuthDTO login(LoginMarfimDTO dto) {
 
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(dto.getEmail(), dto.getPassword()));
@@ -28,7 +33,7 @@ public class LoginMarfimService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         MarfimUserDetails userDetails = (MarfimUserDetails) authentication.getPrincipal();
 
-        return  new AuthDTO(marfimJWTToken.generateToken(userDetails), userDetails);
+        return  authenticationUtilService.createAuthDTO(userDetails.getUser());
     }
 
 }

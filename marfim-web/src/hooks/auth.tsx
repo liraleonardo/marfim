@@ -1,16 +1,35 @@
-import React, { createContext, useCallback, useContext, useState } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 import api from '../services/api';
+import {
+  getAuthStateFromStorage,
+  removeAuthStateFromStorage,
+  setAuthStateToStorage,
+} from '../utils/storageService';
+
+export interface Organization {
+  id: string;
+  name: string;
+}
 
 export interface User {
   id: string;
   avatarUrl: string;
   name: string;
   email: string;
+  isSuper: boolean;
 }
 
-interface AuthState {
+export interface AuthState {
   token: string;
   user: User;
+  organizations?: Organization[];
+  selectedOrganization?: Organization;
 }
 
 interface SignInCredentials {
@@ -22,7 +41,7 @@ interface AuthContextData {
   user: User;
   signIn(credentials: SignInCredentials): Promise<void>;
   signInGoogle(token: string): Promise<boolean>;
-  setSignedIn(user: User, token: string): void;
+  setSignedIn(authState: AuthState): void;
   signOut(): void;
   updateUser(user: User): void;
 }
@@ -30,37 +49,32 @@ interface AuthContextData {
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
 export const AuthProvider: React.FC = ({ children }) => {
-  const [data, setData] = useState<AuthState>(() => {
-    const token = localStorage.getItem('@Marfim:token');
-    const user = localStorage.getItem('@Marfim:user');
+  const [data, setData] = useState<AuthState>({} as AuthState);
+  // const [toChooseOrganization, setToChooseOrganization] = useState(false);
 
-    if (token && user) {
-      api.defaults.headers.authorization = `Bearer ${token}`;
-      return { token, user: JSON.parse(user) };
-    }
+  const setSignedIn = useCallback(
+    (authState: AuthState) => {
+      if (authState.token) {
+        api.defaults.headers.Authorization = `Bearer ${authState.token}`;
+      }
 
-    return {} as AuthState;
-  });
+      if (authState.selectedOrganization) {
+        api.defaults.headers[
+          'X-TenantID'
+        ] = `${authState.selectedOrganization.id}`;
+      }
 
-  const signIn = useCallback(async ({ email, password }) => {
-    const response = await api.post('login/marfim', {
-      email,
-      password,
-    });
+      setData(authState);
+    },
+    [setData],
+  );
 
-    const { token, user } = response.data;
-
-    localStorage.setItem('@Marfim:token', token);
-    localStorage.setItem('@Marfim:user', JSON.stringify(user));
-
-    api.defaults.headers.authorization = `Bearer ${token}`;
-
-    setData({ token, user });
-  }, []);
+  useEffect(() => {
+    setSignedIn(getAuthStateFromStorage());
+  }, [setSignedIn]);
 
   const signOut = useCallback(() => {
-    localStorage.removeItem('@Marfim:token');
-    localStorage.removeItem('@Marfim:user');
+    removeAuthStateFromStorage();
 
     api.defaults.headers = {};
 
@@ -74,54 +88,70 @@ export const AuthProvider: React.FC = ({ children }) => {
       setData({
         token: data.token,
         user,
+        organizations: data.organizations,
       });
     },
-    [setData, data.token],
+    [setData, data],
   );
 
-  const setSignedIn = useCallback(
-    (user: User, token: string) => {
-      console.log(user, token);
-      localStorage.setItem('@Marfim:user', JSON.stringify(user));
-      localStorage.setItem('@Marfim:token', token);
+  const handleSignIn = useCallback(
+    (authState: AuthState) => {
+      const { user } = authState;
+      const handledAuthState: AuthState = authState;
 
-      api.defaults.headers = {
-        Authorization: `Bearer ${token}`,
-        // 'Access-Control-Allow-Origin': '*',
-        // 'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
-      };
+      if (user.isSuper) {
+        handledAuthState.organizations = undefined;
+        handledAuthState.selectedOrganization = undefined;
+      }
 
-      setData({ token, user });
+      if (handledAuthState.organizations) {
+        if (handledAuthState.organizations.length === 0) {
+          throw new Error('There is no organization associated with this user');
+        }
+
+        if (handledAuthState.organizations.length === 1) {
+          [
+            handledAuthState.selectedOrganization,
+          ] = handledAuthState.organizations;
+        } else {
+          // TODO: call a modal for choosing a organization
+          throw new Error(
+            'There is more than one organization associated with this user',
+          );
+        }
+      }
+
+      setAuthStateToStorage(authState);
+      setSignedIn(handledAuthState);
     },
-    [setData],
+    [setSignedIn],
+  );
+
+  const signIn = useCallback(
+    async ({ email, password }) => {
+      const response = await api.post('login/marfim', {
+        email,
+        password,
+      });
+
+      const authState: AuthState = response.data;
+
+      handleSignIn(authState);
+    },
+    [handleSignIn],
   );
 
   const signInGoogle = useCallback(
     async (requestToken: string) => {
-      console.log(requestToken);
-
       const response = await api.post('login/google', { token: requestToken });
 
-      // console.log('response', response);
+      const authState: AuthState = response.data;
 
-      const { user, token } = response.data;
-
-      // console.log('user', user);
-
-      setSignedIn(user, token);
-
-      // localStorage.setItem('@Marfim:user', JSON.stringify(user));
-      // localStorage.setItem('@Marfim:token', token);
-
-      // api.defaults.headers = {
-      //   Authorization: `Bearer ${token}`,
-      // };
-
-      // setData({ token, user });
+      handleSignIn(authState);
 
       return false;
     },
-    [setSignedIn],
+    [handleSignIn],
   );
 
   return (
@@ -136,6 +166,10 @@ export const AuthProvider: React.FC = ({ children }) => {
       }}
     >
       {children}
+      {/* <ChooseOrganizationContainer
+        organizations={data.organizations}
+        show={toChooseOrganization}
+      /> */}
     </AuthContext.Provider>
   );
 };

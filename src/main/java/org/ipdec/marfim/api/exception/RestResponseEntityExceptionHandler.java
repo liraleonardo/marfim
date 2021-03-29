@@ -26,6 +26,15 @@ import java.util.stream.Collectors;
 public class RestResponseEntityExceptionHandler
         extends ResponseEntityExceptionHandler {
 
+    @ExceptionHandler({ RuntimeException.class })
+    @ResponseStatus(value=HttpStatus.INTERNAL_SERVER_ERROR)
+    public ResponseErrorDTO handleAccessDeniedException(RuntimeException ex, WebRequest request) {
+        String path = Objects.requireNonNull(((ServletWebRequest) request).getNativeRequest(HttpServletRequest.class)).getRequestURI();
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+        String message = String.format("RuntimeException (%s): %s",ex.getClass().getSimpleName(),ex.getMessage());
+        return new ResponseErrorDTO(path,status,message,ex.getClass().getName());
+    }
+
     @ExceptionHandler({ AccessDeniedException.class })
     @ResponseStatus(value=HttpStatus.FORBIDDEN)
     public ResponseErrorDTO handleAccessDeniedException(AccessDeniedException ex, WebRequest request) {

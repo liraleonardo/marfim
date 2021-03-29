@@ -59,7 +59,7 @@ public class CustomSecurityExpressionRoot implements MethodSecurityExpressionOpe
 
     @Override
     public final boolean hasAnyRole(String... roles) {
-        return hasAnyAuthorityName(defaultRolePrefix, roles);
+        throw new IllegalAccessError("It is not allowed to use 'hasRole' or 'hasAnyRole', use 'hasAuthority' or 'hasAnyAuthority' instead.");
     }
 
     private boolean hasAnyAuthorityName(String prefix, String... roles) {

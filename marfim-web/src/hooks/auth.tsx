@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useState,
 } from 'react';
+import ChooseOraganizationContainer from '../components/ChooseOrganizationContainer';
 import api from '../services/api';
 import {
   getAuthStateFromStorage,
@@ -39,9 +40,11 @@ interface SignInCredentials {
 
 interface AuthContextData {
   user: User;
+  isSigned: boolean;
   signIn(credentials: SignInCredentials): Promise<void>;
   signInGoogle(token: string): Promise<boolean>;
-  setSignedIn(authState: AuthState): void;
+  chooseOrganization(organization: Organization): void;
+  setHeaders(authState: AuthState): void;
   signOut(): void;
   updateUser(user: User): void;
 }
@@ -50,9 +53,10 @@ const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
 export const AuthProvider: React.FC = ({ children }) => {
   const [data, setData] = useState<AuthState>({} as AuthState);
-  // const [toChooseOrganization, setToChooseOrganization] = useState(false);
+  const [isSigned, setIsSigned] = useState(false);
+  const [toChooseOrganization, setToChooseOrganization] = useState(false);
 
-  const setSignedIn = useCallback(
+  const setHeaders = useCallback(
     (authState: AuthState) => {
       if (authState.token) {
         api.defaults.headers.Authorization = `Bearer ${authState.token}`;
@@ -70,8 +74,12 @@ export const AuthProvider: React.FC = ({ children }) => {
   );
 
   useEffect(() => {
-    setSignedIn(getAuthStateFromStorage());
-  }, [setSignedIn]);
+    const authState = getAuthStateFromStorage();
+    if (authState.user && authState.token) {
+      setHeaders(authState);
+      setIsSigned(true);
+    }
+  }, [setHeaders]);
 
   const signOut = useCallback(() => {
     removeAuthStateFromStorage();
@@ -79,6 +87,7 @@ export const AuthProvider: React.FC = ({ children }) => {
     api.defaults.headers = {};
 
     setData({} as AuthState);
+    setIsSigned(false);
   }, []);
 
   const updateUser = useCallback(
@@ -104,7 +113,10 @@ export const AuthProvider: React.FC = ({ children }) => {
         handledAuthState.selectedOrganization = undefined;
       }
 
-      if (handledAuthState.organizations) {
+      if (
+        handledAuthState.organizations &&
+        !handledAuthState.selectedOrganization
+      ) {
         if (handledAuthState.organizations.length === 0) {
           throw new Error('There is no organization associated with this user');
         }
@@ -114,17 +126,18 @@ export const AuthProvider: React.FC = ({ children }) => {
             handledAuthState.selectedOrganization,
           ] = handledAuthState.organizations;
         } else {
-          // TODO: call a modal for choosing a organization
-          throw new Error(
-            'There is more than one organization associated with this user',
-          );
+          setData(handledAuthState);
+          setToChooseOrganization(true);
+          return;
         }
       }
 
-      setAuthStateToStorage(authState);
-      setSignedIn(handledAuthState);
+      setToChooseOrganization(false);
+      setAuthStateToStorage(handledAuthState);
+      setHeaders(handledAuthState);
+      setIsSigned(true);
     },
-    [setSignedIn],
+    [setHeaders],
   );
 
   const signIn = useCallback(
@@ -154,22 +167,43 @@ export const AuthProvider: React.FC = ({ children }) => {
     [handleSignIn],
   );
 
+  const handleCloseChoosingOrganization = useCallback(() => {
+    setToChooseOrganization(false);
+  }, []);
+
+  const chooseOrganization = useCallback(
+    async (organization: Organization) => {
+      handleSignIn({
+        user: data.user,
+        token: data.token,
+        organizations: data.organizations,
+        selectedOrganization: organization,
+      });
+    },
+    [handleSignIn, data],
+  );
+
   return (
     <AuthContext.Provider
       value={{
         user: data.user,
+        isSigned,
         signIn,
         signInGoogle,
-        setSignedIn,
+        chooseOrganization,
+        setHeaders,
         signOut,
         updateUser,
       }}
     >
       {children}
-      {/* <ChooseOrganizationContainer
-        organizations={data.organizations}
-        show={toChooseOrganization}
-      /> */}
+      {data.organizations && toChooseOrganization && (
+        <ChooseOraganizationContainer
+          organizations={data.organizations}
+          toOpen={toChooseOrganization}
+          onRequestClose={handleCloseChoosingOrganization}
+        />
+      )}
     </AuthContext.Provider>
   );
 };

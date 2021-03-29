@@ -32,7 +32,7 @@ export function getAuthStateFromStorage(): AuthState {
     authState.selectedOrganization = JSON.parse(storageSelectedOrganization);
   }
 
-  console.log('storage: ', authState);
+  // console.log('storage: ', authState);
   return authState;
 }
 

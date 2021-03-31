@@ -102,7 +102,7 @@ public class UserRegisterServiceTest {
     @DisplayName("[Unit] It should not register a new user account with already registered email")
     void shouldNotRegisterANewUserWithExistingEmail() {
         CreateUserDTO createUserDTO = new CreateUserDTO("email@email.com","password", "user name");
-        User userFound = new User(UUID.randomUUID(), "email@email.com", "encodedpassword", "user name", null, LocalDateTime.now(), LocalDateTime.now(), true, false, new ArrayList<>());
+        User userFound = new User(UUID.randomUUID(), "email@email.com", "encodedpassword", "user name", null, LocalDateTime.now(), LocalDateTime.now(), true, false, new ArrayList<>(),new ArrayList<>());
 
         // return empty because it is a new email
         Mockito.when(userRepository.findByEmail(createUserDTO.getEmail())).thenReturn(Optional.of(userFound));

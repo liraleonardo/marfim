@@ -52,7 +52,7 @@ public class AuthorityCheckControllerIntTest extends AbstractDBTest{
         mvc.perform(get("/authority/check")
                     .with(user("user1@email.com")
                             .roles("USER")
-                            .authorities(new Permission("READ_AUTHORITY_CHECK","A description"))))
+                            .authorities(new Permission("READ_AUTHORITY_CHECK","A permission name","A description"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", Matchers.containsString("success")));
     }

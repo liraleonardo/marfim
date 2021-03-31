@@ -5,7 +5,9 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.ipdec.marfim.security.tenant.TenantContext;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionOperations;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
@@ -57,13 +59,18 @@ public class CustomSecurityExpressionRoot implements MethodSecurityExpressionOpe
 
     @Override
     public final boolean hasAnyRole(String... roles) {
-        return hasAnyAuthorityName(defaultRolePrefix, roles);
+        throw new IllegalAccessError("It is not allowed to use 'hasRole' or 'hasAnyRole', use 'hasAuthority' or 'hasAnyAuthority' instead.");
     }
 
     private boolean hasAnyAuthorityName(String prefix, String... roles) {
-        final Set<String> roleSet = getAuthoritySet();
+        Long currentTenant = TenantContext.getLongTenant();
+        final Set<String> roleSet = getAuthoritySet(currentTenant);
         if(roleSet.contains(getRoleWithDefaultPrefix(defaultRolePrefix, "SUPER_USER"))){
             return true;
+        }
+
+        if(currentTenant==null){
+            return false;
         }
 
         for (final String role : roles) {
@@ -127,11 +134,15 @@ public class CustomSecurityExpressionRoot implements MethodSecurityExpressionOpe
         this.defaultRolePrefix = defaultRolePrefix;
     }
 
-    private Set<String> getAuthoritySet() {
+    private Set<String> getAuthoritySet(Long organizationId) {
         if (roles == null) {
             roles = new HashSet<String>();
-            Collection<? extends GrantedAuthority> userAuthorities = authentication.getAuthorities();
-
+            Collection<? extends GrantedAuthority> userAuthorities = authentication.getAuthorities().stream().filter(authority -> {
+                return !(authority instanceof CustomAuthority)
+                        || organizationId == null
+                        || ((CustomAuthority) authority).getOrganizationId().longValue() == organizationId;
+            }).collect(Collectors.toList());
+            
             if (roleHierarchy != null) {
                 userAuthorities = roleHierarchy.getReachableGrantedAuthorities(userAuthorities);
             }

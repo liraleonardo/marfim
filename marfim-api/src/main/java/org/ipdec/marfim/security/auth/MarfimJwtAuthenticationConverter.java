@@ -1,6 +1,7 @@
 package org.ipdec.marfim.security.auth;
 
-import org.ipdec.marfim.api.model.Permission;
+import lombok.AllArgsConstructor;
+import org.ipdec.marfim.api.service.AuthorizationUtilService;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -11,8 +12,12 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
+@AllArgsConstructor
 public class MarfimJwtAuthenticationConverter implements Converter<Jwt, AbstractAuthenticationToken> {
+
+    private AuthorizationUtilService authorizationUtilService;
 
     @Override
     public AbstractAuthenticationToken convert(Jwt jwt) {
@@ -25,18 +30,11 @@ public class MarfimJwtAuthenticationConverter implements Converter<Jwt, Abstract
     }
 
     private Collection<GrantedAuthority> getAuthorities(Jwt jwt) {
-        List<LinkedHashMap<String,String>> authorities = jwt.getClaim("authorities");
-        List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
-        authorities.forEach(item -> {
-            Permission permission = new Permission();
-            permission.setName(item.get("name"));
-            permission.setDescription(item.get("description"));
-            GrantedAuthority grantedAuthority = permission;
-            grantedAuthorities.add(grantedAuthority);
-        });
+        Boolean isSuper = jwt.getClaim("isSuper");
+        List<Integer> roleIdListInt = jwt.getClaim("roles");
+        List<Long> roleIdList = roleIdListInt.stream().mapToLong(Integer::longValue).boxed().collect(Collectors.toList());
 
-        return grantedAuthorities;
-
+        return new ArrayList<>(authorizationUtilService.getUserAuthoritiesByRoleIds(roleIdList, isSuper));
     }
 
 

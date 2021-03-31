@@ -16,8 +16,7 @@ const Route: React.FC<RouteProps> = ({
   component: Component,
   ...rest
 }) => {
-  const { user } = useAuth();
-  const isSigned = !!user;
+  const { isSigned } = useAuth();
   return (
     <ReactRoute
       {...rest}

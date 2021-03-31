@@ -57,9 +57,8 @@ const SignIn: React.FC = () => {
           email: data.email,
           password: data.password,
         });
-
-        history.push('/');
       } catch (err) {
+        console.error(err);
         if (err instanceof Yup.ValidationError) {
           const errors = getValidationErrors(err);
 
@@ -90,6 +89,7 @@ const SignIn: React.FC = () => {
             });
           })
           .catch((err) => {
+            console.error(err);
             addToast({
               type: 'error',
               title: 'Error while trying to login with Google.',

@@ -6,9 +6,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
-import org.springframework.security.core.GrantedAuthority;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Objects;
 
 
@@ -18,30 +18,27 @@ import java.util.Objects;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "permission", schema = "marfim")
-public class Permission implements GrantedAuthority {
+public class Permission implements Serializable {
     @Id
+    @Column(nullable = false)
+    private String code;
+
     @Column(nullable = false)
     private String name;
 
     @Column
     private String description;
 
-
-    @Override
-    public String getAuthority() {
-        return name;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Permission)) return false;
         Permission permission = (Permission) o;
-        return Objects.equals(getAuthority(), permission.getAuthority());
+        return Objects.equals(getCode(), permission.getCode());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getAuthority());
+        return Objects.hash(getCode());
     }
 }

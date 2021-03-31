@@ -52,7 +52,7 @@ public class User implements Serializable {
     private LocalDateTime updatedAt;
 
     @Column
-    private Boolean enabled = true;
+    private Boolean enabled;
 
     @Column(name="super")
     private Boolean isSuper;
@@ -63,6 +63,13 @@ public class User implements Serializable {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Collection<Role> roles;
+
+    @JsonIgnore
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "organization_user", schema = "marfim",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "organization_id"))
+    private Collection<Organization> organizations;
 
     @JsonIgnore
     public Boolean isSuper(){

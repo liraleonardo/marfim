@@ -52,7 +52,6 @@ public class AuthorizationUtilService {
                     .map(rolePermission ->
                             new CustomAuthority(rolePermission.getPermission().getCode(), rolePermission.getLevel() , role.getOrganization().getId())
                     ).collect(Collectors.toList());
-            //TODO: consider permission level
             authorities.addAll(rolePermissions);
         });
         return authorities;

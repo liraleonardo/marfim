@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -22,6 +23,19 @@ public class UserService {
 
     public List<User> findAll() {
         return userRepository.findAll();
+    }
+
+    public List<User> findAll(Long organizationId) {
+        List<User> allUsers = userRepository.findAll();
+        if(organizationId==null) {
+            return allUsers;
+        }
+
+        return allUsers.stream().filter(user -> {
+            return user.getOrganizations().stream().anyMatch(userOrganization ->
+                    userOrganization.getId().longValue() == organizationId);
+        }).collect(Collectors.toList());
+
     }
 
 }

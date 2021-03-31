@@ -7,7 +7,6 @@ public class TenantContext {
         return currentTenant.get();
     }
 
-    //TODO: tratar de forma mais legível erro de tenância inválida
     public static Long getLongTenant() throws NumberFormatException{
         return getCurrentTenant() == null ? null : Long.parseLong(getCurrentTenant());
     }

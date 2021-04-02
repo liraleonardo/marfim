@@ -14,7 +14,7 @@ import {
 } from '../utils/storageService';
 
 export interface Organization {
-  id: string;
+  id: number;
   name: string;
 }
 
@@ -40,7 +40,10 @@ interface SignInCredentials {
 
 interface AuthContextData {
   user: User;
+  selectedOrganization: Organization;
+  organizations: Organization[];
   isSigned: boolean;
+  checkSigned(): Promise<boolean>;
   signIn(credentials: SignInCredentials): Promise<void>;
   signInGoogle(token: string): Promise<boolean>;
   chooseOrganization(organization: Organization): void;
@@ -80,6 +83,15 @@ export const AuthProvider: React.FC = ({ children }) => {
       setIsSigned(true);
     }
   }, [setHeaders]);
+
+  const checkSigned = useCallback(async () => {
+    const authState = getAuthStateFromStorage();
+    if (authState.user && authState.token) {
+      setHeaders(authState);
+      setIsSigned(true);
+    }
+    return isSigned;
+  }, [setHeaders, isSigned]);
 
   const signOut = useCallback(() => {
     removeAuthStateFromStorage();
@@ -187,7 +199,14 @@ export const AuthProvider: React.FC = ({ children }) => {
     <AuthContext.Provider
       value={{
         user: data.user,
+        selectedOrganization:
+          data.selectedOrganization ||
+          ({
+            name: 'SUPER_USER',
+          } as Organization),
+        organizations: data.organizations || [],
         isSigned,
+        checkSigned,
         signIn,
         signInGoogle,
         chooseOrganization,

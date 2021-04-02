@@ -5,32 +5,42 @@ import {
   Redirect,
 } from 'react-router-dom';
 import { useAuth } from '../hooks/auth';
+import Main from '../pages/Main';
 
 interface RouteProps extends ReactRouteProps {
-  isPrivate?: boolean;
+  isPublic?: boolean;
   component: React.ComponentType;
 }
 
 const Route: React.FC<RouteProps> = ({
-  isPrivate = false,
+  isPublic = false,
   component: Component,
   ...rest
 }) => {
   const { isSigned } = useAuth();
+  const isPrivate = !isPublic;
   return (
     <ReactRoute
       {...rest}
       render={({ location }) => {
-        return isPrivate === isSigned ? (
-          <Component />
-        ) : (
-          <Redirect
-            to={{
-              pathname: isPrivate ? '/signin' : '/',
-              state: { from: location },
-            }}
-          />
-        );
+        if (isPrivate && isSigned) {
+          return (
+            <Main>
+              <Component />
+            </Main>
+          );
+        }
+        if (isPrivate !== isSigned) {
+          return (
+            <Redirect
+              to={{
+                pathname: isPrivate ? '/signin' : '/',
+                state: { from: location },
+              }}
+            />
+          );
+        }
+        return <Component />;
       }}
     />
   );

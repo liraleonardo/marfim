@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Menubar } from 'primereact/menubar';
 import { Menu } from 'primereact/menu';
 import { Button } from 'primereact/button';
@@ -9,6 +9,7 @@ import { Container, AppTopBar, AppMain, AppSideBar, PageTitle } from './styles';
 
 import logoImg from '../../assets/logo.jpg';
 import { useAuth } from '../../hooks/auth';
+import { getRoutesMap } from '../../utils/routeUtils';
 
 interface OrganizationMenuItem extends MenuItem {
   organizationId: number;
@@ -24,6 +25,8 @@ const Main: React.FC<MainProps> = ({ children, isToshowMain }) => {
 
   const menuRef = useRef<Menu>(null);
   const history = useHistory();
+
+  const routeMap = useMemo(() => getRoutesMap(), []);
 
   const toggleMenu = useCallback(() => {
     setShowMenu(!showMenu);
@@ -94,7 +97,7 @@ const Main: React.FC<MainProps> = ({ children, isToshowMain }) => {
         className="p-mr-2"
         onClick={toggleMenu}
       />
-      <PageTitle> {location.pathname} </PageTitle>
+      <PageTitle> {routeMap[location.pathname]} </PageTitle>
     </div>
   );
 

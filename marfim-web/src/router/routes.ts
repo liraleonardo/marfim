@@ -9,9 +9,9 @@ import Role from '../pages/Role';
 import SignIn from '../pages/SignIn';
 import SignUp from '../pages/SignUp';
 import User from '../pages/User';
-import { WITH_AUTH } from './types';
+import { WITH_AUTH, SHOW_ROUTE_LABEL } from './types';
 
-interface RouteProps {
+export interface RouteProps {
   key: string;
   path: string;
   component: React.FC<unknown>;
@@ -44,6 +44,7 @@ export default (): RouteProps[] => [
     error: 'Custom error for home page',
     meta: {
       [WITH_AUTH]: true,
+      [SHOW_ROUTE_LABEL]: 'Dashboard',
     },
   },
   {
@@ -55,6 +56,7 @@ export default (): RouteProps[] => [
     error: 'Custom error for home page',
     meta: {
       [WITH_AUTH]: true,
+      [SHOW_ROUTE_LABEL]: 'Meu Perfil',
     },
   },
   {
@@ -64,6 +66,7 @@ export default (): RouteProps[] => [
     component: Organization,
     meta: {
       [WITH_AUTH]: true,
+      [SHOW_ROUTE_LABEL]: 'Organizações',
     },
   },
   {
@@ -73,6 +76,7 @@ export default (): RouteProps[] => [
     component: User,
     meta: {
       [WITH_AUTH]: true,
+      [SHOW_ROUTE_LABEL]: 'Usuários',
     },
   },
   {
@@ -82,6 +86,7 @@ export default (): RouteProps[] => [
     component: Role,
     meta: {
       [WITH_AUTH]: true,
+      [SHOW_ROUTE_LABEL]: 'Controle de Acesso',
     },
   },
   {
@@ -91,6 +96,7 @@ export default (): RouteProps[] => [
     component: Project,
     meta: {
       [WITH_AUTH]: true,
+      [SHOW_ROUTE_LABEL]: 'Projetos',
     },
   },
   {

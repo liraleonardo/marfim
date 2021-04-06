@@ -7,6 +7,7 @@ import {
 import { getAuthStateFromStorage } from '../../utils/storageService';
 import { WITH_AUTH } from '../types';
 import getRoutes from '../routes';
+import { getPublicRoutes } from '../../utils/routeUtils';
 
 const requireAuthenticated: GuardFunction = (
   to: GuardToRoute,
@@ -18,9 +19,7 @@ const requireAuthenticated: GuardFunction = (
   const getIsLoggedIn = !!user && !!token;
 
   // find all routes that does not use authentication
-  const withoutAuthRoutes = getRoutes()
-    .filter((route) => !route.meta || !route.meta[WITH_AUTH])
-    .map((route) => route.path);
+  const withoutAuthRoutes = getPublicRoutes();
 
   // redirect to signin when route needs authentication and user is not authenticated
   if (to.meta[WITH_AUTH] && !getIsLoggedIn) {

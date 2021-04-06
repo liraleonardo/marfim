@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 import ChooseOraganizationContainer from '../components/ChooseOrganizationContainer';
 import api from '../services/api';
+import setApiHeaders from '../utils/authUtils';
 import {
   getAuthStateFromStorage,
   removeAuthStateFromStorage,
@@ -43,11 +44,11 @@ interface AuthContextData {
   selectedOrganization: Organization;
   organizations: Organization[];
   isSigned: boolean;
-  checkSigned(): Promise<boolean>;
+  loadingAuthentication: boolean;
   signIn(credentials: SignInCredentials): Promise<void>;
   signInGoogle(token: string): Promise<boolean>;
   chooseOrganization(organization: Organization): void;
-  setHeaders(authState: AuthState): void;
+  setAuthState(authState: AuthState): void;
   signOut(): void;
   updateUser(user: User): void;
 }
@@ -57,41 +58,25 @@ const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 export const AuthProvider: React.FC = ({ children }) => {
   const [data, setData] = useState<AuthState>({} as AuthState);
   const [isSigned, setIsSigned] = useState(false);
-  const [toChooseOrganization, setToChooseOrganization] = useState(false);
+  const [loadingAuthentication, setLoadingAuthentication] = useState(true);
+  const [choosingOrganization, setChoosingOrganization] = useState(false);
 
-  const setHeaders = useCallback(
-    (authState: AuthState) => {
-      if (authState.token) {
-        api.defaults.headers.Authorization = `Bearer ${authState.token}`;
-      }
-
-      if (authState.selectedOrganization) {
-        api.defaults.headers[
-          'X-TenantID'
-        ] = `${authState.selectedOrganization.id}`;
-      }
-
-      setData(authState);
-    },
-    [setData],
-  );
+  const setAuthState = useCallback((authState: AuthState) => {
+    const tenantID = authState.selectedOrganization?.id;
+    setApiHeaders(authState.token, tenantID);
+    setData(authState);
+    if (authState.token && authState.user) {
+      setIsSigned(true);
+    } else {
+      setIsSigned(false);
+    }
+  }, []);
 
   useEffect(() => {
     const authState = getAuthStateFromStorage();
-    if (authState.user && authState.token) {
-      setHeaders(authState);
-      setIsSigned(true);
-    }
-  }, [setHeaders]);
-
-  const checkSigned = useCallback(async () => {
-    const authState = getAuthStateFromStorage();
-    if (authState.user && authState.token) {
-      setHeaders(authState);
-      setIsSigned(true);
-    }
-    return isSigned;
-  }, [setHeaders, isSigned]);
+    setAuthState(authState);
+    setLoadingAuthentication(false);
+  }, [setAuthState]);
 
   const signOut = useCallback(() => {
     removeAuthStateFromStorage();
@@ -139,17 +124,16 @@ export const AuthProvider: React.FC = ({ children }) => {
           ] = handledAuthState.organizations;
         } else {
           setData(handledAuthState);
-          setToChooseOrganization(true);
+          setChoosingOrganization(true);
           return;
         }
       }
 
-      setToChooseOrganization(false);
+      setChoosingOrganization(false);
       setAuthStateToStorage(handledAuthState);
-      setHeaders(handledAuthState);
-      setIsSigned(true);
+      setAuthState(handledAuthState);
     },
-    [setHeaders],
+    [setAuthState],
   );
 
   const signIn = useCallback(
@@ -180,7 +164,7 @@ export const AuthProvider: React.FC = ({ children }) => {
   );
 
   const handleCloseChoosingOrganization = useCallback(() => {
-    setToChooseOrganization(false);
+    setChoosingOrganization(false);
   }, []);
 
   const chooseOrganization = useCallback(
@@ -206,20 +190,20 @@ export const AuthProvider: React.FC = ({ children }) => {
           } as Organization),
         organizations: data.organizations || [],
         isSigned,
-        checkSigned,
+        loadingAuthentication,
         signIn,
         signInGoogle,
         chooseOrganization,
-        setHeaders,
+        setAuthState,
         signOut,
         updateUser,
       }}
     >
       {children}
-      {data.organizations && toChooseOrganization && (
+      {data.organizations && choosingOrganization && (
         <ChooseOraganizationContainer
           organizations={data.organizations}
-          toOpen={toChooseOrganization}
+          toOpen={choosingOrganization}
           onRequestClose={handleCloseChoosingOrganization}
         />
       )}

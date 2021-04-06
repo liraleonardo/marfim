@@ -1,23 +1,27 @@
 import React from 'react';
-import { BrowserRouter as Router } from 'react-router-dom';
+import { RouteComponentProps } from 'react-router-dom';
 // import 'primereact/resources/themes/saga-green/theme.css';
 import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
-import Routes from './routes';
+import Router from './router';
 
 import AppProvider from './hooks';
 
 import GlobalStyle from './styles/global';
 import './styles/theme.css';
+import MainContainer from './components/MainContainer';
 
-const App: React.FC = () => (
-  <Router>
+const App: React.FC = () => {
+  return (
     <AppProvider>
-      <Routes />
+      <Router>
+        {(content: React.ReactNode, routeProps: RouteComponentProps) => (
+          <MainContainer {...routeProps}>{content}</MainContainer>
+        )}
+      </Router>
+      <GlobalStyle />
     </AppProvider>
-
-    <GlobalStyle />
-  </Router>
-);
+  );
+};
 
 export default App;

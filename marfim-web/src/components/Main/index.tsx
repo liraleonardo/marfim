@@ -14,7 +14,11 @@ interface OrganizationMenuItem extends MenuItem {
   organizationId: number;
 }
 
-const Main: React.FC = ({ children }) => {
+interface MainProps {
+  isToshowMain: boolean;
+}
+
+const Main: React.FC<MainProps> = ({ children, isToshowMain }) => {
   const [showMenu, setShowMenu] = useState(true);
   const location = useLocation();
 
@@ -57,7 +61,7 @@ const Main: React.FC = ({ children }) => {
     },
 
     {
-      label: user.name,
+      label: user?.name || 'User Name Placeholder',
       icon: 'pi pi-fw pi-user',
       items: [
         {
@@ -108,59 +112,62 @@ const Main: React.FC = ({ children }) => {
       label: 'Organizações',
       icon: 'pi pi-fw pi-briefcase',
       command: () => {
-        history.push('/organization');
+        history.push('/organizations');
       },
     },
     {
       label: 'Usuários',
       icon: 'pi pi-fw pi-users',
       command: () => {
-        history.push('/user');
+        history.push('/users');
       },
     },
     {
       label: 'Controle de Acesso',
       icon: 'pi pi-fw pi-unlock',
       command: () => {
-        history.push('/role');
+        history.push('/roles');
       },
     },
     {
       label: 'Projetos',
       icon: 'pi pi-fw pi-list',
       command: () => {
-        history.push('/project');
+        history.push('/projects');
       },
     },
   ];
 
-  return (
-    <Container>
-      {showMenu && (
-        <AppSideBar className="app-side-bar">
-          <img src={logoImg} alt="Marfim" />
+  if (isToshowMain) {
+    return (
+      <Container>
+        {showMenu && (
+          <AppSideBar className="app-side-bar">
+            <img src={logoImg} alt="Marfim" />
 
-          <Menu
-            className="app-pages-menu"
-            model={sideBarMenuItems}
-            style={{ height: '100%', width: 250, border: 0 }}
-            ref={menuRef}
-            id="app-menu"
-          />
-        </AppSideBar>
-      )}
-      <AppMain>
-        <AppTopBar className="app-top-bar">
-          <Toolbar
-            left={topBarStart}
-            right={topBarEnd}
-            style={{ height: 60, border: 0 }}
-          />
-        </AppTopBar>
-        <div>{children}</div>
-      </AppMain>
-    </Container>
-  );
+            <Menu
+              className="app-pages-menu"
+              model={sideBarMenuItems}
+              style={{ height: '100%', width: 250, border: 0 }}
+              ref={menuRef}
+              id="app-menu"
+            />
+          </AppSideBar>
+        )}
+        <AppMain>
+          <AppTopBar className="app-top-bar">
+            <Toolbar
+              left={topBarStart}
+              right={topBarEnd}
+              style={{ height: 60, border: 0 }}
+            />
+          </AppTopBar>
+          <div>{children}</div>
+        </AppMain>
+      </Container>
+    );
+  }
+  return <>{children}</>;
 };
 
 export default Main;

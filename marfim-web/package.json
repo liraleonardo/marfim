@@ -23,6 +23,7 @@
     "react-google-login": "^5.2.2",
     "react-icons": "^4.1.0",
     "react-router-dom": "^5.2.0",
+    "react-router-guards": "^1.0.2",
     "react-scripts": "4.0.2",
     "react-spring": "^8.0.27",
     "react-transition-group": "^4.4.1",

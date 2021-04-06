@@ -17,12 +17,13 @@ import api from '../../services/api';
 import { useToast } from '../../hooks/toast';
 
 const Dashboard: React.FC = () => {
-  const { signOut, user } = useAuth();
+  const { signOut, user, selectedOrganization } = useAuth();
   const { addToast } = useToast();
 
   const [users, setUsers] = useState<User[]>([]);
 
   useEffect(() => {
+    setUsers([]);
     api
       .get('user')
       .then((response) => {
@@ -36,7 +37,7 @@ const Dashboard: React.FC = () => {
           description: `Erro ${err.response.status}: ${err.response.data.message} `,
         });
       });
-  }, [addToast]);
+  }, [addToast, selectedOrganization]);
 
   return (
     <Container>

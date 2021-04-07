@@ -140,6 +140,7 @@ public class CustomSecurityExpressionRoot implements MethodSecurityExpressionOpe
             Collection<? extends GrantedAuthority> userAuthorities = authentication.getAuthorities().stream().filter(authority -> {
                 return !(authority instanceof CustomAuthority)
                         || organizationId == null
+                        || (((CustomAuthority) authority).getOrganizationId()==null)
                         || ((CustomAuthority) authority).getOrganizationId().longValue() == organizationId;
             }).collect(Collectors.toList());
             

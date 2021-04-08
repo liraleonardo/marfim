@@ -4,13 +4,11 @@ export const Container = styled.div`
   flex: 1;
   display: flex;
   flex-direction: row;
-  background-color: #fff;
 `;
 
 export const AppMain = styled.div`
   width: 100%;
   height: 100vh;
-  /* background-color: #ff00ff; */
 `;
 
 export const AppTopBar = styled.div``;
@@ -26,7 +24,7 @@ export const AppSideBar = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: #fff5ec;
+  background-color: #fff;
 
   border-style: solid;
   border-width: 1px;
@@ -34,7 +32,7 @@ export const AppSideBar = styled.div`
   border-bottom: 0;
   border-left: 0;
 
-  border-color: #efe5dc;
+  border-color: #e7e7e7;
 
   img {
     width: 100px;
@@ -42,6 +40,6 @@ export const AppSideBar = styled.div`
   }
 
   .app-pages-menu {
-    background-color: #fff5ec;
+    background-color: inherit;
   }
 `;

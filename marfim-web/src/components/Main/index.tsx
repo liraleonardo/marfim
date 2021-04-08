@@ -1,10 +1,10 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
+import classNames from 'classnames';
 import { Menubar } from 'primereact/menubar';
 import { Menu } from 'primereact/menu';
 import { Button } from 'primereact/button';
-import { Toolbar } from 'primereact/toolbar';
 import { MenuItem } from 'primereact/components/menuitem/MenuItem';
-import { useHistory, useLocation } from 'react-router-dom';
+import { Link, useHistory, useLocation } from 'react-router-dom';
 import { Container, AppTopBar, AppMain, AppSideBar, PageTitle } from './styles';
 
 import logoImg from '../../assets/logo.jpg';
@@ -20,6 +20,7 @@ interface MainProps {
 }
 
 const Main: React.FC<MainProps> = ({ children, isToshowMain }) => {
+  const [menuMode, setMenuMode] = useState('static');
   const [showMenu, setShowMenu] = useState(true);
   const location = useLocation();
 
@@ -27,10 +28,6 @@ const Main: React.FC<MainProps> = ({ children, isToshowMain }) => {
   const history = useHistory();
 
   const routeMap = useMemo(() => getRoutesMap(), []);
-
-  const toggleMenu = useCallback(() => {
-    setShowMenu(!showMenu);
-  }, [showMenu]);
 
   const {
     user,
@@ -85,21 +82,11 @@ const Main: React.FC<MainProps> = ({ children, isToshowMain }) => {
     },
   ];
 
-  const topBarStart = (
-    <div
-      style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}
-    >
-      <Button
-        style={{ border: 0, backgroundColor: 'transparent', borderWidth: 0 }}
-        alt="hide-sidebar"
-        icon="pi pi-fw pi-bars"
-        height="40"
-        className="p-mr-2"
-        onClick={toggleMenu}
-      />
-      <PageTitle> {routeMap[location.pathname]} </PageTitle>
-    </div>
-  );
+  const toggleMenu = useCallback(() => {
+    setShowMenu(!showMenu);
+    if (menuMode === 'static') setMenuMode('static-inactive');
+    if (menuMode === 'static-inactive') setMenuMode('static');
+  }, [showMenu, menuMode]);
 
   const topBarEnd = <Menubar style={{ border: 0 }} model={topBarMenuItems} />;
 
@@ -141,31 +128,53 @@ const Main: React.FC<MainProps> = ({ children, isToshowMain }) => {
     },
   ];
 
+  const containerClassName = classNames('layout-wrapper', {
+    'layout-static': menuMode === 'static',
+    'layout-static-inactive': menuMode === 'static-inactive',
+  });
+
   if (isToshowMain) {
     return (
-      <Container>
+      <Container className={containerClassName} data-theme="light">
         {showMenu && (
-          <AppSideBar className="app-side-bar">
-            <img src={logoImg} alt="Marfim" />
-
-            <Menu
-              className="app-pages-menu"
-              model={sideBarMenuItems}
-              style={{ height: '100%', width: 250, border: 0 }}
-              ref={menuRef}
-              id="app-menu"
-            />
+          <AppSideBar className="layout-sidebar">
+            <Link to="/">
+              <img src={logoImg} alt="Marfim" />
+            </Link>
+            <div className="layout-menu-container">
+              <Menu
+                className="layout-menu"
+                model={sideBarMenuItems}
+                style={{ height: '100%', width: 250, border: 0 }}
+                ref={menuRef}
+                id="app-menu"
+              />
+            </div>
           </AppSideBar>
         )}
-        <AppMain>
-          <AppTopBar className="app-top-bar">
-            <Toolbar
-              left={topBarStart}
-              right={topBarEnd}
-              style={{ height: 60, border: 0 }}
-            />
+        <AppMain className="layout-content-wrapper">
+          <AppTopBar className="layout-topbar">
+            <div className="topbar-left">
+              <button
+                type="button"
+                className="menu-button p-link"
+                onClick={toggleMenu}
+              >
+                <i className="pi pi-chevron-left" />
+              </button>
+              <span className="topbar-separator" />
+
+              <div
+                className="layout-breadcrumb viewname"
+                style={{ textTransform: 'uppercase' }}
+              >
+                <span>{routeMap[location.pathname]}</span>
+              </div>
+            </div>
+
+            <div className="topbar-right">{topBarEnd}</div>
           </AppTopBar>
-          <div>{children}</div>
+          <div className="layout-content">{children}</div>
         </AppMain>
       </Container>
     );

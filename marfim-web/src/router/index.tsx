@@ -2,7 +2,7 @@ import React, { ReactNode, useMemo } from 'react';
 
 import { Switch, Route, BrowserRouter } from 'react-router-dom';
 import { GuardProvider, GuardedRoute } from 'react-router-guards';
-import NotFound from '../pages/NotFound';
+import NotFoundPage from '../pages/NotFoundPage';
 import { requireAuthenticated, waitOneSecond } from './guards';
 
 import getRoutes from './routes';
@@ -21,7 +21,7 @@ const Router: React.FC<ReactNodeInterface> = ({ children }) => {
       <GuardProvider
         guards={GLOBAL_GUARDS}
         loading="Loading..."
-        error={NotFound}
+        error={NotFoundPage}
       >
         {children && (
           <Route

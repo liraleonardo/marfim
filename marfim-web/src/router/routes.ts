@@ -1,14 +1,14 @@
 import { PageComponent } from 'react-router-guards';
 import { Meta } from 'react-router-guards/dist/types';
-import Dashboard from '../pages/Dashboard';
-import NotFound from '../pages/NotFound';
-import Organization from '../pages/Organization';
-import Profile from '../pages/Profile';
-import Project from '../pages/Project';
-import Role from '../pages/Role';
-import SignIn from '../pages/SignIn';
-import SignUp from '../pages/SignUp';
-import User from '../pages/User';
+import DashboardPage from '../pages/DashboardPage';
+import NotFoundPage from '../pages/NotFoundPage';
+import OrganizationPage from '../pages/OrganizationPage';
+import ProfilePage from '../pages/ProfilePage';
+import ProjectPage from '../pages/ProjectPage';
+import RolePage from '../pages/RolePage';
+import SignInPage from '../pages/SignInPage';
+import SignUpPage from '../pages/SignUpPage';
+import UserPage from '../pages/UserPage';
 import { WITH_AUTH, SHOW_ROUTE_LABEL } from './types';
 
 export interface RouteProps {
@@ -27,19 +27,19 @@ export default (): RouteProps[] => [
     key: 'signInPage',
     path: '/signin',
     exact: true,
-    component: SignIn,
+    component: SignInPage,
   },
   {
     key: 'signUpPage',
     path: '/signup',
     exact: true,
-    component: SignUp,
+    component: SignUpPage,
   },
   {
     key: 'dashboardPage',
     path: '/',
     exact: true,
-    component: Dashboard,
+    component: DashboardPage,
     loading: 'Custom loading for home page...',
     error: 'Custom error for home page',
     meta: {
@@ -51,7 +51,7 @@ export default (): RouteProps[] => [
     key: 'profilePage',
     path: '/profile',
     exact: true,
-    component: Profile,
+    component: ProfilePage,
     loading: 'Custom loading for home page...',
     error: 'Custom error for home page',
     meta: {
@@ -63,7 +63,7 @@ export default (): RouteProps[] => [
     key: 'organizationsPage',
     path: '/organizations',
     exact: true,
-    component: Organization,
+    component: OrganizationPage,
     meta: {
       [WITH_AUTH]: true,
       [SHOW_ROUTE_LABEL]: 'Organizações',
@@ -73,7 +73,7 @@ export default (): RouteProps[] => [
     key: 'usersPage',
     path: '/users',
     exact: true,
-    component: User,
+    component: UserPage,
     meta: {
       [WITH_AUTH]: true,
       [SHOW_ROUTE_LABEL]: 'Usuários',
@@ -83,7 +83,7 @@ export default (): RouteProps[] => [
     key: 'rolesPage',
     path: '/roles',
     exact: true,
-    component: Role,
+    component: RolePage,
     meta: {
       [WITH_AUTH]: true,
       [SHOW_ROUTE_LABEL]: 'Controle de Acesso',
@@ -93,7 +93,7 @@ export default (): RouteProps[] => [
     key: 'projectsPage',
     path: '/projects',
     exact: true,
-    component: Project,
+    component: ProjectPage,
     meta: {
       [WITH_AUTH]: true,
       [SHOW_ROUTE_LABEL]: 'Projetos',
@@ -102,7 +102,7 @@ export default (): RouteProps[] => [
   {
     key: 'notFoundPage',
     path: '*',
-    component: NotFound,
+    component: NotFoundPage,
     ignoreGlobal: true,
   },
 ];

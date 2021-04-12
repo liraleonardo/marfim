@@ -31,7 +31,7 @@ public class Organization implements Serializable {
     @Column(nullable = false, unique = true)
     private String name;
 
-    @Column(nullable = false)
+    @Column
     private String description;
 
     @Column

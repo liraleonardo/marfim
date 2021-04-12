@@ -13,10 +13,18 @@ export default class Organization {
 
   public updatedAt?: Date;
 
-  public enabled?: Date;
+  public enabled?: boolean;
 
   constructor() {
     this.name = '';
     this.cnpj = '';
   }
+}
+
+export interface ICreateUpdateOrganization {
+  // id?: number;
+  cnpj: string;
+  name: string;
+  description?: string;
+  avatarUrl?: string;
 }

@@ -1,8 +1,9 @@
 import { PageComponent } from 'react-router-guards';
-import { Meta } from 'react-router-guards/dist/types';
+import { GuardFunction, Meta } from 'react-router-guards/dist/types';
 import DashboardPage from '../pages/DashboardPage';
 import NotFoundPage from '../pages/NotFoundPage';
 import OrganizationPage from '../pages/OrganizationPage';
+import OrganizationFormPage from '../pages/OrganizationPage/OrganizationFormPage';
 import ProfilePage from '../pages/ProfilePage';
 import ProjectPage from '../pages/ProjectPage';
 import RolePage from '../pages/RolePage';
@@ -10,6 +11,7 @@ import SignInPage from '../pages/SignInPage';
 import SignUpPage from '../pages/SignUpPage';
 import UserPage from '../pages/UserPage';
 import { WITH_AUTH, SHOW_ROUTE_LABEL } from './types';
+import editGuard from './guards/editOrganizationGuard';
 
 export interface RouteProps {
   key: string;
@@ -20,7 +22,10 @@ export interface RouteProps {
   error?: PageComponent;
   meta?: Meta;
   ignoreGlobal?: boolean;
+  guards?: GuardFunction[];
 }
+
+const defaultEditGuard: GuardFunction[] = [editGuard];
 
 export default (): RouteProps[] => [
   {
@@ -68,6 +73,27 @@ export default (): RouteProps[] => [
       [WITH_AUTH]: true,
       [SHOW_ROUTE_LABEL]: 'Organizações',
     },
+  },
+  {
+    key: 'organizationsFormPage',
+    path: '/organizations/form',
+    exact: true,
+    component: OrganizationFormPage,
+    meta: {
+      [WITH_AUTH]: true,
+      [SHOW_ROUTE_LABEL]: 'Nova Organização',
+    },
+  },
+  {
+    key: 'organizationsEditPage',
+    path: '/organizations/edit/:id',
+    exact: false,
+    component: OrganizationFormPage,
+    meta: {
+      [WITH_AUTH]: true,
+      [SHOW_ROUTE_LABEL]: 'Editar Organização',
+    },
+    guards: defaultEditGuard,
   },
   {
     key: 'usersPage',

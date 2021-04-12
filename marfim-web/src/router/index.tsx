@@ -38,6 +38,7 @@ const Router: React.FC<ReactNodeInterface> = ({ children }) => {
                       loading,
                       meta,
                       path,
+                      guards,
                     }) => (
                       <GuardedRoute
                         key={key}
@@ -48,6 +49,7 @@ const Router: React.FC<ReactNodeInterface> = ({ children }) => {
                         loading={loading}
                         meta={meta}
                         path={path}
+                        guards={guards}
                       />
                     ),
                   )}

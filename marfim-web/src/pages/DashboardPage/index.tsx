@@ -31,11 +31,13 @@ const DashboardPage: React.FC = () => {
       })
       .catch((err) => {
         // console.log(err.response.);
-        addToast({
-          type: 'error',
-          title: 'Ocorreu um erro na requisição',
-          description: `Erro ${err.response.status}: ${err.response.data.message} `,
-        });
+        if (err.response) {
+          addToast({
+            type: 'error',
+            title: 'Ocorreu um erro na requisição',
+            description: `Erro ${err.response.status}: ${err.response.data.message} `,
+          });
+        }
       });
   }, [addToast, selectedOrganization]);
 

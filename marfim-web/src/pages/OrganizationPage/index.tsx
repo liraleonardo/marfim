@@ -1,3 +1,4 @@
+import { confirmDialog } from 'primereact/confirmdialog';
 import { Toolbar } from 'primereact/toolbar';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
@@ -10,18 +11,23 @@ import { RadioButton } from 'primereact/radiobutton';
 import { InputNumber } from 'primereact/inputnumber';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 import { AxiosError } from 'axios';
+import { string } from 'yup/lib/locale';
+import { type } from 'os';
 import Organization from '../../model/Organization';
 import OrganizationService from '../../services/OrganizationService';
 import { Container } from './styles';
 
 import defaultImg from '../../assets/default.jpg';
 import { useAuth } from '../../hooks/auth';
+import Loading from '../../components/Loading';
+import { useToast } from '../../hooks/toast';
 
 const OrganizationPage: React.FC = () => {
   const { selectedOrganization } = useAuth();
+  const { addToast } = useToast();
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [selectedOrganizations, setSelectedOrganizations] = useState<
     Organization[]
@@ -33,22 +39,32 @@ const OrganizationPage: React.FC = () => {
   const history = useHistory();
   const location = useLocation();
 
-  const handleError = (error: AxiosError) => {
+  const handleError = (error: AxiosError, errorAction: string) => {
     console.error(error);
+    addToast({
+      title: `Erro ao tentar ${errorAction}.`,
+      description: `${
+        error.response ? error.response.data.message : error.message
+      }`,
+      type: 'error',
+    });
   };
 
-  useEffect(() => {
+  const reloadOrganizations = useCallback(() => {
     setIsLoading(true);
     setOrganizations([]);
     const organizationService = new OrganizationService();
     organizationService
       .getOrganizations()
       .then((data) => setOrganizations(data))
-      .catch((error) => handleError(error))
+      .catch((error) => handleError(error, 'carregar organizações'))
       .finally(() => {
         setIsLoading(false);
       });
-  }, [selectedOrganization]);
+  }, []);
+  useEffect(() => {
+    reloadOrganizations();
+  }, [selectedOrganization, reloadOrganizations]);
 
   const openNew = () => {
     history.push(location.pathname.concat('/form'));
@@ -58,7 +74,7 @@ const OrganizationPage: React.FC = () => {
     return (
       <>
         <Button
-          label="New"
+          label="Nova Organização"
           icon="pi pi-plus"
           className="p-button-success p-mr-2"
           onClick={openNew}
@@ -85,26 +101,16 @@ const OrganizationPage: React.FC = () => {
     </div>
   );
 
-  const imageBodyTemplate = (rowData: Organization) => {
+  const organizationNameBodyTemplate = (rowData: Organization) => {
     return (
       <>
-        <span className="p-column-title">Image</span>
-        <img
-          src={rowData.avatarUrl || defaultImg}
-          alt={`${rowData.name}`}
-          className="product-image"
-        />
-      </>
-    );
-  };
-
-  const representativeBodyTemplate = (rowData: Organization) => {
-    return (
-      <>
-        {/* <span className="p-column-title">Representative</span> */}
         <img
           alt={rowData.name}
           src={rowData.avatarUrl || defaultImg}
+          onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = defaultImg;
+          }}
           width="32"
           style={{ verticalAlign: 'middle' }}
         />
@@ -118,12 +124,61 @@ const OrganizationPage: React.FC = () => {
     );
   };
 
+  const maskedCnpj = (cnpj: string): string => {
+    const masked = `${cnpj.substring(0, 2)}.${cnpj.substring(
+      2,
+      5,
+    )}.${cnpj.substring(5, 8)}/${cnpj.substring(8, 12)}-${cnpj.substring(12)}`;
+
+    return masked;
+  };
+
+  const organizationCnpjBodyTemplate = (rowData: Organization) => {
+    return (
+      <>
+        <span className="image-text">{maskedCnpj(rowData.cnpj)}</span>
+      </>
+    );
+  };
+
   const editOrganization = (rowData: Organization) => {
     console.log('edit organization', rowData.name);
+    if (rowData.id) {
+      history.push(location.pathname.concat('/edit/', rowData.id.toString()));
+    }
+  };
+
+  const handleConfirmDeleteOrganization = (id: number): void => {
+    const organizationService = new OrganizationService();
+    organizationService
+      .deleteOrganization(id)
+      .then(() => {
+        addToast({
+          title: 'Organização Deletada com Sucesso',
+          type: 'success',
+        });
+        reloadOrganizations();
+      })
+      .catch((error) => handleError(error, 'deletar organização'));
   };
 
   const confirmDeleteOrganization = (rowData: Organization) => {
     console.log('delete organization', rowData.name);
+
+    confirmDialog({
+      icon: 'pi pi-exclamation-triangle',
+      message: `Você realmente deseja deletar a organização '${rowData.name}'?`,
+      acceptLabel: 'Excluir',
+      acceptClassName: 'p-button-warning',
+      rejectLabel: 'Cancelar',
+      rejectClassName: 'p-button-text p-button-warning',
+      acceptIcon: 'pi pi-trash',
+      accept: () => {
+        if (rowData.id) {
+          handleConfirmDeleteOrganization(rowData.id);
+        }
+      },
+    });
   };
 
   const actionBodyTemplate = (rowData: Organization) => {
@@ -143,41 +198,47 @@ const OrganizationPage: React.FC = () => {
     );
   };
 
-  // return <Container> Organizations Page </Container>;
   return (
     <div className="datatable crud-demo">
-      <div className="card">
-        <Toolbar className="p-mb-4" right={rightToolbarTemplate} />
+      <Loading isLoading={isLoading} />
+      {!isLoading && (
+        <div className="card">
+          <Toolbar className="p-mb-4" right={rightToolbarTemplate} />
 
-        <DataTable
-          ref={dt}
-          value={organizations}
-          selection={selectedOrganizations}
-          onSelectionChange={(e) => setSelectedOrganizations(e.value)}
-          emptyMessage="Nenhuma organização encontrada"
-          loading={isLoading}
-          dataKey="id"
-          paginator
-          rows={10}
-          rowsPerPageOptions={[10, 30, 50]}
-          paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-          currentPageReportTemplate="Exibindo {first} a {last} de {totalRecords} organizações"
-          globalFilter={globalFilter}
-          header={header}
-        >
-          <Column selectionMode="multiple" headerStyle={{ width: '3rem' }} />
-          <Column
-            field="name"
-            header="Nome"
-            body={representativeBodyTemplate}
-            sortable
-          />
-          <Column field="description" header="Descrição" sortable />
-          <Column field="cnpj" header="CNPJ" sortable />
-          {/* <Column header="Ícone" body={imageBodyTemplate} /> */}
-          <Column style={{ width: `${10}%` }} body={actionBodyTemplate} />
-        </DataTable>
-      </div>
+          <DataTable
+            className="p-datatable-striped p-datatable-gridlines"
+            ref={dt}
+            value={organizations}
+            selection={selectedOrganizations}
+            onSelectionChange={(e) => setSelectedOrganizations(e.value)}
+            emptyMessage="Nenhuma organização encontrada"
+            dataKey="id"
+            paginator
+            rows={10}
+            rowsPerPageOptions={[10, 30, 50]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Exibindo {first} a {last} de {totalRecords} organizações"
+            globalFilter={globalFilter}
+            header={header}
+          >
+            {/* <Column selectionMode="multiple" headerStyle={{ width: '3rem' }} /> */}
+            <Column
+              field="name"
+              header="Nome"
+              body={organizationNameBodyTemplate}
+              sortable
+            />
+            <Column field="description" header="Descrição" sortable />
+            <Column
+              field="cnpj"
+              header="CNPJ"
+              body={organizationCnpjBodyTemplate}
+              sortable
+            />
+            <Column style={{ width: `${10}%` }} body={actionBodyTemplate} />
+          </DataTable>
+        </div>
+      )}
     </div>
   );
 };

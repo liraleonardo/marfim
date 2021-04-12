@@ -1,15 +1,22 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import classNames from 'classnames';
 import { Menubar } from 'primereact/menubar';
 import { Menu } from 'primereact/menu';
-import { Button } from 'primereact/button';
 import { MenuItem } from 'primereact/components/menuitem/MenuItem';
-import { Link, useHistory, useLocation } from 'react-router-dom';
+import { Link, matchPath, useHistory, useLocation } from 'react-router-dom';
 import { Container, AppTopBar, AppMain, AppSideBar, PageTitle } from './styles';
 
 import logoImg from '../../assets/logo.jpg';
 import { useAuth } from '../../hooks/auth';
-import { getRoutesMap } from '../../utils/routeUtils';
+import getRoutes from '../../router/routes';
+
+import { SHOW_ROUTE_LABEL } from '../../router/types';
 
 interface OrganizationMenuItem extends MenuItem {
   organizationId: number;
@@ -22,12 +29,14 @@ interface MainProps {
 const Main: React.FC<MainProps> = ({ children, isToshowMain }) => {
   const [menuMode, setMenuMode] = useState('static');
   const [showMenu, setShowMenu] = useState(true);
+  const [routeLabel, setRouteLabel] = useState('');
+
   const location = useLocation();
 
   const menuRef = useRef<Menu>(null);
   const history = useHistory();
 
-  const routeMap = useMemo(() => getRoutesMap(), []);
+  const routes = useMemo(() => getRoutes(), []);
 
   const {
     user,
@@ -36,6 +45,24 @@ const Main: React.FC<MainProps> = ({ children, isToshowMain }) => {
     selectedOrganization,
     organizations,
   } = useAuth();
+
+  useEffect(() => {
+    const routeFound = routes.find((route) => {
+      return !!matchPath(location.pathname, {
+        path: route.path,
+        exact: true,
+      });
+    });
+
+    if (routeFound && routeFound.meta)
+      setRouteLabel(routeFound.meta[SHOW_ROUTE_LABEL]);
+    else setRouteLabel('');
+  }, [routes, location.pathname]);
+
+  const handleSignOut = useCallback(() => {
+    signOut();
+    history.push('/'); // forcing location to be on '/', so the next login will redirect to '/'
+  }, [signOut, history]);
 
   // TODO: refactor to useCallback
   const topBarMenuItems: MenuItem[] = [
@@ -75,7 +102,7 @@ const Main: React.FC<MainProps> = ({ children, isToshowMain }) => {
           label: 'Sair',
           icon: 'pi pi-fw pi-power-off',
           command: () => {
-            signOut();
+            handleSignOut();
           },
         },
       ],
@@ -168,7 +195,7 @@ const Main: React.FC<MainProps> = ({ children, isToshowMain }) => {
                 className="layout-breadcrumb viewname"
                 style={{ textTransform: 'uppercase' }}
               >
-                <span>{routeMap[location.pathname]}</span>
+                <span>{routeLabel}</span>
               </div>
             </div>
 

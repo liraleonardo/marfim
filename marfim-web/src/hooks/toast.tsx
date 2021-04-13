@@ -5,6 +5,7 @@ import ToastContainer from '../components/ToastContainer';
 
 interface ToastContextData {
   addToast(message: Omit<ToastMessage, 'id'>): void;
+  addErrorToast(action: string, message: string): void;
   removeToast(id: string): void;
 }
 
@@ -36,12 +37,25 @@ const ToastProvider: React.FC = ({ children }) => {
     [],
   );
 
+  const addErrorToast = useCallback(
+    (action: string, message: string) => {
+      const toastMessage: Omit<ToastMessage, 'id'> = {
+        type: 'error',
+        title: `Erro ao ${action}.`,
+        description: `${message}`,
+      };
+
+      addToast(toastMessage);
+    },
+    [addToast],
+  );
+
   const removeToast = useCallback((id: string) => {
     setMessages((state) => state.filter((message) => message.id !== id));
   }, []);
 
   return (
-    <ToastContext.Provider value={{ addToast, removeToast }}>
+    <ToastContext.Provider value={{ addToast, addErrorToast, removeToast }}>
       {children}
       <ToastContainer messages={messages} />
     </ToastContext.Provider>

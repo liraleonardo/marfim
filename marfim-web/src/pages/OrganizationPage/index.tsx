@@ -1,7 +1,6 @@
 import { confirmDialog } from 'primereact/confirmdialog';
 import briefcase from 'primeicons/raw-svg/briefcase.svg';
 import warning from 'primeicons/raw-svg/exclamation-triangle.svg';
-import { Toolbar } from 'primereact/toolbar';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
@@ -12,14 +11,14 @@ import { InputText } from 'primereact/inputtext';
 import Organization from '../../model/Organization';
 import OrganizationService from '../../services/OrganizationService';
 
-import defaultImg from '../../assets/default.jpg';
 import { useAuth } from '../../hooks/auth';
 import Loading from '../../components/Loading';
 import { useToast } from '../../hooks/toast';
+import { getOrganizationError } from '../../errors/organizationErrors';
 
 const OrganizationPage: React.FC = () => {
   const { selectedOrganization } = useAuth();
-  const { addToast } = useToast();
+  const { addToast, addErrorToast } = useToast();
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [selectedOrganizations, setSelectedOrganizations] = useState<
     Organization[]
@@ -33,16 +32,16 @@ const OrganizationPage: React.FC = () => {
 
   const handleError = useCallback(
     (error: AxiosError, errorAction: string) => {
-      console.error(error);
-      addToast({
-        title: `Erro ao tentar ${errorAction}.`,
-        description: `${
-          error.response ? error.response.data.message : error.message
-        }`,
-        type: 'error',
-      });
+      // console.error(error);
+      let messages;
+      if (error.response) {
+        messages = getOrganizationError(error.response.data.message);
+      } else {
+        messages = getOrganizationError(error.message);
+      }
+      messages.forEach((message) => addErrorToast(errorAction, message));
     },
-    [addToast],
+    [addErrorToast],
   );
 
   const reloadOrganizations = useCallback(() => {

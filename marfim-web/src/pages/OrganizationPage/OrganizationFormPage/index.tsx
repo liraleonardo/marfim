@@ -16,6 +16,7 @@ import Organization, {
   ICreateUpdateOrganization,
 } from '../../../model/Organization';
 import OrganizationService from '../../../services/OrganizationService';
+import { getOrganizationError } from '../../../errors/organizationErrors';
 
 interface OrganizationPathParams {
   id?: string;
@@ -30,7 +31,7 @@ const OrganizationFormPage: React.FC = () => {
   const location = useLocation();
   const { id: pathId } = useParams<OrganizationPathParams>();
 
-  const { addToast } = useToast();
+  const { addToast, addErrorToast } = useToast();
 
   useEffect(() => {
     const id = Number(pathId);
@@ -49,6 +50,20 @@ const OrganizationFormPage: React.FC = () => {
       }
     }
   }, [location.pathname, pathId, history]);
+
+  const handleError = useCallback(
+    (error: AxiosError, errorAction: string) => {
+      // console.error(error);
+      let messages;
+      if (error.response) {
+        messages = getOrganizationError(error.response.data.message);
+      } else {
+        messages = getOrganizationError(error.message);
+      }
+      messages.forEach((message) => addErrorToast(errorAction, message));
+    },
+    [addErrorToast],
+  );
 
   const onInputChange = (e: { target: { value: string } }, name: string) => {
     const val = (e.target && e.target.value) || '';
@@ -81,11 +96,7 @@ const OrganizationFormPage: React.FC = () => {
         })
         .catch((error: AxiosError) => {
           console.error(error.response?.data.message);
-          addToast({
-            title: 'Ocorreu um erro ao alterar a Organização',
-            type: 'error',
-            description: error.response?.data.message,
-          });
+          handleError(error, 'alterar Organização');
         });
     } else {
       organizationService
@@ -99,11 +110,7 @@ const OrganizationFormPage: React.FC = () => {
         })
         .catch((error: AxiosError) => {
           console.error(error.response?.data.message);
-          addToast({
-            title: 'Ocorreu um erro ao criar a Organização',
-            type: 'error',
-            description: error.response?.data.message,
-          });
+          handleError(error, 'criar Organização');
         });
     }
   }, [organization, addToast, history, isEdit]);

@@ -34,12 +34,27 @@ export const AppSideBar = styled.div`
 
   border-color: #e7e7e7;
 
-  img {
-    width: 100px;
-    margin: 30px 0;
+  > a {
+    border: 0;
+    border-style: solid;
+    border-bottom: 1px;
+    border-color: #1f1f1f;
+
+    img {
+      width: 100%;
+      height: 50px;
+      margin: 0 0;
+      object-fit: cover;
+    }
   }
 
   .app-pages-menu {
     background-color: inherit;
   }
+`;
+
+export const SidebarSeparator = styled.div`
+  display: block;
+  width: 90%;
+  border-bottom: 1px solid #dee2e6;
 `;

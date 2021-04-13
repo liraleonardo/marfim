@@ -10,9 +10,15 @@ import { Menubar } from 'primereact/menubar';
 import { Menu } from 'primereact/menu';
 import { MenuItem } from 'primereact/components/menuitem/MenuItem';
 import { Link, matchPath, useHistory, useLocation } from 'react-router-dom';
-import { Container, AppTopBar, AppMain, AppSideBar, PageTitle } from './styles';
+import {
+  Container,
+  AppTopBar,
+  AppMain,
+  AppSideBar,
+  SidebarSeparator,
+} from './styles';
 
-import logoImg from '../../assets/logo.jpg';
+import logoImg from '../../assets/logo-horizontal.svg';
 import { useAuth } from '../../hooks/auth';
 import getRoutes from '../../router/routes';
 
@@ -165,14 +171,15 @@ const Main: React.FC<MainProps> = ({ children, isToshowMain }) => {
       <Container className={containerClassName} data-theme="light">
         {showMenu && (
           <AppSideBar className="layout-sidebar">
-            <Link to="/">
+            <Link to="/" className="logo">
               <img src={logoImg} alt="Marfim" />
             </Link>
+            <SidebarSeparator />
             <div className="layout-menu-container">
               <Menu
                 className="layout-menu"
                 model={sideBarMenuItems}
-                style={{ height: '100%', width: 250, border: 0 }}
+                style={{ border: 0 }}
                 ref={menuRef}
                 id="app-menu"
               />

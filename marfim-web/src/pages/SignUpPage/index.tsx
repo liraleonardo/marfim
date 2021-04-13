@@ -12,7 +12,7 @@ import { Container, Content, Background, AnimationContainer } from './styles';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
 
-import logoImg from '../../assets/logo.jpg';
+import logoImg from '../../assets/logo-vertical.svg';
 
 interface SignUpFormData {
   name: string;

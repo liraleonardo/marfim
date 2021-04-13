@@ -1,24 +1,16 @@
 import { confirmDialog } from 'primereact/confirmdialog';
+import briefcase from 'primeicons/raw-svg/briefcase.svg';
+import warning from 'primeicons/raw-svg/exclamation-triangle.svg';
 import { Toolbar } from 'primereact/toolbar';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import { Toast } from 'primereact/toast';
 import { Button } from 'primereact/button';
-import { FileUpload } from 'primereact/fileupload';
-import { Rating } from 'primereact/rating';
-import { InputTextarea } from 'primereact/inputtextarea';
-import { RadioButton } from 'primereact/radiobutton';
-import { InputNumber } from 'primereact/inputnumber';
-import { Dialog } from 'primereact/dialog';
-import { InputText } from 'primereact/inputtext';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 import { AxiosError } from 'axios';
-import { string } from 'yup/lib/locale';
-import { type } from 'os';
+import { InputText } from 'primereact/inputtext';
 import Organization from '../../model/Organization';
 import OrganizationService from '../../services/OrganizationService';
-import { Container } from './styles';
 
 import defaultImg from '../../assets/default.jpg';
 import { useAuth } from '../../hooks/auth';
@@ -39,16 +31,19 @@ const OrganizationPage: React.FC = () => {
   const history = useHistory();
   const location = useLocation();
 
-  const handleError = (error: AxiosError, errorAction: string) => {
-    console.error(error);
-    addToast({
-      title: `Erro ao tentar ${errorAction}.`,
-      description: `${
-        error.response ? error.response.data.message : error.message
-      }`,
-      type: 'error',
-    });
-  };
+  const handleError = useCallback(
+    (error: AxiosError, errorAction: string) => {
+      console.error(error);
+      addToast({
+        title: `Erro ao tentar ${errorAction}.`,
+        description: `${
+          error.response ? error.response.data.message : error.message
+        }`,
+        type: 'error',
+      });
+    },
+    [addToast],
+  );
 
   const reloadOrganizations = useCallback(() => {
     setIsLoading(true);
@@ -61,7 +56,8 @@ const OrganizationPage: React.FC = () => {
       .finally(() => {
         setIsLoading(false);
       });
-  }, []);
+  }, [handleError]);
+
   useEffect(() => {
     reloadOrganizations();
   }, [selectedOrganization, reloadOrganizations]);
@@ -70,52 +66,75 @@ const OrganizationPage: React.FC = () => {
     history.push(location.pathname.concat('/form'));
   };
 
-  const rightToolbarTemplate = () => {
-    return (
-      <>
-        <Button
-          label="Nova Organização"
-          icon="pi pi-plus"
-          className="p-button-success p-mr-2"
-          onClick={openNew}
-        />
-      </>
-    );
-  };
-
   const header = (
     <div className="table-header">
       <h5 className="p-m-0">Gerenciar Organizações</h5>
-      <span className="p-input-icon-left">
-        <i className="pi pi-search" />
-        <InputText
-          type="search"
-          onInput={(e: React.ChangeEvent<HTMLInputElement>) => {
-            const search = e.target.value;
-            setGlobalFilter(search);
-            console.log('searching for ', search);
-          }}
-          placeholder="Buscar..."
+      <div>
+        <span className="p-input-icon-left">
+          <i className="pi pi-search" />
+          <InputText
+            type="search"
+            onInput={(e: React.ChangeEvent<HTMLInputElement>) => {
+              const search = e.target.value;
+              setGlobalFilter(search);
+              console.log('searching for ', search);
+            }}
+            placeholder="Buscar..."
+          />
+        </span>
+
+        <Button
+          label="Nova Organização"
+          icon="pi pi-plus"
+          className="p-button-success p-mr-2 p-ml-4"
+          onClick={openNew}
         />
-      </span>
+      </div>
     </div>
   );
 
   const organizationNameBodyTemplate = (rowData: Organization) => {
     return (
       <>
-        <img
-          alt={rowData.name}
-          src={rowData.avatarUrl || defaultImg}
-          onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
-            e.currentTarget.onerror = null;
-            e.currentTarget.src = defaultImg;
-          }}
-          width="32"
-          style={{ verticalAlign: 'middle' }}
-        />
+        {rowData.avatarUrl && (
+          <img
+            alt={rowData.name}
+            src={rowData.avatarUrl}
+            onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = warning;
+              e.currentTarget.style.backgroundColor = '#FBC02D';
+              e.currentTarget.style.padding = '5px';
+            }}
+            width="34"
+            style={{
+              verticalAlign: 'middle',
+              backgroundColor: '#fff',
+              borderRadius: '50%',
+              padding: 3,
+              boxShadow:
+                '2px 2px 2px 0 rgba(0, 0, 0, 0.1), 0 1px 1px 0 rgba(0, 0, 0, 0.19)',
+            }}
+          />
+        )}
+        {!rowData.avatarUrl && (
+          <img
+            alt={rowData.name}
+            src={briefcase}
+            width="34"
+            style={{
+              verticalAlign: 'middle',
+              backgroundColor: '#fff',
+              borderRadius: '50%',
+              padding: 3,
+              boxShadow:
+                '2px 2px 2px 0 rgba(0, 0, 0, 0.1), 0 1px 1px 0 rgba(0, 0, 0, 0.19)',
+            }}
+          />
+        )}
+
         <span
-          style={{ marginLeft: '.5em', verticalAlign: 'middle' }}
+          style={{ marginLeft: '1em', verticalAlign: 'middle' }}
           className="image-text"
         >
           {rowData.name}
@@ -203,8 +222,6 @@ const OrganizationPage: React.FC = () => {
       <Loading isLoading={isLoading} />
       {!isLoading && (
         <div className="card">
-          <Toolbar className="p-mb-4" right={rightToolbarTemplate} />
-
           <DataTable
             className="p-datatable-striped p-datatable-gridlines"
             ref={dt}

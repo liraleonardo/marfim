@@ -2,12 +2,12 @@ package org.ipdec.marfim.api.service;
 
 import lombok.AllArgsConstructor;
 import org.ipdec.marfim.api.dto.CreateOrganizationDTO;
+import org.ipdec.marfim.api.exception.OrganizationException;
+import org.ipdec.marfim.api.exception.type.OrganizationExceptionsEnum;
 import org.ipdec.marfim.api.model.Organization;
 import org.ipdec.marfim.api.repository.OrganizationRepository;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,7 +22,7 @@ public class OrganizationService {
 
     public Organization findById(Long id) {
         return organizationRepository.findById(id).orElseThrow(()->{
-            return new ResponseStatusException(HttpStatus.NOT_FOUND,"organization not found");
+            return new OrganizationException(OrganizationExceptionsEnum.NOT_FOUND);
         });
     }
 
@@ -48,11 +48,11 @@ public class OrganizationService {
         //TODO: check valid cnpj
 
         if(!organizationRepository.findByName(organization.getName()).isEmpty()){
-            throw new ResponseStatusException(HttpStatus.CONFLICT,"there is another organization with this name");
+            throw new OrganizationException(OrganizationExceptionsEnum.CONFLICT_ORGANIZATION_SAME_NAME);
         }
 
         if(!organizationRepository.findByCnpj(organization.getCnpj()).isEmpty()){
-            throw new ResponseStatusException(HttpStatus.CONFLICT,"there is another organization with this cnpj");
+            throw new OrganizationException(OrganizationExceptionsEnum.CONFLICT_ORGANIZATION_SAME_CNPJ);
         }
 
         organization = organizationRepository.save(organization);
@@ -66,11 +66,11 @@ public class OrganizationService {
 
         List<Organization> organizationsFoundByName = organizationRepository.findByName(organization.getName());
         if(organizationsFoundByName.size()>0 && organizationsFoundByName.stream().anyMatch(found -> found.getId() != id.longValue())){
-            throw new ResponseStatusException(HttpStatus.CONFLICT,"there is another organization with this name");
+            throw new OrganizationException(OrganizationExceptionsEnum.CONFLICT_ORGANIZATION_SAME_NAME);
         }
         List<Organization> organizationsFoundByCnpj = organizationRepository.findByCnpj(organization.getCnpj());
         if(organizationsFoundByCnpj.size()>0 && organizationsFoundByCnpj.stream().anyMatch(found -> found.getId() != id.longValue())){
-            throw new ResponseStatusException(HttpStatus.CONFLICT,"there is another organization with this cnpj");
+            throw new OrganizationException(OrganizationExceptionsEnum.CONFLICT_ORGANIZATION_SAME_CNPJ);
         }
 
         organization = organizationRepository.save(organization);

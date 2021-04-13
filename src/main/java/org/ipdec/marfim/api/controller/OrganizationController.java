@@ -1,6 +1,8 @@
 package org.ipdec.marfim.api.controller;
 
 import org.ipdec.marfim.api.dto.CreateOrganizationDTO;
+import org.ipdec.marfim.api.exception.OrganizationException;
+import org.ipdec.marfim.api.exception.type.OrganizationExceptionsEnum;
 import org.ipdec.marfim.api.model.Organization;
 import org.ipdec.marfim.api.service.OrganizationService;
 import org.ipdec.marfim.security.tenant.TenantContext;
@@ -9,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -36,7 +37,7 @@ public class OrganizationController {
     public Organization findOne(@PathVariable(value = "id", required = true) Long organizationId) {
         Long tenantId = TenantContext.getLongTenant();
         if(tenantId != null && tenantId.longValue() != organizationId){
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,"requested organization id does not match the Tenant-ID");
+            throw new OrganizationException(OrganizationExceptionsEnum.FORBIDDEN_ORGANIZATION_ID_DOES_NOT_MATCH);
         }
 
         return organizationService.findById(organizationId);
@@ -57,7 +58,7 @@ public class OrganizationController {
                                @RequestBody @Valid CreateOrganizationDTO organizationDTO) {
         Long tenantId = TenantContext.getLongTenant();
         if(tenantId != null && tenantId.longValue() != organizationId){
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,"requested organization id does not match the Tenant-ID");
+            throw new OrganizationException(OrganizationExceptionsEnum.FORBIDDEN_ORGANIZATION_ID_DOES_NOT_MATCH);
         }
         return organizationService.update(organizationId, organizationDTO);
     }
@@ -68,7 +69,7 @@ public class OrganizationController {
     public void delete(@PathVariable(value = "id", required = true) Long organizationId) {
         Long tenantId = TenantContext.getLongTenant();
         if(tenantId != null && tenantId.longValue() != organizationId){
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,"requested organization id does not match the Tenant-ID");
+            throw new OrganizationException(OrganizationExceptionsEnum.FORBIDDEN_ORGANIZATION_ID_DOES_NOT_MATCH);
         }
 
         organizationService.delete(organizationId);

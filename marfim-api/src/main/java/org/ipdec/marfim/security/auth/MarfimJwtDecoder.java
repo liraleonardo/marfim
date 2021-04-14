@@ -20,6 +20,11 @@ public class MarfimJwtDecoder implements JwtDecoder {
 
     @Override
     public Jwt decode(String token) throws JwtException {
-        return marfimJWTToken.getJwt(token);
+        try{
+            return marfimJWTToken.getJwt(token);
+        } catch (Exception e){
+            throw new JwtException(String.format("Error while decoding the token. %s",e.getMessage()));
+        }
+
     }
 }

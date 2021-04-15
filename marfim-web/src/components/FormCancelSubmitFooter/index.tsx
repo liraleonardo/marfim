@@ -6,11 +6,13 @@ import { Container } from './styles';
 interface FormCancelSubmitFooterProps {
   onCancelClick(event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void;
   onSubmitClick(event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void;
+  submitDisabled?: boolean;
 }
 
 const FormCancelSubmitFooter: React.FC<FormCancelSubmitFooterProps> = ({
   onCancelClick,
   onSubmitClick,
+  submitDisabled = false,
 }) => {
   return (
     <Container>
@@ -26,6 +28,7 @@ const FormCancelSubmitFooter: React.FC<FormCancelSubmitFooterProps> = ({
         style={{ width: `${15}rem` }}
         label="Salvar"
         onClick={onSubmitClick}
+        disabled={submitDisabled}
       />
     </Container>
   );

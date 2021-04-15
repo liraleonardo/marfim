@@ -18,11 +18,12 @@ export default class Organization {
   constructor() {
     this.name = '';
     this.cnpj = '';
+    this.description = '';
+    this.avatarUrl = '';
   }
 }
 
 export interface ICreateUpdateOrganization {
-  // id?: number;
   cnpj: string;
   name: string;
   description?: string;

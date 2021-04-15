@@ -15,6 +15,7 @@ import { useAuth } from '../../hooks/auth';
 import Loading from '../../components/Loading';
 import { useToast } from '../../hooks/toast';
 import { getOrganizationError } from '../../errors/organizationErrors';
+import { maskedCnpj } from '../../utils/maskUtils';
 
 const OrganizationPage: React.FC = () => {
   const { selectedOrganization } = useAuth();
@@ -140,15 +141,6 @@ const OrganizationPage: React.FC = () => {
         </span>
       </>
     );
-  };
-
-  const maskedCnpj = (cnpj: string): string => {
-    const masked = `${cnpj.substring(0, 2)}.${cnpj.substring(
-      2,
-      5,
-    )}.${cnpj.substring(5, 8)}/${cnpj.substring(8, 12)}-${cnpj.substring(12)}`;
-
-    return masked;
   };
 
   const organizationCnpjBodyTemplate = (rowData: Organization) => {

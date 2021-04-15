@@ -1,15 +1,11 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import { AxiosError } from 'axios';
+import { useForm } from 'react-hook-form';
 import { InputText } from 'primereact/inputtext';
 import { InputMask } from 'primereact/inputmask';
 import { InputTextarea } from 'primereact/inputtextarea';
 import React, { ChangeEvent, useCallback, useEffect, useState } from 'react';
-import {
-  useHistory,
-  useLocation,
-  matchPath,
-  useParams,
-} from 'react-router-dom';
+import { useHistory, useLocation, useParams } from 'react-router-dom';
 import FormCancelSubmitFooter from '../../../components/FormCancelSubmitFooter';
 import { useToast } from '../../../hooks/toast';
 import Organization, {
@@ -17,6 +13,7 @@ import Organization, {
 } from '../../../model/Organization';
 import OrganizationService from '../../../services/OrganizationService';
 import { getOrganizationError } from '../../../errors/organizationErrors';
+import { maskedCnpj, unmaskCnpj } from '../../../utils/maskUtils';
 
 interface OrganizationPathParams {
   id?: string;
@@ -25,35 +22,70 @@ interface OrganizationPathParams {
 const OrganizationFormPage: React.FC = () => {
   const emptyOrganization: ICreateUpdateOrganization = new Organization();
   const [isEdit, setIsEdit] = useState(false);
+  const [isSubmiting, setIsSubmitting] = useState(false);
   const [organization, setOrganization] = useState(emptyOrganization);
+  const [organizationId, setOrganizationId] = useState<number | null>(null);
 
   const history = useHistory();
   const location = useLocation();
+  const {
+    register,
+    handleSubmit: handleFormSubmit,
+    setValue,
+    getValues,
+    // formState,
+    formState: { errors, isDirty, isValid },
+  } = useForm({
+    defaultValues: {
+      name: organization.name,
+      cnpj: organization.cnpj,
+      avatarUrl: organization.avatarUrl,
+      description: organization.description,
+    },
+    mode: 'all',
+    reValidateMode: 'onChange',
+  });
+
   const { id: pathId } = useParams<OrganizationPathParams>();
 
   const { addToast, addErrorToast } = useToast();
 
   useEffect(() => {
+    console.log('checking edition?');
     const id = Number(pathId);
-    if (matchPath(location.pathname, { path: '/organizations/edit/:id' })) {
-      // if (!id) {
-      //   history.goBack();
-      //   return;
-      // }
+    if (
+      id
+      // && matchPath(location.pathname, { path: '/organizations/edit/:id' })
+    ) {
       setIsEdit(true);
+      setOrganizationId(id);
       const organizationService: OrganizationService = new OrganizationService();
 
-      if (id) {
-        organizationService.getOrganization(id).then((response) => {
+      organizationService
+        .getOrganization(id)
+        .then((response) => {
+          response.cnpj = maskedCnpj(response.cnpj);
+          response.avatarUrl = !response.avatarUrl ? '' : response.avatarUrl;
+          response.description = !response.description
+            ? ''
+            : response.description;
+          return response;
+        })
+        .then((response) => {
           setOrganization(response);
+
+          setValue('name', response.name, { shouldValidate: true });
+          setValue('cnpj', response.cnpj, {
+            shouldValidate: true,
+          });
+          setValue('avatarUrl', response.avatarUrl);
+          setValue('description', response.description);
         });
-      }
     }
-  }, [location.pathname, pathId, history]);
+  }, [location.pathname, pathId, history, setValue]);
 
   const handleError = useCallback(
     (error: AxiosError, errorAction: string) => {
-      // console.error(error);
       let messages;
       if (error.response) {
         messages = getOrganizationError(error.response.data.message);
@@ -65,42 +97,29 @@ const OrganizationFormPage: React.FC = () => {
     [addErrorToast],
   );
 
-  const onInputChange = (e: { target: { value: string } }, name: string) => {
-    const val = (e.target && e.target.value) || '';
-    const updatedOrganization: any = { ...organization };
-    updatedOrganization[`${name}`] = val;
+  const onInputChange = useCallback(
+    (e: { target: { value: string } }, name: string): any => {
+      const val = (e.target && e.target.value) || '';
+      const updatedOrganization: any = { ...getValues() };
+      updatedOrganization[`${name}`] = val;
 
-    // console.log(`organization.${name}=${val}`);
-    setOrganization(updatedOrganization);
-  };
+      // console.log(`onChange(): organization.${name}=${val}`);
+      setOrganization(updatedOrganization);
 
-  const handleSubmit = useCallback(() => {
-    const organizationService = new OrganizationService();
-    // console.log('submit', organization);
-    const organizationToSave = organization;
-    organizationToSave.cnpj = organizationToSave.cnpj
-      .replaceAll('.', '')
-      .replaceAll('/', '')
-      .replaceAll('-', '');
-    // console.log('toSave', organizationToSave);
+      return val;
+    },
+    [getValues],
+  );
 
-    if (isEdit) {
+  const handleCreateSubmit = useCallback(
+    (data) => {
+      setIsSubmitting(true);
+      const organizationService = new OrganizationService();
+      const organizationToSave = data;
+      organizationToSave.cnpj = unmaskCnpj(organizationToSave.cnpj);
+
       organizationService
-        .updateOrganization(organization)
-        .then((response) => {
-          addToast({
-            title: 'Organização alterada com sucesso',
-            type: 'success',
-          });
-          history.goBack();
-        })
-        .catch((error: AxiosError) => {
-          console.error(error.response?.data.message);
-          handleError(error, 'alterar Organização');
-        });
-    } else {
-      organizationService
-        .createOrganization(organization)
+        .createOrganization(organizationToSave)
         .then(() => {
           addToast({
             title: 'Organização criada com sucesso',
@@ -109,18 +128,47 @@ const OrganizationFormPage: React.FC = () => {
           history.goBack();
         })
         .catch((error: AxiosError) => {
-          console.error(error.response?.data.message);
           handleError(error, 'criar Organização');
+        })
+        .finally(() => {
+          setIsSubmitting(false);
         });
-    }
-  }, [organization, addToast, history, isEdit]);
+    },
+    [addToast, history, handleError],
+  );
+
+  const handleEditSubmit = useCallback(
+    (data) => {
+      setIsSubmitting(true);
+      const organizationService = new OrganizationService();
+      const organizationToSave = data;
+      organizationToSave.cnpj = unmaskCnpj(organizationToSave.cnpj);
+
+      organizationToSave.id = organizationId;
+      organizationService
+        .updateOrganization(organizationToSave)
+        .then(() => {
+          addToast({
+            title: 'Organização alterada com sucesso',
+            type: 'success',
+          });
+          history.goBack();
+        })
+        .catch((error: AxiosError) => {
+          // console.error(error.response?.data.message);
+          handleError(error, 'alterar Organização');
+        })
+        .finally(() => {
+          setIsSubmitting(false);
+        });
+    },
+    [addToast, history, handleError, organizationId],
+  );
 
   const handleCancel = useCallback(() => {
-    // console.log('cancel');
     history.goBack();
   }, [history]);
 
-  // console.log(organization);
   return (
     <div className="p-col-12">
       <div className="card">
@@ -128,65 +176,113 @@ const OrganizationFormPage: React.FC = () => {
           <h5>
             <span>{isEdit ? 'Editar ' : 'Cadastrar '}Organização</span>
           </h5>
-          <div className="p-grid ">
+          <div className="p-grid">
             <div className="p-field p-col-12 p-md-8">
-              <label htmlFor="nameInput">Nome da Organização</label>
+              <label htmlFor="nameInput">Nome da Organização *</label>
               <InputText
+                {...register('name', {
+                  required: 'O nome da organização é obrigatório',
+                })}
                 type="text"
                 id="nameInput"
-                required
-                autoFocus
-                value={organization.name || ''}
+                value={organization.name}
+                className={errors.name ? 'p-invalid' : ''}
                 onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                  onInputChange(e, 'name');
+                  const val = onInputChange(e, 'name');
+                  setValue('name', val, { shouldValidate: true });
                 }}
+                tooltip="Informe um nome único para a organização"
               />
+              {errors?.name && (
+                <small id="name-help" className="p-error">
+                  {errors.name.message}
+                </small>
+              )}
             </div>
             <div className="p-field p-col-12 p-md-4">
-              <label htmlFor="cnpjInput">CNPJ</label>
+              <label htmlFor="cnpjInput">CNPJ *</label>
               <InputMask
+                {...register('cnpj', {
+                  required: 'O CNPJ da organização é obrigatório',
+                  pattern: {
+                    value: /[0-9]{2}[.][0-9]{3}[.][0-9]{3}[/][0-9]{4}[-][0-9]{2}/i,
+                    message: 'Informe todos os 14 dígitos do cnpj',
+                  },
+                })}
                 mask="99.999.999/9999-99"
                 type="text"
                 id="cnpjInput"
-                required
-                value={organization.cnpj || ''}
+                value={organization.cnpj}
+                tooltip="Informe um CNPJ válido para a organização"
+                className={errors.cnpj ? 'p-invalid' : ''}
                 onChange={(e) => {
-                  onInputChange(e, 'cnpj');
+                  const val = onInputChange(e, 'cnpj');
+                  setValue('cnpj', val, { shouldValidate: true });
                 }}
               />
+              {errors?.cnpj && (
+                <small id="cnpj-help" className="p-error">
+                  {errors.cnpj.message}
+                </small>
+              )}
             </div>
 
             <div className="p-field p-col-12 p-md-12">
               <label htmlFor="avatarUrlInput">URL do Avatar</label>
               <InputText
+                {...register('avatarUrl')}
                 type="text"
                 id="avatarUrlInput"
-                autoFocus
-                value={organization.avatarUrl || ''}
+                value={organization.avatarUrl}
+                className={errors.avatarUrl ? 'p-invalid' : ''}
                 onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                  onInputChange(e, 'avatarUrl');
+                  const val = onInputChange(e, 'avatarUrl');
+                  setValue('avatarUrl', val, { shouldValidate: true });
                 }}
               />
+              {errors?.avatarUrl && (
+                <small id="avatarUrl-help" className="p-error">
+                  {errors.avatarUrl.message}
+                </small>
+              )}
             </div>
 
             <div className="p-field p-col-12 p-md-12">
               <label htmlFor="descriptionInput">Descrição da Organização</label>
               <InputTextarea
+                {...register('description')}
                 type="text"
                 id="descriptionInput"
-                autoFocus
-                value={organization.description || ''}
+                value={organization.description}
+                className={errors.description ? 'p-invalid' : ''}
                 onChange={(e: ChangeEvent<HTMLTextAreaElement>) => {
-                  onInputChange(e, 'description');
+                  const val = onInputChange(e, 'description');
+                  setValue('description', val, { shouldValidate: true });
                 }}
               />
+              {errors?.description && (
+                <small id="description-help" className="p-error">
+                  {errors.description.message}
+                </small>
+              )}
             </div>
           </div>
         </div>
-        <FormCancelSubmitFooter
-          onSubmitClick={handleSubmit}
-          onCancelClick={handleCancel}
-        />
+
+        {isEdit && (
+          <FormCancelSubmitFooter
+            submitDisabled={!isDirty || !isValid || isSubmiting}
+            onSubmitClick={handleFormSubmit(handleEditSubmit)}
+            onCancelClick={handleCancel}
+          />
+        )}
+        {!isEdit && (
+          <FormCancelSubmitFooter
+            submitDisabled={!isValid || isSubmiting}
+            onSubmitClick={handleFormSubmit(handleCreateSubmit)}
+            onCancelClick={handleCancel}
+          />
+        )}
       </div>
     </div>
   );

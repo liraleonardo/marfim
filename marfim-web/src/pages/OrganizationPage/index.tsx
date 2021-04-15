@@ -77,7 +77,6 @@ const OrganizationPage: React.FC = () => {
             onInput={(e: React.ChangeEvent<HTMLInputElement>) => {
               const search = e.target.value;
               setGlobalFilter(search);
-              console.log('searching for ', search);
             }}
             placeholder="Buscar..."
           />
@@ -152,7 +151,6 @@ const OrganizationPage: React.FC = () => {
   };
 
   const editOrganization = (rowData: Organization) => {
-    console.log('edit organization', rowData.name);
     if (rowData.id) {
       history.push(location.pathname.concat('/edit/', rowData.id.toString()));
     }
@@ -173,8 +171,6 @@ const OrganizationPage: React.FC = () => {
   };
 
   const confirmDeleteOrganization = (rowData: Organization) => {
-    console.log('delete organization', rowData.name);
-
     confirmDialog({
       icon: 'pi pi-exclamation-triangle',
       message: `Você realmente deseja deletar a organização '${rowData.name}'?`,

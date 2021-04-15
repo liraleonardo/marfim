@@ -3,7 +3,7 @@ import React, { ReactNode, useMemo } from 'react';
 import { Switch, Route, BrowserRouter } from 'react-router-dom';
 import { GuardProvider, GuardedRoute } from 'react-router-guards';
 import NotFoundPage from '../pages/NotFoundPage';
-import { requireAuthenticated, waitOneSecond } from './guards';
+import { requireAuthenticated } from './guards';
 
 import getRoutes from './routes';
 

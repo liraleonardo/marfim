@@ -4,10 +4,9 @@ import {
   GuardToRoute,
   Next,
 } from 'react-router-guards/dist/types';
-import { getAuthStateFromStorage } from '../../utils/storageService';
 import { WITH_AUTH } from '../types';
-import getRoutes from '../routes';
 import { getPublicRoutes } from '../../utils/routeUtils';
+import { isAuthenticated } from '../../utils/authUtils';
 
 const requireAuthenticated: GuardFunction = (
   to: GuardToRoute,
@@ -15,8 +14,7 @@ const requireAuthenticated: GuardFunction = (
   next: Next,
 ): void => {
   // check if user is authenticated --> can we change for useAuth???
-  const { user, token } = getAuthStateFromStorage();
-  const getIsLoggedIn = !!user && !!token;
+  const getIsLoggedIn = isAuthenticated();
 
   // find all routes that does not use authentication
   const withoutAuthRoutes = getPublicRoutes();

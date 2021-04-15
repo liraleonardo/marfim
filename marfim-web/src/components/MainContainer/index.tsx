@@ -3,12 +3,8 @@ import { useAuth } from '../../hooks/auth';
 import Main from '../Main';
 
 const MainContainer: React.FC = ({ children }) => {
-  const { isSigned, loadingAuthentication } = useAuth();
-
-  if (loadingAuthentication)
-    return <div style={{ color: '#000000' }}> Loading Authentication</div>;
-
-  return <Main isToshowMain={isSigned}>{children}</Main>;
+  const { authenticated } = useAuth();
+  return <Main isToshowMain={authenticated}>{children}</Main>;
 };
 
 export default MainContainer;

@@ -7,7 +7,7 @@ import React, {
 } from 'react';
 import ChooseOraganizationContainer from '../components/ChooseOrganizationContainer';
 import api from '../services/api';
-import setApiHeaders from '../utils/authUtils';
+import { isAuthenticated } from '../utils/authUtils';
 import {
   getAuthStateFromStorage,
   removeAuthStateFromStorage,
@@ -43,12 +43,10 @@ interface AuthContextData {
   user: User;
   selectedOrganization: Organization;
   organizations: Organization[];
-  isSigned: boolean;
-  loadingAuthentication: boolean;
+  authenticated: boolean;
   signIn(credentials: SignInCredentials): Promise<void>;
   signInGoogle(token: string): Promise<boolean>;
   chooseOrganization(organization: Organization): void;
-  setAuthState(authState: AuthState): void;
   signOut(): void;
   updateUser(user: User): void;
 }
@@ -57,34 +55,19 @@ const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
 export const AuthProvider: React.FC = ({ children }) => {
   const [data, setData] = useState<AuthState>({} as AuthState);
-  const [isSigned, setIsSigned] = useState(false);
-  const [loadingAuthentication, setLoadingAuthentication] = useState(true);
   const [choosingOrganization, setChoosingOrganization] = useState(false);
-
-  const setAuthState = useCallback((authState: AuthState) => {
-    const tenantID = authState.selectedOrganization?.id;
-    setApiHeaders(authState.token, tenantID);
-    setData(authState);
-    if (authState.token && authState.user) {
-      setIsSigned(true);
-    } else {
-      setIsSigned(false);
-    }
-  }, []);
+  const [authenticated, setAuthenticated] = useState(false);
 
   useEffect(() => {
     const authState = getAuthStateFromStorage();
-    setAuthState(authState);
-    setLoadingAuthentication(false);
-  }, [setAuthState]);
+    if (isAuthenticated()) setAuthenticated(true);
+    setData(authState);
+  }, [setData]);
 
   const signOut = useCallback(() => {
     removeAuthStateFromStorage();
-
-    api.defaults.headers = {};
-
     setData({} as AuthState);
-    setIsSigned(false);
+    setAuthenticated(false);
   }, []);
 
   const updateUser = useCallback(
@@ -95,6 +78,7 @@ export const AuthProvider: React.FC = ({ children }) => {
         token: data.token,
         user,
         organizations: data.organizations,
+        selectedOrganization: data.selectedOrganization,
       });
     },
     [setData, data],
@@ -131,9 +115,10 @@ export const AuthProvider: React.FC = ({ children }) => {
 
       setChoosingOrganization(false);
       setAuthStateToStorage(handledAuthState);
-      setAuthState(handledAuthState);
+      setData(handledAuthState);
+      setAuthenticated(true);
     },
-    [setAuthState],
+    [setData],
   );
 
   const signIn = useCallback(
@@ -189,12 +174,10 @@ export const AuthProvider: React.FC = ({ children }) => {
             name: 'SUPER_USER',
           } as Organization),
         organizations: data.organizations || [],
-        isSigned,
-        loadingAuthentication,
+        authenticated,
         signIn,
         signInGoogle,
         chooseOrganization,
-        setAuthState,
         signOut,
         updateUser,
       }}

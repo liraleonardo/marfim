@@ -8,6 +8,7 @@ const api = axios.create({
   baseURL: 'http://localhost:8082',
 });
 
+// include headers based on storage values for token and tenant-ID
 api.interceptors.request.use((req) => {
   req.headers = {};
   const token = getTokenFromStorage();
@@ -23,20 +24,5 @@ api.interceptors.request.use((req) => {
 
   return req;
 });
-
-api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    // TODO: redirect to signin page when error is 401 unauthorized
-    // if (error.response.status === 401) {
-    //   // equivalent to logout
-    //   localStorage.clear();
-    //   window.location.pathname = '/signin';
-    // }
-    return Promise.reject(error);
-  },
-);
 
 export default api;

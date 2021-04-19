@@ -14,13 +14,17 @@ import OrganizationService from '../../services/OrganizationService';
 import { useAuth } from '../../hooks/auth';
 import Loading from '../../components/Loading';
 import { useToast } from '../../hooks/toast';
-import { getOrganizationError } from '../../errors/organizationErrors';
+import { organizationErrors } from '../../errors/organizationErrors';
 import { maskedCnpj } from '../../utils/maskUtils';
+import ErrorContainer from '../../components/ErrorContainer';
+import { IErrorState } from '../../errors/AppErrorInterfaces';
+import { handleAxiosError } from '../../errors/axiosErrorHandler';
 
 const OrganizationPage: React.FC = () => {
-  const { selectedOrganization } = useAuth();
+  const { selectedOrganization, signOut } = useAuth();
   const { addToast, addErrorToast } = useToast();
   const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [errorState, setErrorState] = useState<IErrorState>();
   const [selectedOrganizations, setSelectedOrganizations] = useState<
     Organization[]
   >([]);
@@ -32,15 +36,14 @@ const OrganizationPage: React.FC = () => {
   const location = useLocation();
 
   const handleError = useCallback(
-    (error: AxiosError, errorAction: string) => {
-      // console.error(error);
-      let messages;
-      if (error.response) {
-        messages = getOrganizationError(error.response.data.message);
-      } else {
-        messages = getOrganizationError(error.message);
-      }
+    (error: AxiosError, errorAction: string, handleAsPageError = false) => {
+      const handledError = handleAxiosError(error, organizationErrors);
+      const { messages, isPageError } = handledError;
+
       messages.forEach((message) => addErrorToast(errorAction, message));
+      if (isPageError || handleAsPageError) {
+        setErrorState(handledError);
+      }
     },
     [addErrorToast],
   );
@@ -51,18 +54,23 @@ const OrganizationPage: React.FC = () => {
     const organizationService = new OrganizationService();
     organizationService
       .getOrganizations()
-      .then((data) => setOrganizations(data))
-      .catch((error) => handleError(error, 'carregar organizações'))
+      .then((data) => {
+        if (data) setOrganizations(data);
+      })
+      .catch((error) => {
+        handleError(error, 'carregar organizações');
+      })
       .finally(() => {
         setIsLoading(false);
       });
   }, [handleError]);
 
   useEffect(() => {
+    setErrorState(undefined);
     reloadOrganizations();
   }, [selectedOrganization, reloadOrganizations]);
 
-  const openNew = () => {
+  const openFormPage = () => {
     history.push(location.pathname.concat('/form'));
   };
 
@@ -86,7 +94,7 @@ const OrganizationPage: React.FC = () => {
           label="Nova Organização"
           icon="pi pi-plus"
           className="p-button-success p-mr-2 p-ml-4"
-          onClick={openNew}
+          onClick={openFormPage}
         />
       </div>
     </div>
@@ -150,7 +158,7 @@ const OrganizationPage: React.FC = () => {
     );
   };
 
-  const editOrganization = (rowData: Organization) => {
+  const openEditPage = (rowData: Organization) => {
     if (rowData.id) {
       history.push(location.pathname.concat('/edit/', rowData.id.toString()));
     }
@@ -193,7 +201,7 @@ const OrganizationPage: React.FC = () => {
         <Button
           icon="pi pi-pencil"
           className="p-button-rounded p-button-success p-mr-2"
-          onClick={() => editOrganization(rowData)}
+          onClick={() => openEditPage(rowData)}
         />
         <Button
           icon="pi pi-trash"
@@ -203,6 +211,24 @@ const OrganizationPage: React.FC = () => {
       </div>
     );
   };
+  const handleErrorButtonCLick = useCallback(() => {
+    if (errorState && errorState.status.toString() === '401') {
+      signOut();
+    }
+    history.push('/');
+  }, [history, signOut, errorState]);
+
+  if (errorState) {
+    return (
+      <ErrorContainer
+        status={errorState.status}
+        title={errorState.title}
+        messages={errorState.messages}
+        buttonLabel={errorState.status === 401 ? 'Refazer login' : undefined}
+        onButtonClick={handleErrorButtonCLick}
+      />
+    );
+  }
 
   return (
     <div className="datatable crud-demo">

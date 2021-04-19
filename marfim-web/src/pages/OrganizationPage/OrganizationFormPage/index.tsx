@@ -12,8 +12,12 @@ import Organization, {
   ICreateUpdateOrganization,
 } from '../../../model/Organization';
 import OrganizationService from '../../../services/OrganizationService';
-import { getOrganizationError } from '../../../errors/organizationErrors';
+import { organizationErrors } from '../../../errors/organizationErrors';
 import { maskedCnpj, unmaskCnpj } from '../../../utils/maskUtils';
+import { handleAxiosError } from '../../../errors/axiosErrorHandler';
+import { IErrorState } from '../../../errors/AppErrorInterfaces';
+import ErrorContainer from '../../../components/ErrorContainer';
+import { useAuth } from '../../../hooks/auth';
 
 interface OrganizationPathParams {
   id?: string;
@@ -22,18 +26,19 @@ interface OrganizationPathParams {
 const OrganizationFormPage: React.FC = () => {
   const emptyOrganization: ICreateUpdateOrganization = new Organization();
   const [isEdit, setIsEdit] = useState(false);
+  const [errorState, setErrorState] = useState<IErrorState>();
   const [isSubmiting, setIsSubmitting] = useState(false);
   const [organization, setOrganization] = useState(emptyOrganization);
   const [organizationId, setOrganizationId] = useState<number | null>(null);
 
   const history = useHistory();
+  const { signOut } = useAuth();
   const location = useLocation();
   const {
     register,
     handleSubmit: handleFormSubmit,
     setValue,
     getValues,
-    // formState,
     formState: { errors, isDirty, isValid },
   } = useForm({
     defaultValues: {
@@ -49,6 +54,19 @@ const OrganizationFormPage: React.FC = () => {
   const { id: pathId } = useParams<OrganizationPathParams>();
 
   const { addToast, addErrorToast } = useToast();
+
+  const handleError = useCallback(
+    (error: AxiosError, errorAction: string, handleAsPageError = false) => {
+      const handledError = handleAxiosError(error, organizationErrors);
+      const { messages, isPageError } = handledError;
+
+      messages.forEach((message) => addErrorToast(errorAction, message));
+      if (isPageError || handleAsPageError) {
+        setErrorState(handledError);
+      }
+    },
+    [addErrorToast],
+  );
 
   useEffect(() => {
     console.log('checking edition?');
@@ -80,22 +98,26 @@ const OrganizationFormPage: React.FC = () => {
           });
           setValue('avatarUrl', response.avatarUrl);
           setValue('description', response.description);
+        })
+        .catch((error) => {
+          // console.log('error while looking for organizations');
+          handleError(error, 'carregar organizações', true);
         });
     }
-  }, [location.pathname, pathId, history, setValue]);
+  }, [location.pathname, pathId, history, setValue, handleError]);
 
-  const handleError = useCallback(
-    (error: AxiosError, errorAction: string) => {
-      let messages;
-      if (error.response) {
-        messages = getOrganizationError(error.response.data.message);
-      } else {
-        messages = getOrganizationError(error.message);
-      }
-      messages.forEach((message) => addErrorToast(errorAction, message));
-    },
-    [addErrorToast],
-  );
+  // const handleError = useCallback(
+  //   (error: AxiosError, errorAction: string) => {
+  //     let messages;
+  //     if (error.response) {
+  //       messages = getOrganizationError(error.response.data.message);
+  //     } else {
+  //       messages = getOrganizationError(error.message);
+  //     }
+  //     messages.forEach((message) => addErrorToast(errorAction, message));
+  //   },
+  //   [addErrorToast],
+  // );
 
   const onInputChange = useCallback(
     (e: { target: { value: string } }, name: string): any => {
@@ -168,6 +190,25 @@ const OrganizationFormPage: React.FC = () => {
   const handleCancel = useCallback(() => {
     history.goBack();
   }, [history]);
+
+  const handleErrorButtonCLick = useCallback(() => {
+    if (errorState && errorState.status.toString() === '401') {
+      signOut();
+    }
+    history.push('/');
+  }, [history, signOut, errorState]);
+
+  if (errorState) {
+    return (
+      <ErrorContainer
+        status={errorState.status}
+        title={errorState.title}
+        messages={errorState.messages}
+        buttonLabel={errorState.status === 401 ? 'Refazer login' : undefined}
+        onButtonClick={handleErrorButtonCLick}
+      />
+    );
+  }
 
   return (
     <div className="p-col-12">

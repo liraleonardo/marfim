@@ -1,6 +1,6 @@
-import { IAppError } from './IAppError';
+import { IAppError } from './AppErrorInterfaces';
 
-const organizationErrors: IAppError[] = [
+export const organizationErrors: IAppError[] = [
   {
     code: 'requested organization id does not match the Tenant-ID',
     message: 'Ocorreu um erro inesperado (Tenant-ID not Match)',
@@ -34,16 +34,3 @@ const organizationErrors: IAppError[] = [
     message: 'Falta o CNPJ da Organização',
   },
 ];
-
-export const getOrganizationError = (code: string): string[] => {
-  const errorsFound = organizationErrors
-    .filter((error) => code.includes(error.code))
-    .map((error) => error.message);
-
-  // default error message
-  if (errorsFound.length === 0) {
-    return [`Erro inesperado: ${code}`];
-  }
-
-  return errorsFound;
-};

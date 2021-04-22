@@ -1,6 +1,7 @@
 package org.ipdec.marfim.api.service;
 
 import lombok.AllArgsConstructor;
+import org.ipdec.marfim.api.dto.AllUsersDTO;
 import org.ipdec.marfim.api.dto.CreateUserDTO;
 import org.ipdec.marfim.api.model.User;
 import org.ipdec.marfim.api.repository.UserRepository;
@@ -26,7 +27,7 @@ public class UserService {
     }
 
     public List<User> findAll(Long organizationId) {
-        List<User> allUsers = userRepository.findAll();
+        List<User> allUsers = findAll();
         if(organizationId==null) {
             return allUsers;
         }
@@ -36,6 +37,11 @@ public class UserService {
                     userOrganization.getId().longValue() == organizationId);
         }).collect(Collectors.toList());
 
+    }
+
+    public List<AllUsersDTO> findAllUsersDTO(Long organizationId) {
+        return findAll(organizationId).stream().map(AllUsersDTO::new)
+                .collect(Collectors.toList());
     }
 
 }

@@ -1,5 +1,6 @@
 package org.ipdec.marfim.api.controller;
 
+import org.ipdec.marfim.api.dto.AllUsersDTO;
 import org.ipdec.marfim.api.model.User;
 import org.ipdec.marfim.api.service.UserService;
 import org.ipdec.marfim.security.tenant.TenantContext;
@@ -25,9 +26,9 @@ public class UserController {
 //    @PreAuthorize("hasAnyRole('COORDENADOR')")
 //    @RolesAllowed("COORDENADOR")
     @PreAuthorize("hasAnyAuthority('USERS_READ')")
-    public List<User> findAll() {
+    public List<AllUsersDTO> findAll() {
         Long organizationId = TenantContext.getLongTenant();
-        return userService.findAll(organizationId);
+        return userService.findAllUsersDTO(organizationId);
     }
 
 }

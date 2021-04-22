@@ -33,4 +33,8 @@ export const organizationErrors: IAppError[] = [
     code: 'empty cnpj',
     message: 'Falta o CNPJ da Organização',
   },
+  {
+    code: 'only a SUPER_USER can create or delete a organization',
+    message: 'Apenas um super usuário pode criar ou deletar organizações',
+  },
 ];

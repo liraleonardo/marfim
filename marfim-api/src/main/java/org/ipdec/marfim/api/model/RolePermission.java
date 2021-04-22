@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import org.ipdec.marfim.api.model.key.RolePermissionKey;
+import org.ipdec.marfim.security.permission.RolePermissionLevelEnum;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -38,4 +39,11 @@ public class RolePermission implements Serializable {
 
     @Column
     private Integer level;
+
+    public String getAuthority() {
+        String authority = level == null ?
+                permission.getCode() :
+                permission.getCode().concat("_").concat(RolePermissionLevelEnum.get(level).getCode());
+        return authority;
+    }
 }

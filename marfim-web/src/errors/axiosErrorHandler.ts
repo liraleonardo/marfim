@@ -31,8 +31,12 @@ export const handleAxiosError = (
       case 403:
         isPageError = true;
         messages = [
-          'Usuário não tem acesso ao recurso solicitado',
+          'Usuário não tem autorização para acessar o recurso solicitado',
           ...getGlobalAxiosErrors(err.response.data.message),
+          ...getEntityAxiosErrors(
+            entityErrors || [],
+            err.response.data.message,
+          ),
         ];
         break;
 

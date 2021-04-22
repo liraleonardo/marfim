@@ -7,6 +7,7 @@ import org.springframework.security.core.GrantedAuthority;
 @AllArgsConstructor
 public class CustomAuthority implements GrantedAuthority {
     public static final String SUPER_USER = "ROLE_SUPER_USER";
+    public static final String ADMIN_USER = "ROLE_ADMIN_USER";
 
     private String permissionCode;
 
@@ -20,6 +21,14 @@ public class CustomAuthority implements GrantedAuthority {
             throw new IllegalArgumentException(String.format("%s - Only %s can be constructed without organizationId",this.getClass().getName(),SUPER_USER));
         }
         this.permissionCode = SUPER_USER;
+    }
+
+    public CustomAuthority(String permissionCode, Long organizationId) {
+        if(!permissionCode.equalsIgnoreCase(ADMIN_USER)){
+            throw new IllegalArgumentException(String.format("%s - Only %s can be constructed without permissionLevel",this.getClass().getName(),ADMIN_USER));
+        }
+        this.permissionCode = ADMIN_USER;
+        this.organizationId = organizationId;
     }
 
     @Override

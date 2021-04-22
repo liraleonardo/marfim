@@ -73,6 +73,10 @@ public class CustomSecurityExpressionRoot implements MethodSecurityExpressionOpe
             return false;
         }
 
+        if(roleSet.contains(getRoleWithDefaultPrefix(defaultRolePrefix, "ADMIN_USER"))){
+            return true;
+        }
+
         for (final String role : roles) {
             final String defaultedRole = getRoleWithDefaultPrefix(prefix, role);
             if (roleSet.contains(defaultedRole)) {

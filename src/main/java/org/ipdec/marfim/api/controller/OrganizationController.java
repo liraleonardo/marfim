@@ -48,6 +48,9 @@ public class OrganizationController {
     @PreAuthorize("hasAnyAuthority('ROLE_SUPER_USER')")
     public Organization create(@RequestBody @Valid CreateOrganizationDTO organizationDTO) {
         Long organizationId = TenantContext.getLongTenant();
+        if(organizationId != null){
+            throw new OrganizationException(OrganizationExceptionsEnum.FORBIDDEN_CREATE_AND_DELETE_BY_NON_SUPER_USER);
+        }
         return organizationService.create(organizationDTO);
     }
 
@@ -68,8 +71,8 @@ public class OrganizationController {
     @PreAuthorize("hasAnyAuthority('ORGANIZATIONS_DELETE', 'ORGANIZATIONS_ALL')")
     public void delete(@PathVariable(value = "id", required = true) Long organizationId) {
         Long tenantId = TenantContext.getLongTenant();
-        if(tenantId != null && tenantId.longValue() != organizationId){
-            throw new OrganizationException(OrganizationExceptionsEnum.FORBIDDEN_ORGANIZATION_ID_DOES_NOT_MATCH);
+        if(tenantId != null){
+            throw new OrganizationException(OrganizationExceptionsEnum.FORBIDDEN_CREATE_AND_DELETE_BY_NON_SUPER_USER);
         }
 
         organizationService.delete(organizationId);

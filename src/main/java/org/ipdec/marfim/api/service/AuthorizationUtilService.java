@@ -48,6 +48,9 @@ public class AuthorizationUtilService {
         List<Role> userRoles = roleRepository.findAllById(roleIdList);
 
         userRoles.forEach(role -> {
+            if(role.getIsAdmin()){
+                authorities.add((new CustomAuthority(CustomAuthority.ADMIN_USER, role.getOrganization().getId())));
+            }
             List<CustomAuthority> rolePermissions = role.getRolePermissions().stream()
                     .map(rolePermission ->
                             new CustomAuthority(rolePermission.getPermission().getCode(), rolePermission.getLevel() , role.getOrganization().getId())

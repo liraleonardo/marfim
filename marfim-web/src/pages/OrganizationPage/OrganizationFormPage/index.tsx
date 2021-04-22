@@ -69,7 +69,6 @@ const OrganizationFormPage: React.FC = () => {
   );
 
   useEffect(() => {
-    console.log('checking edition?');
     const id = Number(pathId);
     if (
       id
@@ -100,7 +99,6 @@ const OrganizationFormPage: React.FC = () => {
           setValue('description', response.description);
         })
         .catch((error) => {
-          // console.log('error while looking for organizations');
           handleError(error, 'carregar organizações', true);
         });
     }

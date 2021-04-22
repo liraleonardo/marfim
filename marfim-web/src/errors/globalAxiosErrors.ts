@@ -14,7 +14,7 @@ export const getEntityAxiosErrors = (
   const errorsFound = entityErrors
     .filter((error) => code.includes(error.code))
     .map((error) => error.message);
-  return errorsFound;
+  return errorsFound && errorsFound.length > 0 ? errorsFound : [];
 };
 
 export const getGlobalAxiosErrors = (code: string): string[] => {

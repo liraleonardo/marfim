@@ -1,6 +1,8 @@
 package org.ipdec.marfim.api.exception;
 
 import org.ipdec.marfim.api.exception.dto.ResponseErrorDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -27,9 +29,12 @@ import java.util.stream.Collectors;
 public class RestResponseEntityExceptionHandler
         extends ResponseEntityExceptionHandler {
 
+    Logger log = LoggerFactory.getLogger(RestResponseEntityExceptionHandler.class);
+
     @ExceptionHandler({ RuntimeException.class })
     @ResponseStatus(value=HttpStatus.INTERNAL_SERVER_ERROR)
-    public ResponseErrorDTO handleAccessDeniedException(RuntimeException ex, WebRequest request) {
+    public ResponseErrorDTO handleRunTimeException(RuntimeException ex, WebRequest request) {
+        log.warn( "RuntimeException ...", ex);
         String path = Objects.requireNonNull(((ServletWebRequest) request).getNativeRequest(HttpServletRequest.class)).getRequestURI();
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
         String message = String.format("RuntimeException (%s): %s",ex.getClass().getSimpleName(),ex.getMessage());

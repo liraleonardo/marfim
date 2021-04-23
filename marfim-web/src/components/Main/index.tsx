@@ -21,8 +21,13 @@ import {
 import logoImg from '../../assets/logo-horizontal.svg';
 import { useAuth } from '../../hooks/auth';
 import getRoutes from '../../router/routes';
+import {
+  getMenuItems,
+  getMenuItemsWithAuthorities,
+} from '../../utils/routeUtils';
 
-import { SHOW_ROUTE_LABEL } from '../../router/types';
+import { SHOW_ROUTE_LABEL, SHOW_MENU, MENU_ICON } from '../../router/types';
+import GenericService from '../../services/GenericService';
 
 interface OrganizationMenuItem extends MenuItem {
   organizationId: number;
@@ -37,12 +42,17 @@ const Main: React.FC<MainProps> = ({ children, isToshowMain }) => {
   const [showMenu, setShowMenu] = useState(true);
   const [routeLabel, setRouteLabel] = useState('');
 
+  const routes = useMemo(() => getRoutes(), []);
+  const history = useHistory();
+
+  const defaultSideBar = useMemo(() => getMenuItems(history.push), []);
+  const [sideBarMenuItems, setSideBarMenuItems] = useState<MenuItem[]>(
+    defaultSideBar,
+  );
+
   const location = useLocation();
 
   const menuRef = useRef<Menu>(null);
-  const history = useHistory();
-
-  const routes = useMemo(() => getRoutes(), []);
 
   const {
     user,
@@ -50,6 +60,7 @@ const Main: React.FC<MainProps> = ({ children, isToshowMain }) => {
     chooseOrganization,
     selectedOrganization,
     organizations,
+    authenticated,
   } = useAuth();
 
   useEffect(() => {
@@ -64,6 +75,18 @@ const Main: React.FC<MainProps> = ({ children, isToshowMain }) => {
       setRouteLabel(routeFound.meta[SHOW_ROUTE_LABEL]);
     else setRouteLabel('');
   }, [routes, location.pathname]);
+
+  useEffect(() => {
+    if (authenticated) {
+      setSideBarMenuItems(defaultSideBar);
+      const service: GenericService<string, string> = new GenericService(
+        '/my/authorities',
+      );
+      service.findAll().then((data) => {
+        setSideBarMenuItems(getMenuItemsWithAuthorities(data, history.push));
+      });
+    }
+  }, [history.push, selectedOrganization, defaultSideBar, authenticated]);
 
   const handleSignOut = useCallback(() => {
     signOut();
@@ -122,44 +145,6 @@ const Main: React.FC<MainProps> = ({ children, isToshowMain }) => {
   }, [showMenu, menuMode]);
 
   const topBarEnd = <Menubar style={{ border: 0 }} model={topBarMenuItems} />;
-
-  const sideBarMenuItems: MenuItem[] = [
-    {
-      label: 'Dashboard',
-      icon: 'pi pi-fw pi-chart-line',
-      command: () => {
-        history.push('/');
-      },
-    },
-    {
-      label: 'Organizações',
-      icon: 'pi pi-fw pi-briefcase',
-      command: () => {
-        history.push('/organizations');
-      },
-    },
-    {
-      label: 'Usuários',
-      icon: 'pi pi-fw pi-users',
-      command: () => {
-        history.push('/users');
-      },
-    },
-    {
-      label: 'Controle de Acesso',
-      icon: 'pi pi-fw pi-unlock',
-      command: () => {
-        history.push('/roles');
-      },
-    },
-    {
-      label: 'Projetos',
-      icon: 'pi pi-fw pi-list',
-      command: () => {
-        history.push('/projects');
-      },
-    },
-  ];
 
   const containerClassName = classNames('layout-wrapper', {
     'layout-static': menuMode === 'static',

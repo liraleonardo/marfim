@@ -74,7 +74,7 @@ const SignInPage: React.FC = () => {
         });
       }
     },
-    [signIn, addToast, history],
+    [signIn, addToast],
   );
 
   const googleLoginSuccess = useCallback(

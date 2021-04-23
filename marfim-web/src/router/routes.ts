@@ -10,7 +10,14 @@ import RolePage from '../pages/RolePage';
 import SignInPage from '../pages/SignInPage';
 import SignUpPage from '../pages/SignUpPage';
 import UserPage from '../pages/UserPage';
-import { WITH_AUTH, SHOW_ROUTE_LABEL } from './types';
+import {
+  WITH_AUTH,
+  SHOW_ROUTE_LABEL,
+  SHOW_MENU,
+  MENU_ICON,
+  PUBLIC_MENU,
+  MENU_PERMISSIONS,
+} from './types';
 import editGuard from './guards/editOrganizationGuard';
 
 export interface RouteProps {
@@ -50,6 +57,9 @@ export default (): RouteProps[] => [
     meta: {
       [WITH_AUTH]: true,
       [SHOW_ROUTE_LABEL]: 'Dashboard',
+      [SHOW_MENU]: true,
+      [MENU_ICON]: 'pi pi-fw pi-chart-line',
+      [PUBLIC_MENU]: true,
     },
   },
   {
@@ -62,6 +72,9 @@ export default (): RouteProps[] => [
     meta: {
       [WITH_AUTH]: true,
       [SHOW_ROUTE_LABEL]: 'Meu Perfil',
+      [SHOW_MENU]: false,
+      [MENU_ICON]: 'pi pi-fw pi-user',
+      [MENU_PERMISSIONS]: ['PROFILE_READ', 'PROFILE_ALL'],
     },
   },
   {
@@ -72,6 +85,9 @@ export default (): RouteProps[] => [
     meta: {
       [WITH_AUTH]: true,
       [SHOW_ROUTE_LABEL]: 'Organizações',
+      [SHOW_MENU]: true,
+      [MENU_ICON]: 'pi pi-fw pi-briefcase',
+      [MENU_PERMISSIONS]: ['ORGANIZATIONS_READ', 'ORGANIZATIONS_ALL'],
     },
   },
   {
@@ -103,6 +119,9 @@ export default (): RouteProps[] => [
     meta: {
       [WITH_AUTH]: true,
       [SHOW_ROUTE_LABEL]: 'Usuários',
+      [SHOW_MENU]: true,
+      [MENU_ICON]: 'pi pi-fw pi-users',
+      [MENU_PERMISSIONS]: ['USERS_READ', 'USERS_ALL'],
     },
   },
   {
@@ -113,6 +132,9 @@ export default (): RouteProps[] => [
     meta: {
       [WITH_AUTH]: true,
       [SHOW_ROUTE_LABEL]: 'Controle de Acesso',
+      [SHOW_MENU]: true,
+      [MENU_ICON]: 'pi pi-fw pi-unlock',
+      [MENU_PERMISSIONS]: ['ROLES_READ', 'ROLES_ALL'],
     },
   },
   {
@@ -123,6 +145,9 @@ export default (): RouteProps[] => [
     meta: {
       [WITH_AUTH]: true,
       [SHOW_ROUTE_LABEL]: 'Projetos',
+      [SHOW_MENU]: true,
+      [MENU_ICON]: 'pi pi-fw pi-list',
+      [MENU_PERMISSIONS]: ['PROJECTS_READ', 'PROJECTS_ALL'],
     },
   },
   {

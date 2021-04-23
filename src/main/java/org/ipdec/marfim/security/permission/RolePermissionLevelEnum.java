@@ -14,7 +14,6 @@ public enum RolePermissionLevelEnum {
     CREATE(2,"CREATE", "Criação"),
     UPDATE(3,"UPDATE", "Atualização"),
     DELETE(4,"DELETE", "Remoção"),
-    WRITE(5,"WRITE", "Escrita"),
     ALL(100,"ALL", "Todos os Acessos");
 
     private final int level;

@@ -1,7 +1,7 @@
 import React from 'react';
-import { FaRegTimesCircle } from 'react-icons/fa';
+import { Dialog } from 'primereact/dialog';
+import { Dropdown } from 'primereact/dropdown';
 
-import { Container } from './styles';
 import { Organization, useAuth } from '../../hooks/auth';
 
 interface ChooseOraganizationContainerProps {
@@ -17,27 +17,21 @@ const ChooseOraganizationContainer: React.FC<ChooseOraganizationContainerProps> 
 }) => {
   const { chooseOrganization } = useAuth();
   return (
-    <Container toShow={toOpen}>
-      <div>
-        <div>
-          <h1>Selecione uma Organização </h1>
-          <button type="button" onClick={onRequestClose}>
-            <FaRegTimesCircle size={20} />
-          </button>
-        </div>
-        {organizations.map((organization) => (
-          <button
-            key={organization.id}
-            type="button"
-            onClick={() => {
-              chooseOrganization(organization);
-            }}
-          >
-            {organization.name}
-          </button>
-        ))}
-      </div>
-    </Container>
+    <Dialog
+      visible={toOpen}
+      header="Você tem acesso a mais de uma organização"
+      onHide={onRequestClose}
+      className="p-fluid"
+      closeOnEscape
+      focusOnShow={false}
+    >
+      <Dropdown
+        options={organizations}
+        onChange={(e) => chooseOrganization(e.value)}
+        optionLabel="name"
+        placeholder="Selecione uma organização"
+      />
+    </Dialog>
   );
 };
 export default ChooseOraganizationContainer;

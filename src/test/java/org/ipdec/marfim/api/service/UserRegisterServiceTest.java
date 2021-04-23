@@ -1,6 +1,6 @@
 package org.ipdec.marfim.api.service;
 
-import org.ipdec.marfim.api.dto.CreateUserDTO;
+import org.ipdec.marfim.api.dto.RegisterUserDTO;
 import org.ipdec.marfim.api.model.User;
 import org.ipdec.marfim.api.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,25 +41,25 @@ public class UserRegisterServiceTest {
     @Test
     @DisplayName("[Unit] It should register a new user account")
     void shouldRegisterANewUser() {
-        CreateUserDTO createUserDTO = new CreateUserDTO("email@email.com","password", "user name");
+        RegisterUserDTO registerUserDTO = new RegisterUserDTO("email@email.com","password", "user name");
 
         // return empty because it is a new email
-        Mockito.when(userRepository.findByEmail(createUserDTO.getEmail())).thenReturn(Optional.empty());
+        Mockito.when(userRepository.findByEmail(registerUserDTO.getEmail())).thenReturn(Optional.empty());
         // return an encoded password to be saved
-        Mockito.when(encoder.encode(createUserDTO.getPassword())).thenReturn("encodedpassword");
+        Mockito.when(encoder.encode(registerUserDTO.getPassword())).thenReturn("encodedpassword");
 
         // user to be saved
         User userToBeSaved = new User();
-        userToBeSaved.setEmail(createUserDTO.getEmail());
+        userToBeSaved.setEmail(registerUserDTO.getEmail());
         userToBeSaved.setPassword("encodedpassword");
-        userToBeSaved.setName(createUserDTO.getName());
+        userToBeSaved.setName(registerUserDTO.getName());
 
         // user saved
         User userSaved = new User();
         userSaved.setId(UUID.randomUUID());
-        userSaved.setEmail(createUserDTO.getEmail());
+        userSaved.setEmail(registerUserDTO.getEmail());
         userSaved.setPassword("encodedpassword");
-        userSaved.setName(createUserDTO.getName());
+        userSaved.setName(registerUserDTO.getName());
         userSaved.setEnabled(true);
         userSaved.setCreatedAt(LocalDateTime.now());
         userSaved.setUpdatedAt(LocalDateTime.now());
@@ -68,11 +68,11 @@ public class UserRegisterServiceTest {
         // mock the return of save
         Mockito.when(userRepository.save(userToBeSaved)).thenReturn(userSaved);
 
-        User createdUser = userRegisterService.register(createUserDTO);
+        User createdUser = userRegisterService.register(registerUserDTO);
 
         assertNotNull(createdUser.getId());
-        assertEquals(createUserDTO.getEmail(),createdUser.getEmail());
-        assertEquals(createUserDTO.getName(),createdUser.getName());
+        assertEquals(registerUserDTO.getEmail(),createdUser.getEmail());
+        assertEquals(registerUserDTO.getName(),createdUser.getName());
         assertEquals("encodedpassword",createdUser.getPassword());
 
     }
@@ -80,20 +80,20 @@ public class UserRegisterServiceTest {
     @Test
     @DisplayName("[Unit] It should register a new user account 2")
     void shouldRegisterANewUser2() {
-        CreateUserDTO createUserDTO = new CreateUserDTO("email@email.com","password", "user name");
+        RegisterUserDTO registerUserDTO = new RegisterUserDTO("email@email.com","password", "user name");
 
         // return empty because it is a new email
-        Mockito.when(userRepository.findByEmail(createUserDTO.getEmail())).thenReturn(Optional.empty());
+        Mockito.when(userRepository.findByEmail(registerUserDTO.getEmail())).thenReturn(Optional.empty());
         // return an encoded password to be saved
-        Mockito.when(encoder.encode(createUserDTO.getPassword())).thenReturn("encodedpassword");
+        Mockito.when(encoder.encode(registerUserDTO.getPassword())).thenReturn("encodedpassword");
 
-        userRegisterService.register(createUserDTO);
+        userRegisterService.register(registerUserDTO);
 
         Mockito.verify(userRepository,Mockito.times(1)).save(ArgumentMatchers.any(User.class));
         Mockito.verify(userRepository,Mockito.times(1)).save(userArgumentCaptor.capture());
 
-        assertEquals(createUserDTO.getEmail(),userArgumentCaptor.getValue().getEmail());
-        assertEquals(createUserDTO.getName(),userArgumentCaptor.getValue().getName());
+        assertEquals(registerUserDTO.getEmail(),userArgumentCaptor.getValue().getEmail());
+        assertEquals(registerUserDTO.getName(),userArgumentCaptor.getValue().getName());
         assertEquals("encodedpassword",userArgumentCaptor.getValue().getPassword());
 
     }
@@ -101,11 +101,11 @@ public class UserRegisterServiceTest {
     @Test
     @DisplayName("[Unit] It should not register a new user account with already registered email")
     void shouldNotRegisterANewUserWithExistingEmail() {
-        CreateUserDTO createUserDTO = new CreateUserDTO("email@email.com","password", "user name");
+        RegisterUserDTO registerUserDTO = new RegisterUserDTO("email@email.com","password", "user name");
         User userFound = new User(UUID.randomUUID(), "email@email.com", "encodedpassword", "user name", null, LocalDateTime.now(), LocalDateTime.now(), true, false, new ArrayList<>(),new ArrayList<>());
 
         // return empty because it is a new email
-        Mockito.when(userRepository.findByEmail(createUserDTO.getEmail())).thenReturn(Optional.of(userFound));
+        Mockito.when(userRepository.findByEmail(registerUserDTO.getEmail())).thenReturn(Optional.of(userFound));
 
         // FORMA 01
 //        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
@@ -115,7 +115,7 @@ public class UserRegisterServiceTest {
 
         // FORMA 02
         assertThatThrownBy(() -> {
-            userRegisterService.register(createUserDTO);
+            userRegisterService.register(registerUserDTO);
         }).isInstanceOf(ResponseStatusException.class).hasMessageContaining("user already registered");
 
     }

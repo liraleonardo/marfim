@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 
 import java.time.LocalDateTime;
@@ -24,11 +25,14 @@ public class UserServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private PasswordEncoder encoder;
+
     UserService userService;
 
     @BeforeEach
     void setup(){
-        userService = new UserService(userRepository);
+        userService = new UserService(userRepository, encoder);
     }
 
     @Test

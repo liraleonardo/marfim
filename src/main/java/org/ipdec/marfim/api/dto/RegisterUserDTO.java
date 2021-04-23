@@ -3,8 +3,6 @@ package org.ipdec.marfim.api.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.ipdec.marfim.api.model.Organization;
-import org.ipdec.marfim.api.model.User;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
@@ -13,7 +11,7 @@ import javax.validation.constraints.Size;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CreateUserDTO {
+public class RegisterUserDTO {
     @NotBlank(message="empty email")
     @Email(message = "invalid email format")
     private String email;
@@ -25,15 +23,4 @@ public class CreateUserDTO {
     @NotBlank(message="empty name")
     private String name;
 
-    private Boolean isSuper;
-
-    public User parseToUser(User user){
-        user.setEmail(email.trim().toLowerCase()
-                .replaceAll("\\s", "")
-                .replaceAll("\\t", ""));
-        user.setName(name);
-        user.setPassword(password);
-        user.setIsSuper(isSuper);
-        return user;
-    }
-}
+ }

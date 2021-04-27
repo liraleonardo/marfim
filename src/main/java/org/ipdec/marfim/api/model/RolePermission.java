@@ -37,13 +37,10 @@ public class RolePermission implements Serializable {
     @JoinColumn(name = "permission_code")
     private Permission permission;
 
-    @Column
-    private Integer level;
-
     public String getAuthority() {
-        String authority = level == null ?
+        String authority = id.getLevel() == null ?
                 permission.getCode() :
-                permission.getCode().concat("_").concat(RolePermissionLevelEnum.get(level).getCode());
+                permission.getCode().concat("_").concat(RolePermissionLevelEnum.get(id.getLevel()).getCode());
         return authority;
     }
 }

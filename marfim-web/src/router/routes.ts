@@ -2,14 +2,14 @@ import { PageComponent } from 'react-router-guards';
 import { GuardFunction, Meta } from 'react-router-guards/dist/types';
 import DashboardPage from '../pages/DashboardPage';
 import NotFoundPage from '../pages/NotFoundPage';
-import OrganizationPage from '../pages/OrganizationPage';
-import OrganizationFormPage from '../pages/OrganizationPage/OrganizationFormPage';
+import OrganizationPage from '../pages/Organization/OrganizationPage';
+import OrganizationFormPage from '../pages/Organization/OrganizationFormPage';
 import ProfilePage from '../pages/ProfilePage';
 import ProjectPage from '../pages/ProjectPage';
 import RolePage from '../pages/RolePage';
 import SignInPage from '../pages/SignInPage';
 import SignUpPage from '../pages/SignUpPage';
-import UserPage from '../pages/UserPage';
+import UserPage from '../pages/User/UserPage';
 import {
   WITH_AUTH,
   SHOW_ROUTE_LABEL,
@@ -19,6 +19,7 @@ import {
   MENU_PERMISSIONS,
 } from './types';
 import editGuard from './guards/editOrganizationGuard';
+import UserFormPage from '../pages/User/UserFormPage';
 
 export interface RouteProps {
   key: string;
@@ -107,7 +108,7 @@ export default (): RouteProps[] => [
     component: OrganizationFormPage,
     meta: {
       [WITH_AUTH]: true,
-      [SHOW_ROUTE_LABEL]: 'Editar Organização',
+      [SHOW_ROUTE_LABEL]: 'Alterar Organização',
     },
     guards: defaultEditGuard,
   },
@@ -123,6 +124,27 @@ export default (): RouteProps[] => [
       [MENU_ICON]: 'pi pi-fw pi-users',
       [MENU_PERMISSIONS]: ['USERS_READ', 'USERS_ALL'],
     },
+  },
+  {
+    key: 'usersFormPage',
+    path: '/users/form',
+    exact: true,
+    component: UserFormPage,
+    meta: {
+      [WITH_AUTH]: true,
+      [SHOW_ROUTE_LABEL]: 'Novo Usuário',
+    },
+  },
+  {
+    key: 'usersEditPage',
+    path: '/users/edit/:id',
+    exact: false,
+    component: UserFormPage,
+    meta: {
+      [WITH_AUTH]: true,
+      [SHOW_ROUTE_LABEL]: 'Alterar Usuário',
+    },
+    guards: defaultEditGuard,
   },
   {
     key: 'rolesPage',

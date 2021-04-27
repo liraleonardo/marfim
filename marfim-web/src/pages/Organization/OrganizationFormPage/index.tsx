@@ -213,7 +213,7 @@ const OrganizationFormPage: React.FC = () => {
       <div className="card">
         <div className="p-fluid">
           <h5>
-            <span>{isEdit ? 'Editar ' : 'Cadastrar '}Organização</span>
+            <span>{isEdit ? 'Alterar ' : 'Cadastrar '}Organização</span>
           </h5>
           <div className="p-grid">
             <div className="p-field p-col-12 p-md-8">
@@ -290,7 +290,6 @@ const OrganizationFormPage: React.FC = () => {
               <label htmlFor="descriptionInput">Descrição da Organização</label>
               <InputTextarea
                 {...register('description')}
-                type="text"
                 id="descriptionInput"
                 value={organization.description}
                 className={errors.description ? 'p-invalid' : ''}

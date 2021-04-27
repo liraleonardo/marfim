@@ -24,6 +24,12 @@ export default class User {
   constructor() {
     this.name = '';
     this.email = '';
-    this.avatarUrl = '';
   }
+}
+
+export interface ICreateUpdateUser {
+  name: string;
+  email: string;
+  password?: string;
+  isSuper?: boolean;
 }

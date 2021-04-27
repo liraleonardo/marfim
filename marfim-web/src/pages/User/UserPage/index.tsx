@@ -6,20 +6,21 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { BadgeProps, SeverityType, SizeType } from 'primereact/badge';
 import { AvatarGroup } from 'primereact/avatargroup';
 import { Avatar } from 'primereact/avatar';
 import { Tooltip } from 'primereact/tooltip';
 import { ColumnProps } from 'primereact/column';
 import CrudPageContainer, {
   HandleErrorProps,
-} from '../../components/CrudPageContainer';
-import { useAuth } from '../../hooks/auth';
-import { AvatarNameContainer } from '../../components/AvatarNameContainer';
-import { handleAxiosError } from '../../errors/axiosErrorHandler';
-import { useToast } from '../../hooks/toast';
-import { IErrorState } from '../../errors/AppErrorInterfaces';
-import UserService from '../../services/UserService';
-import User from '../../model/User';
+} from '../../../components/CrudPageContainer';
+import { useAuth } from '../../../hooks/auth';
+import { AvatarNameContainer } from '../../../components/AvatarNameContainer';
+import { handleAxiosError } from '../../../errors/axiosErrorHandler';
+import { useToast } from '../../../hooks/toast';
+import { IErrorState } from '../../../errors/AppErrorInterfaces';
+import UserService from '../../../services/UserService';
+import User from '../../../model/User';
 
 const UserPage: React.FC = () => {
   const dt: React.RefObject<DataTable> = useRef(null);
@@ -83,7 +84,11 @@ const UserPage: React.FC = () => {
         defaultAvatarIcon="pi pi-user"
         badge={
           rowData.isSuper
-            ? { value: 'SUPER', severity: 'info', size: 'small' }
+            ? ({
+                value: 'SUPER',
+                severity: 'info' as SeverityType,
+                size: 'small' as SizeType,
+              } as BadgeProps)
             : undefined
         }
       />
@@ -184,13 +189,19 @@ const UserPage: React.FC = () => {
           .catch((err) =>
             handleError({
               error: err,
-              errorAction: `deletar ${entity.name.toLowerCase()}`,
+              errorAction: `apagar ${entity.name.toLowerCase()}`,
             }),
           );
       }
     },
     [addToast, reloadUsers, handleError, entity],
   );
+
+  const fullAccessForAuthoritiesList = [
+    'USERS_ALL',
+    'ROLE_SUPER_USER',
+    'ROLE_ADMIN_USER',
+  ];
 
   return (
     <CrudPageContainer
@@ -201,22 +212,19 @@ const UserPage: React.FC = () => {
       errorState={error}
       entity={entity}
       handleConfirmDeleteItem={handleConfirmDeleteUser}
-      showCreateItemButton
       showItemActionColumn
-      // itemActionButtons={[
-      //   {
-      //     icon: 'pi pi-user',
-      //     className: 'p-button-warning',
-      //   },
-      //   {
-      //     icon: 'pi pi-pencil',
-      //     className: 'p-button-rounded p-button-success p-mr-2',
-      //   },
-      //   {
-      //     icon: 'pi pi-pencil',
-      //     className: 'p-button-rounded p-button-success p-mr-2',
-      //   },
-      // ]}
+      showCreateItemButtonForAuthorities={[
+        'USERS_CREATE',
+        ...fullAccessForAuthoritiesList,
+      ]}
+      showEditActionForAuthorities={[
+        'USERS_UPDATE',
+        ...fullAccessForAuthoritiesList,
+      ]}
+      showDeleteActionForAuthorities={[
+        'USERS_DELETE',
+        ...fullAccessForAuthoritiesList,
+      ]}
     />
   );
 };

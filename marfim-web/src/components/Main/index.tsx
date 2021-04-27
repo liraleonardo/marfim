@@ -59,6 +59,7 @@ const Main: React.FC<MainProps> = ({ children, isToshowMain }) => {
     signOut,
     chooseOrganization,
     selectedOrganization,
+    authorities,
     organizations,
     authenticated,
   } = useAuth();
@@ -78,15 +79,11 @@ const Main: React.FC<MainProps> = ({ children, isToshowMain }) => {
 
   useEffect(() => {
     if (authenticated) {
-      setSideBarMenuItems(defaultSideBar);
-      const service: GenericService<string, string> = new GenericService(
-        '/my/authorities',
+      setSideBarMenuItems(
+        getMenuItemsWithAuthorities(authorities, history.push),
       );
-      service.findAll().then((data) => {
-        setSideBarMenuItems(getMenuItemsWithAuthorities(data, history.push));
-      });
     }
-  }, [history.push, selectedOrganization, defaultSideBar, authenticated]);
+  }, [authorities, history.push, authenticated]);
 
   const handleSignOut = useCallback(() => {
     signOut();
@@ -121,7 +118,7 @@ const Main: React.FC<MainProps> = ({ children, isToshowMain }) => {
       icon: 'pi pi-fw pi-user',
       items: [
         {
-          label: 'Editar Perfil',
+          label: 'Alterar Perfil',
           icon: 'pi pi-fw pi-user-edit',
           command: () => {
             history.push('/profile');

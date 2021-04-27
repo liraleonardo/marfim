@@ -3,7 +3,7 @@ import { confirmDialog } from 'primereact/confirmdialog';
 import { DataTable } from 'primereact/datatable';
 import { Column, ColumnProps } from 'primereact/column';
 import { Button, ButtonProps } from 'primereact/button';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 import { AxiosError } from 'axios';
 import { InputText } from 'primereact/inputtext';
@@ -26,9 +26,12 @@ interface CrudPageContainerProps<T> {
   };
   columns: ColumnProps[];
   handleConfirmDeleteItem(entity: T): void;
-  showCreateItemButton?: boolean;
+  showCreateItemButtonForAuthorities?: string[];
   showItemActionColumn?: boolean;
   itemActionButtons?: ButtonProps[];
+
+  showEditActionForAuthorities?: string[];
+  showDeleteActionForAuthorities?: string[];
 }
 
 export interface HandleErrorProps {
@@ -44,16 +47,39 @@ const CrudPageContainer: React.FC<CrudPageContainerProps<unknown>> = ({
   errorState,
   entity,
   columns,
-  showCreateItemButton = true,
+  showCreateItemButtonForAuthorities,
   showItemActionColumn = true,
   itemActionButtons = [],
+  showEditActionForAuthorities,
+  showDeleteActionForAuthorities,
   handleConfirmDeleteItem,
 }) => {
   const [globalFilter, setGlobalFilter] = useState('');
 
   const history = useHistory();
   const location = useLocation();
-  const { signOut } = useAuth();
+  const { signOut, hasAnyAuthority } = useAuth();
+
+  const showEditAction = useMemo(() => {
+    if (!showEditActionForAuthorities) {
+      return true;
+    }
+    return hasAnyAuthority(showEditActionForAuthorities);
+  }, [hasAnyAuthority, showEditActionForAuthorities]);
+
+  const showDeleteAction = useMemo(() => {
+    if (!showDeleteActionForAuthorities) {
+      return true;
+    }
+    return hasAnyAuthority(showDeleteActionForAuthorities);
+  }, [hasAnyAuthority, showDeleteActionForAuthorities]);
+
+  const showCreateItemButton = useMemo(() => {
+    if (!showCreateItemButtonForAuthorities) {
+      return true;
+    }
+    return hasAnyAuthority(showCreateItemButtonForAuthorities);
+  }, [hasAnyAuthority, showCreateItemButtonForAuthorities]);
 
   const openFormPage = useCallback(() => {
     history.push(location.pathname.concat('/form'));
@@ -95,7 +121,7 @@ const CrudPageContainer: React.FC<CrudPageContainerProps<unknown>> = ({
   const confirmDeleteOrganization = (rowData: any) => {
     confirmDialog({
       icon: 'pi pi-exclamation-triangle',
-      message: `Você realmente deseja deletar ${
+      message: `Você realmente deseja apagar ${
         entity.gender === 'M' ? 'o' : 'a'
       } ${entity.name.toLowerCase()} '${rowData.name}'?`,
       acceptLabel: 'Excluir',
@@ -114,33 +140,40 @@ const CrudPageContainer: React.FC<CrudPageContainerProps<unknown>> = ({
   const actionBodyTemplate = (rowData: any) => {
     return (
       <div className="actions">
-        {itemActionButtons.length > 0 &&
+        {/* TODO: fix ref error on Button component */}
+
+        {/* {itemActionButtons.length > 0 &&
           itemActionButtons.map((actionButton, i) => (
             <Button
               key={`actionButton${i}`}
               {...actionButton}
               className={`${actionButton.className} p-button-rounded p-m-1`}
             />
-          ))}
+          ))} */}
 
         {itemActionButtons.length === 0 && (
           <>
-            <Button
-              icon="pi pi-pencil"
-              className="p-button-rounded p-button-success p-mr-2"
-              onClick={() => openEditPage(rowData)}
-              tooltip="Editar"
-            />
-            <Button
-              icon="pi pi-trash"
-              className="p-button-rounded p-button-warning"
-              onClick={() => confirmDeleteOrganization(rowData)}
-              tooltip="Deletar"
-            />
+            {showEditAction && (
+              <Button
+                icon="pi pi-pencil"
+                className="p-button-rounded p-button-success p-mr-2"
+                onClick={() => openEditPage(rowData)}
+                tooltip="Alterar"
+              />
+            )}
+            {showDeleteAction && (
+              <Button
+                icon="pi pi-trash"
+                className="p-button-rounded p-button-warning"
+                onClick={() => confirmDeleteOrganization(rowData)}
+                tooltip="Apagar"
+              />
+            )}
           </>
         )}
       </div>
     );
+    return '';
   };
   const handleErrorButtonCLick = useCallback(() => {
     if (errorState && errorState.status.toString() === '401') {
@@ -187,7 +220,7 @@ const CrudPageContainer: React.FC<CrudPageContainerProps<unknown>> = ({
             {columns.map((column, i) => (
               <Column key={`column${i}`} {...column} />
             ))}
-            {showItemActionColumn && (
+            {showItemActionColumn && (showEditAction || showDeleteAction) && (
               <Column style={{ width: `10%` }} body={actionBodyTemplate} />
             )}
           </DataTable>

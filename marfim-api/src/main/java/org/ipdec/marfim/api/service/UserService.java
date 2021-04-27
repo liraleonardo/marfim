@@ -8,6 +8,7 @@ import org.ipdec.marfim.api.exception.type.UserExceptionsEnum;
 import org.ipdec.marfim.api.model.Organization;
 import org.ipdec.marfim.api.model.User;
 import org.ipdec.marfim.api.repository.UserRepository;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -34,7 +35,7 @@ public class UserService {
 
 
     public List<User> findAll() {
-        return userRepository.findAll();
+        return userRepository.findAll(Sort.by(Sort.Order.asc("name").ignoreCase()));
     }
 
     public List<User> findAll(Long organizationId) {

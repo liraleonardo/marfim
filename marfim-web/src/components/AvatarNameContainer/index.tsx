@@ -18,7 +18,7 @@ export const AvatarNameContainer: React.FC<AvatarNameContainerProps> = ({
 }) => {
   const [isImageError, setIsImageError] = useState(false);
 
-  const onImageError = useCallback((e: Event) => {
+  const onImageError = useCallback((e: React.SyntheticEvent) => {
     setIsImageError(true);
   }, []);
 

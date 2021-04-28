@@ -7,6 +7,26 @@ const STORAGE_KEY = {
   selectedOrganization: '@Marfim:selectedOrganization',
 };
 
+export function getTokenFromStorage(): string | null {
+  return localStorage.getItem(STORAGE_KEY.token);
+}
+
+export function getTenantIDFromStorage(): number | null {
+  const storageSelectedOrganization = localStorage.getItem(
+    STORAGE_KEY.selectedOrganization,
+  );
+
+  if (storageSelectedOrganization) {
+    const selectedOrganization: { id: number } = JSON.parse(
+      storageSelectedOrganization,
+    );
+
+    return selectedOrganization.id;
+  }
+
+  return null;
+}
+
 export function getAuthStateFromStorage(): AuthState {
   const authState: AuthState = {} as AuthState;
   const storageToken = localStorage.getItem(STORAGE_KEY.token);

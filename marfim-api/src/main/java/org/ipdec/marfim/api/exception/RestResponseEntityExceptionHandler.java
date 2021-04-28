@@ -1,6 +1,9 @@
 package org.ipdec.marfim.api.exception;
 
 import org.ipdec.marfim.api.exception.dto.ResponseErrorDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,9 +29,12 @@ import java.util.stream.Collectors;
 public class RestResponseEntityExceptionHandler
         extends ResponseEntityExceptionHandler {
 
+    Logger log = LoggerFactory.getLogger(RestResponseEntityExceptionHandler.class);
+
     @ExceptionHandler({ RuntimeException.class })
     @ResponseStatus(value=HttpStatus.INTERNAL_SERVER_ERROR)
-    public ResponseErrorDTO handleAccessDeniedException(RuntimeException ex, WebRequest request) {
+    public ResponseErrorDTO handleRunTimeException(RuntimeException ex, WebRequest request) {
+        log.warn( "RuntimeException ...", ex);
         String path = Objects.requireNonNull(((ServletWebRequest) request).getNativeRequest(HttpServletRequest.class)).getRequestURI();
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
         String message = String.format("RuntimeException (%s): %s",ex.getClass().getSimpleName(),ex.getMessage());
@@ -66,7 +72,20 @@ public class RestResponseEntityExceptionHandler
         return new ResponseErrorDTO(path,status,message,error);
     }
 
-    // overrides ResponseEntityExceptionHandler method handleExceptionInternal to add a body when there are invalid argument errors during validation
+    @ExceptionHandler({DataIntegrityViolationException.class})
+    @ResponseStatus(value=HttpStatus.CONFLICT)
+    public ResponseErrorDTO handleDataIntegrityViolationException(DataIntegrityViolationException ex, WebRequest request) {
+        String path = Objects.requireNonNull(((ServletWebRequest) request).getNativeRequest(HttpServletRequest.class)).getRequestURI();
+        HttpStatus status = HttpStatus.CONFLICT;
+        String message = String.format("data integrity violation: %s",ex.getRootCause().getMessage());
+        String error = ex.getRootCause().getClass().getName();
+
+        return new ResponseErrorDTO(path,status,message,error);
+    }
+
+
+
+    // overrides ResponseEntityExceptionHandler method handleMethodArgumentNotValid to add a body when there are invalid argument errors during validation
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
         String path = Objects.requireNonNull(((ServletWebRequest) request).getNativeRequest(HttpServletRequest.class)).getRequestURI();
@@ -76,7 +95,7 @@ public class RestResponseEntityExceptionHandler
         List<String> allErrorStrs = allErrors.stream().map(err -> err.getDefaultMessage()).collect(Collectors.toList());
         if(allErrorStrs.size()>0) message = message.concat(": "+allErrorStrs.toString());
 
-        return new ResponseEntity(new ResponseErrorDTO(path,status,message,error, Collections.singleton(allErrors)),headers,status);
+        return new ResponseEntity<>(new ResponseErrorDTO(path,status,message,error, Collections.singleton(allErrors)),headers,status);
     }
 
     // overrides ResponseEntityExceptionHandler method handleExceptionInternal to add a default body for all handled errors

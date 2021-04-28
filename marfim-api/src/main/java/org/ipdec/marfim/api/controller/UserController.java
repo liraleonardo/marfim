@@ -1,7 +1,8 @@
 package org.ipdec.marfim.api.controller;
 
-import org.ipdec.marfim.api.dto.AllUsersDTO;
+import org.ipdec.marfim.api.dto.UserDTO;
 import org.ipdec.marfim.api.dto.CreateUserDTO;
+import org.ipdec.marfim.api.dto.UpdateUserDTO;
 import org.ipdec.marfim.api.model.User;
 import org.ipdec.marfim.api.service.UserService;
 import org.ipdec.marfim.security.tenant.TenantContext;
@@ -26,7 +27,7 @@ public class UserController {
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAnyAuthority('USERS_READ', 'USERS_ALL')")
-    public List<AllUsersDTO> findAll() {
+    public List<UserDTO> findAll() {
         Long organizationId = TenantContext.getLongTenant();
         return userService.findAllUsersDTO(organizationId);
     }
@@ -34,8 +35,9 @@ public class UserController {
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAnyAuthority('USERS_READ', 'USERS_ALL')")
-    public User findOne(@PathVariable(value = "id", required = true) UUID userId) {
-        return userService.findById(userId);
+    public UserDTO findOne(@PathVariable(value = "id", required = true) UUID userId) {
+        Long tenantId = TenantContext.getLongTenant();
+        return new UserDTO(userService.findById(userId, tenantId));
     }
 
     @PostMapping
@@ -50,15 +52,17 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAnyAuthority('USERS_UPDATE', 'USERS_ALL')")
     public User update(@PathVariable(value = "id", required = true) UUID userId,
-                               @RequestBody @Valid CreateUserDTO userDTO) {
-        return userService.update(userId, userDTO);
+                               @RequestBody @Valid UpdateUserDTO userDTO) {
+        Long tenantId = TenantContext.getLongTenant();
+        return userService.update(userId, userDTO, tenantId);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasAnyAuthority('USERS_DELETE', 'USERS_ALL')")
     public void delete(@PathVariable(value = "id", required = true) UUID userId) {
-        userService.delete(userId);
+        Long tenantId = TenantContext.getLongTenant();
+        userService.delete(userId, tenantId);
     }
 
 }

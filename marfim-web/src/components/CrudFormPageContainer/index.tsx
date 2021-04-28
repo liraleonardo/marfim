@@ -80,7 +80,7 @@ const CrudFormPageContainer: React.FC<CrudFormPageContainerProps<unknown>> = ({
               {isEdit ? `Alterar ${entity.name}` : `Cadastrar ${entity.name}`}
             </span>
           </h5>
-          <div className="p-grid">{children}</div>
+          {children}
         </div>
 
         {isEdit && (

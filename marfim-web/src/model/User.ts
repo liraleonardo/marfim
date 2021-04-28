@@ -24,6 +24,8 @@ export default class User {
   constructor() {
     this.name = '';
     this.email = '';
+    this.avatarUrl = '';
+    this.organizations = [];
   }
 }
 
@@ -31,5 +33,7 @@ export interface ICreateUpdateUser {
   name: string;
   email: string;
   password?: string;
+  avatarUrl?: string;
   isSuper?: boolean;
+  organizations?: Organization[];
 }

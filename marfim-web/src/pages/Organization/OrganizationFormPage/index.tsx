@@ -102,7 +102,7 @@ const OrganizationFormPage: React.FC = () => {
           handleError(error, 'carregar organizações', true);
         });
     }
-  }, [location.pathname, pathId, history, setValue, handleError]);
+  }, [pathId, setValue, handleError]);
 
   // const handleError = useCallback(
   //   (error: AxiosError, errorAction: string) => {

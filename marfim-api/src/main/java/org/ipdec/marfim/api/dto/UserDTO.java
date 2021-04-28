@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @AllArgsConstructor
 @NoArgsConstructor
-public class AllUsersDTO {
+public class UserDTO {
     private UUID id;
     private String email;
     private String name;
@@ -25,7 +25,7 @@ public class AllUsersDTO {
     private List<OrganizationDTO> organizations;
 
 
-    public AllUsersDTO(User user) {
+    public UserDTO(User user) {
         id = user.getId();
         email = user.getEmail();
         name = user.getName();

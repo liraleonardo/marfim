@@ -1,21 +1,20 @@
 package org.ipdec.marfim.api.service;
 
 import lombok.AllArgsConstructor;
-import org.ipdec.marfim.api.dto.AllUsersDTO;
+import org.ipdec.marfim.api.dto.UserDTO;
 import org.ipdec.marfim.api.dto.CreateUserDTO;
+import org.ipdec.marfim.api.dto.UpdateUserDTO;
 import org.ipdec.marfim.api.exception.UserException;
 import org.ipdec.marfim.api.exception.type.UserExceptionsEnum;
 import org.ipdec.marfim.api.model.Organization;
 import org.ipdec.marfim.api.model.User;
 import org.ipdec.marfim.api.repository.UserRepository;
+import org.ipdec.marfim.security.IPrincipalTokenAttributes;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -27,10 +26,21 @@ public class UserService {
 
     private final PasswordEncoder encoder;
 
-    public User findById(UUID id) {
-        return userRepository.findById(id).orElseThrow(()->{
+    private final IPrincipalTokenAttributes principal;
+
+    public User findById(UUID id, Long organizationId) {
+        User user = userRepository.findById(id).orElseThrow(()->{
             return new UserException(UserExceptionsEnum.NOT_FOUND);
         });
+        // should find an user only if it exist on current tenant
+        if(organizationId!=null){
+            boolean isUserFromTenantOrganization = user.getOrganizations().stream()
+                    .anyMatch(organization -> Objects.equals(organization.getId(), organizationId));
+            if(!isUserFromTenantOrganization){
+                throw new UserException(UserExceptionsEnum.FORBIDDEN_USER_ORGANIZATION_DIFFERENT_FROM_TENANT);
+            }
+        }
+        return user;
     }
 
 
@@ -51,14 +61,19 @@ public class UserService {
 
     }
 
-    public List<AllUsersDTO> findAllUsersDTO(Long organizationId) {
-        return findAll(organizationId).stream().map(AllUsersDTO::new)
+    public List<UserDTO> findAllUsersDTO(Long organizationId) {
+        return findAll(organizationId).stream().map(UserDTO::new)
                 .collect(Collectors.toList());
     }
 
 
     public User create(CreateUserDTO userDTO, Long organizationId){
         User user = userDTO.parseToUser(new User());
+        Boolean principalIsSuper = principal.getUser().isSuper();
+        if(user.isSuper() && !principalIsSuper){
+            throw new UserException(UserExceptionsEnum.FORBIDDEN_BECOME_SUPER_USER_BY_NON_SUPER_USER);
+        }
+
         if(organizationId!=null) {
             List<Organization> organizations = new ArrayList<>();
             Organization organization = new Organization();
@@ -78,23 +93,50 @@ public class UserService {
         return user;
     }
 
-    public User update(UUID id, CreateUserDTO userDTO){
-        User user = userDTO.parseToUser(findById(id));
+    public User update(UUID id, UpdateUserDTO userDTO, Long tenantId){
+        // should update an user only if it exist on current tenant
+        User originalUser = findById(id, tenantId);
+        Boolean principalIsSuper = principal.getUser().isSuper();
+
+        // normal user should not update a super user
+        if(originalUser.isSuper() && !principalIsSuper){
+            throw new UserException(UserExceptionsEnum.FORBIDDEN_UPDATE_SUPER_USER_BY_NON_SUPER_USER);
+        }
+
+        // normal user should not update organizations (it will ignore)
+        if(!principalIsSuper){
+            userDTO.setOrganizations(null);
+        }
+
+        User user = userDTO.parseToUser(originalUser);
+
+        // normal user should not grant super user privileges
+        if(user.isSuper() && !principalIsSuper){
+            throw new UserException(UserExceptionsEnum.FORBIDDEN_BECOME_SUPER_USER_BY_NON_SUPER_USER);
+        }
 
         Optional<User> userWithEmail = this.userRepository.findByEmail(user.getEmail());
 
+        // should not update email to another existing user email
         if(userWithEmail.isPresent() && !userWithEmail.get().getId().equals(id)){
             throw new UserException(UserExceptionsEnum.CONFLICT_USER_SAME_EMAIL);
         }
 
-        user.setPassword(encoder.encode(user.getPassword()));
+        // should update user password only if it is not null, empty, blank
+        if(userDTO.getPassword()!=null
+                && !userDTO.getPassword().isBlank()
+                && !userDTO.getPassword().isEmpty()){
+            user.setPassword(encoder.encode(user.getPassword()));
+        }
+
         user = this.userRepository.save(user);
         return user;
     }
 
 
-    public void delete(UUID id) {
-        findById(id);
+    public void delete(UUID id, Long tenantId) {
+        // should delete an user only if it exist on current tenant
+        findById(id, tenantId);
         userRepository.deleteById(id);
     }
 

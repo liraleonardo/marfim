@@ -2,6 +2,10 @@ import { IAppError } from './AppErrorInterfaces';
 
 export const userErrors: IAppError[] = [
   {
+    code: 'missing tenant-ID',
+    message: 'Ocorreu um erro inesperado: Falta Tenant-ID',
+  },
+  {
     code: 'user not found',
     message: 'Usuário não encontrado',
   },

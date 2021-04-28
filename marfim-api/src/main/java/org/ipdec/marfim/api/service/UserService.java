@@ -136,8 +136,26 @@ public class UserService {
 
     public void delete(UUID id, Long tenantId) {
         // should delete an user only if it exist on current tenant
-        findById(id, tenantId);
-        userRepository.deleteById(id);
+        User userToBeRemoved = findById(id, tenantId);
+        Boolean principalIsSuper = principal.getUser().isSuper();
+
+        // an user should not be able to delete a super user
+        if(!principalIsSuper && userToBeRemoved.isSuper()){
+            throw new UserException(UserExceptionsEnum.FORBIDDEN_UPDATE_SUPER_USER_BY_NON_SUPER_USER);
+        }
+
+        if(tenantId==null) {
+            // a super user should delete any user
+            userRepository.deleteById(id);
+            return;
+        }
+
+        // an user should only remove the relationship with the current organization (tenantId)
+        boolean wasOrganizationRemoved = userToBeRemoved.getOrganizations().removeIf(organization -> Objects.equals(organization.getId(), tenantId));
+        boolean wasRoleRemoved = userToBeRemoved.getRoles().removeIf(role -> Objects.equals(role.getOrganization().getId(),tenantId));
+        if(wasOrganizationRemoved || wasRoleRemoved){
+            userRepository.save(userToBeRemoved);
+        }
     }
 
 }

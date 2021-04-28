@@ -4,9 +4,14 @@ import { useForm } from 'react-hook-form';
 import { InputText } from 'primereact/inputtext';
 import { InputMask } from 'primereact/inputmask';
 import { InputTextarea } from 'primereact/inputtextarea';
-import React, { ChangeEvent, useCallback, useEffect, useState } from 'react';
-import { useHistory, useLocation, useParams } from 'react-router-dom';
-import FormCancelSubmitFooter from '../../../components/FormCancelSubmitFooter';
+import React, {
+  ChangeEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+import { useHistory, useParams } from 'react-router-dom';
 import { useToast } from '../../../hooks/toast';
 import Organization, {
   ICreateUpdateOrganization,
@@ -16,8 +21,7 @@ import { organizationErrors } from '../../../errors/organizationErrors';
 import { maskedCnpj, unmaskCnpj } from '../../../utils/maskUtils';
 import { handleAxiosError } from '../../../errors/axiosErrorHandler';
 import { IErrorState } from '../../../errors/AppErrorInterfaces';
-import ErrorContainer from '../../../components/ErrorContainer';
-import { useAuth } from '../../../hooks/auth';
+import CrudFormPageContainer from '../../../components/CrudFormPageContainer';
 
 interface OrganizationPathParams {
   id?: string;
@@ -32,8 +36,6 @@ const OrganizationFormPage: React.FC = () => {
   const [organizationId, setOrganizationId] = useState<number | null>(null);
 
   const history = useHistory();
-  const { signOut } = useAuth();
-  const location = useLocation();
   const {
     register,
     handleSubmit: handleFormSubmit,
@@ -55,6 +57,14 @@ const OrganizationFormPage: React.FC = () => {
 
   const { addToast, addErrorToast } = useToast();
 
+  const entity = useMemo(() => {
+    return {
+      name: 'Organização',
+      namePlural: 'Organizações',
+      gender: 'F' as 'M' | 'F',
+    };
+  }, []);
+
   const handleError = useCallback(
     (error: AxiosError, errorAction: string, handleAsPageError = false) => {
       const handledError = handleAxiosError(error, organizationErrors);
@@ -70,10 +80,7 @@ const OrganizationFormPage: React.FC = () => {
 
   useEffect(() => {
     const id = Number(pathId);
-    if (
-      id
-      // && matchPath(location.pathname, { path: '/organizations/edit/:id' })
-    ) {
+    if (id) {
       setIsEdit(true);
       setOrganizationId(id);
       const organizationService: OrganizationService = new OrganizationService();
@@ -103,19 +110,6 @@ const OrganizationFormPage: React.FC = () => {
         });
     }
   }, [pathId, setValue, handleError]);
-
-  // const handleError = useCallback(
-  //   (error: AxiosError, errorAction: string) => {
-  //     let messages;
-  //     if (error.response) {
-  //       messages = getOrganizationError(error.response.data.message);
-  //     } else {
-  //       messages = getOrganizationError(error.message);
-  //     }
-  //     messages.forEach((message) => addErrorToast(errorAction, message));
-  //   },
-  //   [addErrorToast],
-  // );
 
   const onInputChange = useCallback(
     (e: { target: { value: string } }, name: string): any => {
@@ -175,7 +169,6 @@ const OrganizationFormPage: React.FC = () => {
           history.goBack();
         })
         .catch((error: AxiosError) => {
-          // console.error(error.response?.data.message);
           handleError(error, 'alterar Organização');
         })
         .finally(() => {
@@ -189,140 +182,110 @@ const OrganizationFormPage: React.FC = () => {
     history.goBack();
   }, [history]);
 
-  const handleErrorButtonCLick = useCallback(() => {
-    if (errorState && errorState.status.toString() === '401') {
-      signOut();
-    }
-    history.push('/');
-  }, [history, signOut, errorState]);
-
-  if (errorState) {
-    return (
-      <ErrorContainer
-        status={errorState.status}
-        title={errorState.title}
-        messages={errorState.messages}
-        buttonLabel={errorState.status === 401 ? 'Refazer login' : undefined}
-        onButtonClick={handleErrorButtonCLick}
-      />
-    );
-  }
-
   return (
-    <div className="p-col-12">
-      <div className="card">
-        <div className="p-fluid">
-          <h5>
-            <span>{isEdit ? 'Alterar ' : 'Cadastrar '}Organização</span>
-          </h5>
-          <div className="p-grid">
-            <div className="p-field p-col-12 p-md-8">
-              <label htmlFor="nameInput">Nome da Organização *</label>
-              <InputText
-                {...register('name', {
-                  required: 'O nome da organização é obrigatório',
-                })}
-                type="text"
-                id="nameInput"
-                value={organization.name}
-                className={errors.name ? 'p-invalid' : ''}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                  const val = onInputChange(e, 'name');
-                  setValue('name', val, { shouldValidate: true });
-                }}
-                tooltip="Informe um nome único para a organização"
-              />
-              {errors?.name && (
-                <small id="name-help" className="p-error">
-                  {errors.name.message}
-                </small>
-              )}
-            </div>
-            <div className="p-field p-col-12 p-md-4">
-              <label htmlFor="cnpjInput">CNPJ *</label>
-              <InputMask
-                {...register('cnpj', {
-                  required: 'O CNPJ da organização é obrigatório',
-                  pattern: {
-                    value: /[0-9]{2}[.][0-9]{3}[.][0-9]{3}[/][0-9]{4}[-][0-9]{2}/i,
-                    message: 'Informe todos os 14 dígitos do cnpj',
-                  },
-                })}
-                mask="99.999.999/9999-99"
-                type="text"
-                id="cnpjInput"
-                value={organization.cnpj}
-                tooltip="Informe um CNPJ válido para a organização"
-                className={errors.cnpj ? 'p-invalid' : ''}
-                onChange={(e) => {
-                  const val = onInputChange(e, 'cnpj');
-                  setValue('cnpj', val, { shouldValidate: true });
-                }}
-              />
-              {errors?.cnpj && (
-                <small id="cnpj-help" className="p-error">
-                  {errors.cnpj.message}
-                </small>
-              )}
-            </div>
-
-            <div className="p-field p-col-12 p-md-12">
-              <label htmlFor="avatarUrlInput">URL do Avatar</label>
-              <InputText
-                {...register('avatarUrl')}
-                type="text"
-                id="avatarUrlInput"
-                value={organization.avatarUrl}
-                className={errors.avatarUrl ? 'p-invalid' : ''}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                  const val = onInputChange(e, 'avatarUrl');
-                  setValue('avatarUrl', val, { shouldValidate: true });
-                }}
-              />
-              {errors?.avatarUrl && (
-                <small id="avatarUrl-help" className="p-error">
-                  {errors.avatarUrl.message}
-                </small>
-              )}
-            </div>
-
-            <div className="p-field p-col-12 p-md-12">
-              <label htmlFor="descriptionInput">Descrição da Organização</label>
-              <InputTextarea
-                {...register('description')}
-                id="descriptionInput"
-                value={organization.description}
-                className={errors.description ? 'p-invalid' : ''}
-                onChange={(e: ChangeEvent<HTMLTextAreaElement>) => {
-                  const val = onInputChange(e, 'description');
-                  setValue('description', val, { shouldValidate: true });
-                }}
-              />
-              {errors?.description && (
-                <small id="description-help" className="p-error">
-                  {errors.description.message}
-                </small>
-              )}
-            </div>
-          </div>
+    <CrudFormPageContainer
+      isEdit={isEdit}
+      entity={entity}
+      isDirty={isDirty}
+      isValid={isValid}
+      isLoading={false}
+      isSubmiting={isSubmiting}
+      onCancel={handleCancel}
+      onSubmitCreate={handleFormSubmit(handleCreateSubmit)}
+      onSubmitEdit={handleFormSubmit(handleEditSubmit)}
+      errorState={errorState}
+    >
+      <div className="p-grid">
+        <div className="p-field p-col-12 p-md-8">
+          <label htmlFor="nameInput">Nome da Organização *</label>
+          <InputText
+            {...register('name', {
+              required: 'O nome da organização é obrigatório',
+            })}
+            type="text"
+            id="nameInput"
+            value={organization.name}
+            className={errors.name ? 'p-invalid' : ''}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => {
+              const val = onInputChange(e, 'name');
+              setValue('name', val, { shouldValidate: true });
+            }}
+            tooltip="Informe um nome único para a organização"
+          />
+          {errors?.name && (
+            <small id="name-help" className="p-error">
+              {errors.name.message}
+            </small>
+          )}
+        </div>
+        <div className="p-field p-col-12 p-md-4">
+          <label htmlFor="cnpjInput">CNPJ *</label>
+          <InputMask
+            {...register('cnpj', {
+              required: 'O CNPJ da organização é obrigatório',
+              pattern: {
+                value: /[0-9]{2}[.][0-9]{3}[.][0-9]{3}[/][0-9]{4}[-][0-9]{2}/i,
+                message: 'Informe todos os 14 dígitos do cnpj',
+              },
+            })}
+            mask="99.999.999/9999-99"
+            type="text"
+            id="cnpjInput"
+            value={organization.cnpj}
+            tooltip="Informe um CNPJ válido para a organização"
+            className={errors.cnpj ? 'p-invalid' : ''}
+            onChange={(e) => {
+              const val = onInputChange(e, 'cnpj');
+              setValue('cnpj', val, { shouldValidate: true });
+            }}
+          />
+          {errors?.cnpj && (
+            <small id="cnpj-help" className="p-error">
+              {errors.cnpj.message}
+            </small>
+          )}
         </div>
 
-        {isEdit && (
-          <FormCancelSubmitFooter
-            submitDisabled={!isDirty || !isValid || isSubmiting}
-            onSubmitClick={handleFormSubmit(handleEditSubmit)}
-            onCancelClick={handleCancel}
+        <div className="p-field p-col-12 p-md-12">
+          <label htmlFor="avatarUrlInput">URL do Avatar</label>
+          <InputText
+            {...register('avatarUrl')}
+            type="text"
+            id="avatarUrlInput"
+            value={organization.avatarUrl}
+            className={errors.avatarUrl ? 'p-invalid' : ''}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => {
+              const val = onInputChange(e, 'avatarUrl');
+              setValue('avatarUrl', val, { shouldValidate: true });
+            }}
           />
-        )}
-        {!isEdit && (
-          <FormCancelSubmitFooter
-            submitDisabled={!isValid || isSubmiting}
-            onSubmitClick={handleFormSubmit(handleCreateSubmit)}
-            onCancelClick={handleCancel}
+          {errors?.avatarUrl && (
+            <small id="avatarUrl-help" className="p-error">
+              {errors.avatarUrl.message}
+            </small>
+          )}
+        </div>
+
+        <div className="p-field p-col-12 p-md-12">
+          <label htmlFor="descriptionInput">Descrição da Organização</label>
+          <InputTextarea
+            {...register('description')}
+            id="descriptionInput"
+            value={organization.description}
+            className={errors.description ? 'p-invalid' : ''}
+            onChange={(e: ChangeEvent<HTMLTextAreaElement>) => {
+              const val = onInputChange(e, 'description');
+              setValue('description', val, { shouldValidate: true });
+            }}
           />
-        )}
+          {errors?.description && (
+            <small id="description-help" className="p-error">
+              {errors.description.message}
+            </small>
+          )}
+        </div>
       </div>
-    </div>
+    </CrudFormPageContainer>
   );
 };
 

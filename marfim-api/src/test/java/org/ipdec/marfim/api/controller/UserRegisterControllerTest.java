@@ -2,7 +2,7 @@ package org.ipdec.marfim.api.controller;
 
 import com.google.gson.Gson;
 import org.hamcrest.Matchers;
-import org.ipdec.marfim.api.dto.CreateUserDTO;
+import org.ipdec.marfim.api.dto.RegisterUserDTO;
 import org.ipdec.marfim.api.model.User;
 import org.ipdec.marfim.api.repository.UserRepository;
 import org.ipdec.marfim.api.service.UserRegisterService;
@@ -48,7 +48,7 @@ public class UserRegisterControllerTest {
     @Test
     @DisplayName("[Unit] It should register an user on route /user/register")
     public void itShouldRegisterAnUserSuccessfully() throws Exception {
-        CreateUserDTO createUser = new CreateUserDTO("user@email.com", "password", "user name");
+        RegisterUserDTO createUser = new RegisterUserDTO("user@email.com", "password", "user name");
         User createdUser = new User(UUID.randomUUID(), createUser.getEmail(), createUser.getPassword(), createUser.getName(), null, LocalDateTime.now(), LocalDateTime.now(), true, false, new ArrayList<>(),new ArrayList<>());
         Mockito.when(service.register(createUser)).thenReturn(createdUser);
 
@@ -77,7 +77,7 @@ public class UserRegisterControllerTest {
     @Test
     @DisplayName("[Unit] It should return an error on route /user/register with empty password")
     public void itShouldNotRegisterAnUserWithEmptyPassword() throws Exception {
-        CreateUserDTO createUser = new CreateUserDTO("user@email.com", "password", "user name");
+        RegisterUserDTO createUser = new RegisterUserDTO("user@email.com", "password", "user name");
         createUser.setPassword(null);
 
         mvc.perform(post("/user/register")
@@ -91,7 +91,7 @@ public class UserRegisterControllerTest {
     @Test
     @DisplayName("[Unit] It should return an error on route /user/register with small password")
     public void itShouldNotRegisterAnUserWithSmallPassword() throws Exception {
-        CreateUserDTO createUser = new CreateUserDTO("user@email.com", "pass", "user name");
+        RegisterUserDTO createUser = new RegisterUserDTO("user@email.com", "pass", "user name");
 
         mvc.perform(post("/user/register")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -104,7 +104,7 @@ public class UserRegisterControllerTest {
     @Test
     @DisplayName("[Unit] It should return an error on route /user/register with empty email")
     public void itShouldNotRegisterAnUserWithEmptyEmail() throws Exception {
-        CreateUserDTO createUser = new CreateUserDTO("user@email.com", "password", "user name");
+        RegisterUserDTO createUser = new RegisterUserDTO("user@email.com", "password", "user name");
         createUser.setEmail(null);
 
         mvc.perform(post("/user/register")
@@ -118,7 +118,7 @@ public class UserRegisterControllerTest {
     @Test
     @DisplayName("[Unit] It should return an error on route /user/register with invalid email")
     public void itShouldNotRegisterAnUserWithInvalidEmail() throws Exception {
-        CreateUserDTO createUser = new CreateUserDTO("useremail.com", "password", "user name");
+        RegisterUserDTO createUser = new RegisterUserDTO("useremail.com", "password", "user name");
 
         mvc.perform(post("/user/register")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -131,7 +131,7 @@ public class UserRegisterControllerTest {
     @Test
     @DisplayName("[Unit] It should return an error on route /user/register with empty name")
     public void itShouldNotRegisterAnUserWithEmptyName() throws Exception {
-        CreateUserDTO createUser = new CreateUserDTO("user@email.com", "password", "user name");
+        RegisterUserDTO createUser = new RegisterUserDTO("user@email.com", "password", "user name");
         createUser.setName(null);
 
         mvc.perform(post("/user/register")

@@ -1,18 +1,18 @@
 import { DataTable } from 'primereact/datatable';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import Organization from '../../model/Organization';
-import OrganizationService from '../../services/OrganizationService';
+import Organization from '../../../model/Organization';
+import OrganizationService from '../../../services/OrganizationService';
 
-import { useAuth } from '../../hooks/auth';
-import { useToast } from '../../hooks/toast';
-import { organizationErrors } from '../../errors/organizationErrors';
-import { maskedCnpj } from '../../utils/maskUtils';
-import { IErrorState } from '../../errors/AppErrorInterfaces';
-import { handleAxiosError } from '../../errors/axiosErrorHandler';
-import { AvatarNameContainer } from '../../components/AvatarNameContainer';
+import { useAuth } from '../../../hooks/auth';
+import { useToast } from '../../../hooks/toast';
+import { organizationErrors } from '../../../errors/organizationErrors';
+import { maskedCnpj } from '../../../utils/maskUtils';
+import { IErrorState } from '../../../errors/AppErrorInterfaces';
+import { handleAxiosError } from '../../../errors/axiosErrorHandler';
+import { AvatarNameContainer } from '../../../components/AvatarNameContainer';
 import CrudPageContainer, {
   HandleErrorProps,
-} from '../../components/CrudPageContainer';
+} from '../../../components/CrudPageContainer';
 
 const OrganizationPage: React.FC = () => {
   const { selectedOrganization } = useAuth();
@@ -96,13 +96,15 @@ const OrganizationPage: React.FC = () => {
           .catch((err) =>
             handleError({
               error: err,
-              errorAction: 'deletar organização',
+              errorAction: 'apagar organização',
             }),
           );
       }
     },
     [addToast, reloadOrganizations, handleError],
   );
+
+  const fullAccessForAuthoritiesList = ['ROLE_SUPER_USER'];
 
   return (
     <CrudPageContainer
@@ -127,8 +129,15 @@ const OrganizationPage: React.FC = () => {
       errorState={error}
       entity={{ name: 'Organização', namePlural: 'Organizações', gender: 'F' }}
       handleConfirmDeleteItem={handleConfirmDeleteOrganization}
-      showCreateItemButton
       showItemActionColumn
+      showCreateItemButtonForAuthorities={[...fullAccessForAuthoritiesList]}
+      showEditActionForAuthorities={[
+        'ORGANIZATIONS_UPDATE',
+        'ORGANIZATIONS_ALL',
+        'ROLE_ADMIN_USER',
+        ...fullAccessForAuthoritiesList,
+      ]}
+      showDeleteActionForAuthorities={[...fullAccessForAuthoritiesList]}
     />
   );
 };

@@ -6,26 +6,44 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { BadgeProps, SeverityType, SizeType } from 'primereact/badge';
 import { AvatarGroup } from 'primereact/avatargroup';
 import { Avatar } from 'primereact/avatar';
 import { Tooltip } from 'primereact/tooltip';
-import { ColumnProps } from 'primereact/column';
+import { ColumnProps, FilterParams } from 'primereact/column';
+import { MultiSelect } from 'primereact/multiselect';
 import CrudPageContainer, {
   HandleErrorProps,
-} from '../../components/CrudPageContainer';
-import { useAuth } from '../../hooks/auth';
-import { AvatarNameContainer } from '../../components/AvatarNameContainer';
-import { handleAxiosError } from '../../errors/axiosErrorHandler';
-import { useToast } from '../../hooks/toast';
-import { IErrorState } from '../../errors/AppErrorInterfaces';
-import UserService from '../../services/UserService';
-import User from '../../model/User';
+} from '../../../components/CrudPageContainer';
+import { useAuth } from '../../../hooks/auth';
+import { AvatarNameContainer } from '../../../components/AvatarNameContainer';
+import { handleAxiosError } from '../../../errors/axiosErrorHandler';
+import { useToast } from '../../../hooks/toast';
+import { IErrorState } from '../../../errors/AppErrorInterfaces';
+import UserService from '../../../services/UserService';
+import User from '../../../model/User';
+import Organization from '../../../model/Organization';
+import OrganizationService from '../../../services/OrganizationService';
 
 const UserPage: React.FC = () => {
   const dt: React.RefObject<DataTable> = useRef(null);
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<IErrorState | undefined>();
+  const [organizationsToFilter, setOrganizationsToFilter] = useState<
+    Organization[]
+  >([]);
+  const defaultOrganizationOption: Organization = useMemo(() => {
+    return {
+      id: -1,
+      name: 'sem vínculo',
+      cnpj: '',
+    };
+  }, []);
+  const [organizationsOptions, setOrganizationsOptions] = useState<
+    Organization[]
+  >([defaultOrganizationOption]);
+  const [loadedOrganizations, setLoadedOrganizations] = useState(false);
 
   const { selectedOrganization, user: authUser } = useAuth();
   const { addErrorToast, addToast } = useToast();
@@ -55,6 +73,26 @@ const UserPage: React.FC = () => {
     [addErrorToast],
   );
 
+  const loadOrganizations = useCallback(() => {
+    setLoadedOrganizations(false);
+
+    const organizationService = new OrganizationService();
+    organizationService
+      .getOrganizations()
+      .then((data) => {
+        if (data) setOrganizationsOptions([defaultOrganizationOption, ...data]);
+      })
+      .catch((err) => {
+        handleError({
+          error: err,
+          errorAction: `carregar Organizações`,
+        });
+      })
+      .finally(() => {
+        setLoadedOrganizations(true);
+      });
+  }, [handleError, defaultOrganizationOption]);
+
   const reloadUsers = useCallback(() => {
     setIsLoading(true);
     setUsers([]);
@@ -83,7 +121,11 @@ const UserPage: React.FC = () => {
         defaultAvatarIcon="pi pi-user"
         badge={
           rowData.isSuper
-            ? { value: 'SUPER', severity: 'info', size: 'small' }
+            ? ({
+                value: 'SUPER',
+                severity: 'info' as SeverityType,
+                size: 'small' as SizeType,
+              } as BadgeProps)
             : undefined
         }
       />
@@ -142,6 +184,44 @@ const UserPage: React.FC = () => {
     );
   };
 
+  const onOrganizationsChange = useCallback((value: any): void => {
+    setOrganizationsToFilter(value);
+    if (dt.current) {
+      dt.current.filter(value, 'organizations', 'custom');
+    }
+  }, []);
+
+  const organizationsFilter = (
+    <MultiSelect
+      value={organizationsToFilter}
+      options={organizationsOptions}
+      onChange={(e) => onOrganizationsChange(e.value)}
+      optionLabel="name"
+      placeholder="Buscar por organizações"
+      showClear
+      // display="chip"
+      emptyFilterMessage="Nenhuma organização encontrada"
+      selectedItemsLabel="{0} organizações selecionadas"
+      maxSelectedLabels={2}
+    />
+  );
+
+  const filterByOrganization = (value: any, filter: any) => {
+    const orgValue = value as Organization[];
+    const orgFilter = filter as Organization[];
+    return (
+      orgFilter.filter((f) => {
+        if (f.id === defaultOrganizationOption.id && orgValue.length === 0) {
+          return true;
+        }
+        return (
+          f.id !== defaultOrganizationOption.id &&
+          orgValue.findIndex((v) => v.id === f.id) !== -1
+        );
+      }).length > 0
+    );
+  };
+
   const normalUserColumns: ColumnProps[] = [
     {
       field: 'name',
@@ -157,14 +237,27 @@ const UserPage: React.FC = () => {
     {
       field: 'organizations',
       header: 'Organizações',
+      filter: true,
+      filterMatchMode: 'custom',
+      filterElement: organizationsFilter,
+      filterFunction: (value, filter) => filterByOrganization(value, filter),
       body: organizationsBodyTemplate,
     },
   ];
 
   useEffect(() => {
     setError(undefined);
+    if (!loadedOrganizations && authUser.isSuper) {
+      loadOrganizations();
+    }
     reloadUsers();
-  }, [selectedOrganization, reloadUsers]);
+  }, [
+    selectedOrganization,
+    reloadUsers,
+    loadedOrganizations,
+    authUser.isSuper,
+    loadOrganizations,
+  ]);
 
   const handleConfirmDeleteUser = useCallback(
     (rowData: User): void => {
@@ -184,13 +277,19 @@ const UserPage: React.FC = () => {
           .catch((err) =>
             handleError({
               error: err,
-              errorAction: `deletar ${entity.name.toLowerCase()}`,
+              errorAction: `apagar ${entity.name.toLowerCase()}`,
             }),
           );
       }
     },
     [addToast, reloadUsers, handleError, entity],
   );
+
+  const fullAccessForAuthoritiesList = [
+    'USERS_ALL',
+    'ROLE_SUPER_USER',
+    'ROLE_ADMIN_USER',
+  ];
 
   return (
     <CrudPageContainer
@@ -201,22 +300,19 @@ const UserPage: React.FC = () => {
       errorState={error}
       entity={entity}
       handleConfirmDeleteItem={handleConfirmDeleteUser}
-      showCreateItemButton
       showItemActionColumn
-      // itemActionButtons={[
-      //   {
-      //     icon: 'pi pi-user',
-      //     className: 'p-button-warning',
-      //   },
-      //   {
-      //     icon: 'pi pi-pencil',
-      //     className: 'p-button-rounded p-button-success p-mr-2',
-      //   },
-      //   {
-      //     icon: 'pi pi-pencil',
-      //     className: 'p-button-rounded p-button-success p-mr-2',
-      //   },
-      // ]}
+      showCreateItemButtonForAuthorities={[
+        'USERS_CREATE',
+        ...fullAccessForAuthoritiesList,
+      ]}
+      showEditActionForAuthorities={[
+        'USERS_UPDATE',
+        ...fullAccessForAuthoritiesList,
+      ]}
+      showDeleteActionForAuthorities={[
+        'USERS_DELETE',
+        ...fullAccessForAuthoritiesList,
+      ]}
     />
   );
 };

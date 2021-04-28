@@ -2,7 +2,6 @@ package org.ipdec.marfim.api.service;
 
 import lombok.AllArgsConstructor;
 import org.ipdec.marfim.api.model.Role;
-import org.ipdec.marfim.api.model.RolePermission;
 import org.ipdec.marfim.api.model.User;
 import org.ipdec.marfim.api.repository.RoleRepository;
 import org.ipdec.marfim.security.permission.CustomAuthority;
@@ -53,7 +52,7 @@ public class AuthorizationUtilService {
             }
             List<CustomAuthority> rolePermissions = role.getRolePermissions().stream()
                     .map(rolePermission ->
-                            new CustomAuthority(rolePermission.getPermission().getCode(), rolePermission.getLevel() , role.getOrganization().getId())
+                            new CustomAuthority(rolePermission.getPermission().getCode(), rolePermission.getId().getLevel() , role.getOrganization().getId())
                     ).collect(Collectors.toList());
             authorities.addAll(rolePermissions);
         });

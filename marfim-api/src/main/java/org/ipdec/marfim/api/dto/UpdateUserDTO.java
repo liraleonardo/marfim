@@ -17,12 +17,11 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class CreateUserDTO {
+public class UpdateUserDTO {
     @NotBlank(message="empty email")
     @Email(message = "invalid email format")
     private String email;
 
-    @NotBlank(message="empty password")
     @Size(min=6, message = "password has less than 6 characters")
     private String password;
 
@@ -55,7 +54,6 @@ public class CreateUserDTO {
             }).collect(Collectors.toList());
             user.setOrganizations(organizationList);
         }
-
         return user;
     }
 }

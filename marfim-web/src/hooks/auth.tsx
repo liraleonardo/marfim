@@ -41,6 +41,8 @@ interface SignInCredentials {
 
 interface AuthContextData {
   user: User;
+  authorities: string[];
+  hasAnyAuthority(authoritiesToFind: string[]): boolean;
   selectedOrganization: Organization;
   organizations: Organization[];
   authenticated: boolean;
@@ -55,18 +57,33 @@ const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
 export const AuthProvider: React.FC = ({ children }) => {
   const [data, setData] = useState<AuthState>({} as AuthState);
+  const [authorities, setAuthorities] = useState<string[]>([]);
   const [choosingOrganization, setChoosingOrganization] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
 
+  const fetchAuthorities = useCallback(async () => {
+    try {
+      const { data: fetchedAuthorities } = await api.get('/my/authorities');
+      setAuthorities(fetchedAuthorities);
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  }, []);
+
   useEffect(() => {
     const authState = getAuthStateFromStorage();
-    if (isAuthenticated()) setAuthenticated(true);
+    if (isAuthenticated()) {
+      setAuthenticated(true);
+      fetchAuthorities();
+    }
     setData(authState);
-  }, [setData]);
+  }, [setData, fetchAuthorities]);
 
   const signOut = useCallback(() => {
     removeAuthStateFromStorage();
     setData({} as AuthState);
+    setAuthorities([]);
     setAuthenticated(false);
   }, []);
 
@@ -117,8 +134,9 @@ export const AuthProvider: React.FC = ({ children }) => {
       setAuthStateToStorage(handledAuthState);
       setData(handledAuthState);
       setAuthenticated(true);
+      fetchAuthorities();
     },
-    [setData],
+    [setData, fetchAuthorities],
   );
 
   const signIn = useCallback(
@@ -164,10 +182,22 @@ export const AuthProvider: React.FC = ({ children }) => {
     [handleSignIn, data],
   );
 
+  const hasAnyAuthority = useCallback(
+    (authoritiesToFind: string[]): boolean => {
+      const authoritiesFound = authorities.filter((authority) => {
+        return authoritiesToFind.includes(authority);
+      });
+      return authoritiesFound && authoritiesFound.length > 0;
+    },
+    [authorities],
+  );
+
   return (
     <AuthContext.Provider
       value={{
         user: data.user,
+        authorities,
+        hasAnyAuthority,
         selectedOrganization:
           data.selectedOrganization ||
           ({

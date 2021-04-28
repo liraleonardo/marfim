@@ -1,6 +1,6 @@
 package org.ipdec.marfim.api.controller;
 
-import org.ipdec.marfim.api.dto.CreateUserDTO;
+import org.ipdec.marfim.api.dto.RegisterUserDTO;
 import org.ipdec.marfim.api.model.User;
 import org.ipdec.marfim.api.service.UserRegisterService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,8 +20,8 @@ public class UserRegisterController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public User register(@RequestBody @Valid CreateUserDTO createUserDTO) {
-        return userRegisterService.register(createUserDTO);
+    public User register(@RequestBody @Valid RegisterUserDTO registerUserDTO) {
+        return userRegisterService.register(registerUserDTO);
     }
 
 }

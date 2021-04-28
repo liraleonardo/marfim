@@ -15,7 +15,7 @@ const FormCancelSubmitFooter: React.FC<FormCancelSubmitFooterProps> = ({
   submitDisabled = false,
 }) => {
   return (
-    <Container>
+    <Container className="p-mt-4">
       <Button
         className="p-button-text"
         style={{ width: `${15}rem` }}

@@ -3,7 +3,7 @@ package org.ipdec.marfim.api.controller;
 import com.github.database.rider.core.api.dataset.DataSet;
 import com.google.gson.Gson;
 import org.hamcrest.Matchers;
-import org.ipdec.marfim.api.dto.CreateUserDTO;
+import org.ipdec.marfim.api.dto.RegisterUserDTO;
 import org.ipdec.marfim.util.AbstractDBTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,7 +32,7 @@ public class UserRegisterControllerIntTest extends AbstractDBTest {
     @Test
     @DisplayName("[Integration] It should register an user on route /user/register")
     public void itShouldRegisterAnUserSuccessfully() throws Exception {
-        CreateUserDTO createUser = new CreateUserDTO("user@email.com", "password", "user name");
+        RegisterUserDTO createUser = new RegisterUserDTO("user@email.com", "password", "user name");
 
         mvc.perform(post("/user/register")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -59,7 +59,7 @@ public class UserRegisterControllerIntTest extends AbstractDBTest {
     @Test
     @DisplayName("[Integration] It should return an error on route /user/register with empty password")
     public void itShouldNotRegisterAnUserWithEmptyPassword() throws Exception {
-        CreateUserDTO createUser = new CreateUserDTO("user@email.com", "password", "user name");
+        RegisterUserDTO createUser = new RegisterUserDTO("user@email.com", "password", "user name");
         createUser.setPassword(null);
 
         mvc.perform(post("/user/register")
@@ -73,7 +73,7 @@ public class UserRegisterControllerIntTest extends AbstractDBTest {
     @Test
     @DisplayName("[Integration] It should return an error on route /user/register with small password")
     public void itShouldNotRegisterAnUserWithSmallPassword() throws Exception {
-        CreateUserDTO createUser = new CreateUserDTO("user@email.com", "pass", "user name");
+        RegisterUserDTO createUser = new RegisterUserDTO("user@email.com", "pass", "user name");
 
         mvc.perform(post("/user/register")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -86,7 +86,7 @@ public class UserRegisterControllerIntTest extends AbstractDBTest {
     @Test
     @DisplayName("[Integration] It should return an error on route /user/register with empty email")
     public void itShouldNotRegisterAnUserWithEmptyEmail() throws Exception {
-        CreateUserDTO createUser = new CreateUserDTO("user@email.com", "password", "user name");
+        RegisterUserDTO createUser = new RegisterUserDTO("user@email.com", "password", "user name");
         createUser.setEmail(null);
 
         mvc.perform(post("/user/register")
@@ -100,7 +100,7 @@ public class UserRegisterControllerIntTest extends AbstractDBTest {
     @Test
     @DisplayName("[Integration] It should return an error on route /user/register with invalid email")
     public void itShouldNotRegisterAnUserWithInvalidEmail() throws Exception {
-        CreateUserDTO createUser = new CreateUserDTO("useremail.com", "password", "user name");
+        RegisterUserDTO createUser = new RegisterUserDTO("useremail.com", "password", "user name");
 
         mvc.perform(post("/user/register")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -113,7 +113,7 @@ public class UserRegisterControllerIntTest extends AbstractDBTest {
     @Test
     @DisplayName("[Integration] It should return an error on route /user/register with empty name")
     public void itShouldNotRegisterAnUserWithEmptyName() throws Exception {
-        CreateUserDTO createUser = new CreateUserDTO("user@email.com", "password", "user name");
+        RegisterUserDTO createUser = new RegisterUserDTO("user@email.com", "password", "user name");
         createUser.setName(null);
 
         mvc.perform(post("/user/register")
@@ -128,7 +128,7 @@ public class UserRegisterControllerIntTest extends AbstractDBTest {
     @DisplayName("[Integration] It should return an error on route /user/register when user email already registered")
     @DataSet("/dataset/user/oneUser.yml")
     public void itShouldNotRegisterADuplicateUser() throws Exception {
-        CreateUserDTO createUser = new CreateUserDTO("user@email.com", "password", "user name");
+        RegisterUserDTO createUser = new RegisterUserDTO("user@email.com", "password", "user name");
 
         mvc.perform(post("/user/register")
                 .contentType(MediaType.APPLICATION_JSON)

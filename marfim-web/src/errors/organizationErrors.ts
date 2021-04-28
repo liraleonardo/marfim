@@ -35,6 +35,6 @@ export const organizationErrors: IAppError[] = [
   },
   {
     code: 'only a SUPER_USER can create or delete a organization',
-    message: 'Apenas um super usuário pode criar ou deletar organizações',
+    message: 'Apenas um super usuário pode criar ou apagar organizações',
   },
 ];

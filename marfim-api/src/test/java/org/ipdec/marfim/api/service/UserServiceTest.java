@@ -2,12 +2,14 @@ package org.ipdec.marfim.api.service;
 
 import org.ipdec.marfim.api.model.User;
 import org.ipdec.marfim.api.repository.UserRepository;
+import org.ipdec.marfim.security.IPrincipalTokenAttributes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 
 import java.time.LocalDateTime;
@@ -24,11 +26,17 @@ public class UserServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private PasswordEncoder encoder;
+
+    @Mock
+    private IPrincipalTokenAttributes principal;
+
     UserService userService;
 
     @BeforeEach
     void setup(){
-        userService = new UserService(userRepository);
+        userService = new UserService(userRepository, encoder, principal);
     }
 
     @Test

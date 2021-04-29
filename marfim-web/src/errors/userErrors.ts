@@ -46,4 +46,8 @@ export const userErrors: IAppError[] = [
     code: 'empty name',
     message: 'Falta o nome do Usuário',
   },
+  {
+    code: 'user already linked with current organization',
+    message: 'O usuário já está associado com esta organização',
+  },
 ];

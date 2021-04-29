@@ -10,9 +10,11 @@ import { BadgeProps, SeverityType, SizeType } from 'primereact/badge';
 import { AvatarGroup } from 'primereact/avatargroup';
 import { Avatar } from 'primereact/avatar';
 import { Tooltip } from 'primereact/tooltip';
-import { ColumnProps, FilterParams } from 'primereact/column';
+import { ColumnProps } from 'primereact/column';
 import { MultiSelect } from 'primereact/multiselect';
 import { Button } from 'primereact/button';
+import { Dialog } from 'primereact/dialog';
+import { InputText } from 'primereact/inputtext';
 import CrudPageContainer, {
   HandleErrorProps,
 } from '../../../components/CrudPageContainer';
@@ -25,6 +27,8 @@ import UserService from '../../../services/UserService';
 import User from '../../../model/User';
 import Organization from '../../../model/Organization';
 import OrganizationService from '../../../services/OrganizationService';
+import api from '../../../services/api';
+import { userErrors } from '../../../errors/userErrors';
 
 const UserPage: React.FC = () => {
   const dt: React.RefObject<DataTable> = useRef(null);
@@ -45,6 +49,15 @@ const UserPage: React.FC = () => {
     Organization[]
   >([defaultOrganizationOption]);
   const [loadedOrganizations, setLoadedOrganizations] = useState(false);
+  const [
+    showLinkUserOrganizationDialog,
+    setShowLinkUserOrganizationDialog,
+  ] = useState(false);
+
+  const [userEmail, setUserEmail] = useState('');
+  const [userToBeLinked, setUserToBeLinked] = useState<User | undefined>(
+    undefined,
+  );
 
   const { selectedOrganization, user: authUser } = useAuth();
   const { addErrorToast, addToast } = useToast();
@@ -64,7 +77,7 @@ const UserPage: React.FC = () => {
       errorAction,
       handleAsPageError = false,
     }: HandleErrorProps) => {
-      const handledError = handleAxiosError(err, []);
+      const handledError = handleAxiosError(err, userErrors);
       const { messages, isPageError } = handledError;
       messages.forEach((message) => addErrorToast(errorAction, message));
       if (isPageError || handleAsPageError) {
@@ -292,40 +305,143 @@ const UserPage: React.FC = () => {
     'ROLE_ADMIN_USER',
   ];
 
+  const showDialog = useCallback(() => {
+    setShowLinkUserOrganizationDialog(true);
+  }, []);
+
+  const hideDialog = useCallback(() => {
+    setShowLinkUserOrganizationDialog(false);
+    setUserToBeLinked(undefined);
+    setUserEmail('');
+  }, []);
+
   const linkUserWithOrganizationButton = (
     <Button
-      label={`Víncular ${entity.name}`}
+      label={`Associar ${entity.name}`}
       icon="pi pi-link"
       className="p-button-info p-mr-2 p-ml-4"
-      onClick={() => console.log('click')}
+      onClick={showDialog}
     />
   );
 
+  const handleDialogSubmit = useCallback(() => {
+    if (userToBeLinked) {
+      api
+        .patch(`organization/user/${userToBeLinked.id}/link`)
+        .then(() => {
+          addToast({
+            type: 'success',
+            title: `Usuário associado com a organização ${selectedOrganization.name}`,
+          });
+          hideDialog();
+          reloadUsers();
+        })
+        .catch((err) =>
+          handleError({
+            error: err,
+            errorAction: `associar ${entity.name.toLowerCase()}`,
+          }),
+        );
+    }
+  }, [
+    selectedOrganization.name,
+    userToBeLinked,
+    entity.name,
+    addToast,
+    handleError,
+    hideDialog,
+    reloadUsers,
+  ]);
+
+  const dialogFooter = (
+    <>
+      <Button
+        label="Cancel"
+        icon="pi pi-times"
+        className="p-button-text"
+        onClick={hideDialog}
+      />
+      <Button
+        disabled={!userToBeLinked}
+        label="Associar"
+        icon="pi pi-check"
+        className="p-button"
+        onClick={handleDialogSubmit}
+      />
+    </>
+  );
+
+  const findUserByEmail = useCallback(() => {
+    setUserToBeLinked(undefined);
+    api
+      .get('organization/user/unlinked', { params: { email: userEmail } })
+      .then((response) => setUserToBeLinked(response.data as User))
+      .catch((err) =>
+        handleError({
+          error: err,
+          errorAction: `buscar ${entity.name.toLowerCase()}`,
+        }),
+      );
+  }, [userEmail, handleError, entity.name]);
+
   return (
-    <CrudPageContainer
-      items={users}
-      columns={authUser.isSuper ? superUserColumns : normalUserColumns}
-      dataTableRef={dt}
-      isLoading={isLoading}
-      errorState={error}
-      entity={entity}
-      handleConfirmDeleteItem={handleConfirmDeleteUser}
-      showItemActionColumn
-      showCreateItemButtonForAuthorities={[
-        'USERS_CREATE',
-        ...fullAccessForAuthoritiesList,
-      ]}
-      showEditActionForAuthorities={[
-        'USERS_UPDATE',
-        ...fullAccessForAuthoritiesList,
-      ]}
-      showDeleteActionForAuthorities={[
-        'USERS_DELETE',
-        ...fullAccessForAuthoritiesList,
-      ]}
-      customButtonsContent={linkUserWithOrganizationButton}
-      showCustomButtonsOnHeaderForAuthorities={['USERS_ALL', 'ROLE_ADMIN_USER']}
-    />
+    <div>
+      <CrudPageContainer
+        items={users}
+        columns={authUser.isSuper ? superUserColumns : normalUserColumns}
+        dataTableRef={dt}
+        isLoading={isLoading}
+        errorState={error}
+        entity={entity}
+        handleConfirmDeleteItem={handleConfirmDeleteUser}
+        showItemActionColumn
+        showCreateItemButtonForAuthorities={[
+          'USERS_CREATE',
+          ...fullAccessForAuthoritiesList,
+        ]}
+        showEditActionForAuthorities={[
+          'USERS_UPDATE',
+          ...fullAccessForAuthoritiesList,
+        ]}
+        showDeleteActionForAuthorities={[
+          'USERS_DELETE',
+          ...fullAccessForAuthoritiesList,
+        ]}
+        customButtonsContent={linkUserWithOrganizationButton}
+        showCustomButtonsOnHeaderForAuthorities={[
+          'USERS_ALL',
+          'ROLE_ADMIN_USER',
+        ]}
+      />
+      <Dialog
+        visible={showLinkUserOrganizationDialog}
+        style={{ width: '450px' }}
+        header="Associar usuário com esta organização"
+        modal
+        className="p-fluid"
+        footer={dialogFooter}
+        onHide={hideDialog}
+        focusOnShow={false}
+      >
+        <div className="p-inputgroup">
+          <InputText
+            placeholder="Buscar usuário por e-mail ..."
+            value={userEmail}
+            onChange={(e) => setUserEmail(e.target.value)}
+          />
+          <Button label="Buscar" onClick={findUserByEmail} />
+        </div>
+        {userToBeLinked && (
+          <div className="p-mt-4">
+            <AvatarNameContainer
+              name={userToBeLinked.name}
+              defaultAvatarIcon="pi pi-user"
+              avatarUrl={userToBeLinked.avatarUrl}
+            />
+          </div>
+        )}
+      </Dialog>
+    </div>
   );
 };
 

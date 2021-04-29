@@ -12,6 +12,7 @@ import { Avatar } from 'primereact/avatar';
 import { Tooltip } from 'primereact/tooltip';
 import { ColumnProps, FilterParams } from 'primereact/column';
 import { MultiSelect } from 'primereact/multiselect';
+import { Button } from 'primereact/button';
 import CrudPageContainer, {
   HandleErrorProps,
 } from '../../../components/CrudPageContainer';
@@ -291,6 +292,15 @@ const UserPage: React.FC = () => {
     'ROLE_ADMIN_USER',
   ];
 
+  const linkUserWithOrganizationButton = (
+    <Button
+      label={`Víncular ${entity.name}`}
+      icon="pi pi-link"
+      className="p-button-info p-mr-2 p-ml-4"
+      onClick={() => console.log('click')}
+    />
+  );
+
   return (
     <CrudPageContainer
       items={users}
@@ -313,6 +323,8 @@ const UserPage: React.FC = () => {
         'USERS_DELETE',
         ...fullAccessForAuthoritiesList,
       ]}
+      customButtonsContent={linkUserWithOrganizationButton}
+      showCustomButtonsOnHeaderForAuthorities={['USERS_ALL', 'ROLE_ADMIN_USER']}
     />
   );
 };

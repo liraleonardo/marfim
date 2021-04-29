@@ -3,7 +3,7 @@ import { confirmDialog } from 'primereact/confirmdialog';
 import { DataTable } from 'primereact/datatable';
 import { Column, ColumnProps } from 'primereact/column';
 import { Button, ButtonProps } from 'primereact/button';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { ReactFragment, useCallback, useMemo, useState } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 import { AxiosError } from 'axios';
 import { InputText } from 'primereact/inputtext';
@@ -32,6 +32,8 @@ interface CrudPageContainerProps<T> {
 
   showEditActionForAuthorities?: string[];
   showDeleteActionForAuthorities?: string[];
+  customButtonsContent?: ReactFragment;
+  showCustomButtonsOnHeaderForAuthorities?: string[];
 }
 
 export interface HandleErrorProps {
@@ -52,6 +54,8 @@ const CrudPageContainer: React.FC<CrudPageContainerProps<unknown>> = ({
   itemActionButtons = [],
   showEditActionForAuthorities,
   showDeleteActionForAuthorities,
+  customButtonsContent,
+  showCustomButtonsOnHeaderForAuthorities,
   handleConfirmDeleteItem,
 }) => {
   const [globalFilter, setGlobalFilter] = useState('');
@@ -60,26 +64,31 @@ const CrudPageContainer: React.FC<CrudPageContainerProps<unknown>> = ({
   const location = useLocation();
   const { signOut, hasAnyAuthority } = useAuth();
 
+  const checkToShowForAuthorities = useCallback(
+    (authorities): boolean => {
+      if (!authorities) {
+        return true;
+      }
+      return hasAnyAuthority(authorities);
+    },
+    [hasAnyAuthority],
+  );
+
   const showEditAction = useMemo(() => {
-    if (!showEditActionForAuthorities) {
-      return true;
-    }
-    return hasAnyAuthority(showEditActionForAuthorities);
-  }, [hasAnyAuthority, showEditActionForAuthorities]);
+    return checkToShowForAuthorities(showEditActionForAuthorities);
+  }, [checkToShowForAuthorities, showEditActionForAuthorities]);
 
   const showDeleteAction = useMemo(() => {
-    if (!showDeleteActionForAuthorities) {
-      return true;
-    }
-    return hasAnyAuthority(showDeleteActionForAuthorities);
-  }, [hasAnyAuthority, showDeleteActionForAuthorities]);
+    return checkToShowForAuthorities(showDeleteActionForAuthorities);
+  }, [checkToShowForAuthorities, showDeleteActionForAuthorities]);
 
   const showCreateItemButton = useMemo(() => {
-    if (!showCreateItemButtonForAuthorities) {
-      return true;
-    }
-    return hasAnyAuthority(showCreateItemButtonForAuthorities);
-  }, [hasAnyAuthority, showCreateItemButtonForAuthorities]);
+    return checkToShowForAuthorities(showCreateItemButtonForAuthorities);
+  }, [checkToShowForAuthorities, showCreateItemButtonForAuthorities]);
+
+  const showCustomButtonsOnHeader = useMemo(() => {
+    return checkToShowForAuthorities(showCustomButtonsOnHeaderForAuthorities);
+  }, [checkToShowForAuthorities, showCustomButtonsOnHeaderForAuthorities]);
 
   const openFormPage = useCallback(() => {
     history.push(location.pathname.concat('/form'));
@@ -100,6 +109,7 @@ const CrudPageContainer: React.FC<CrudPageContainerProps<unknown>> = ({
             placeholder="Buscar..."
           />
         </span>
+        {showCustomButtonsOnHeader && customButtonsContent}
         {showCreateItemButton && (
           <Button
             label={`Nov${entity.gender === 'M' ? 'o' : 'a'} ${entity.name}`}

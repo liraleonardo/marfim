@@ -10,7 +10,8 @@ public enum UserExceptionsEnum {
     FORBIDDEN_UPDATE_SUPER_USER_BY_NON_SUPER_USER(HttpStatus.FORBIDDEN, "a super user can only be updated by another super user"),
     FORBIDDEN_BECOME_SUPER_USER_BY_NON_SUPER_USER(HttpStatus.FORBIDDEN, "only a super user can grant super user privileges"),
     NOT_FOUND(HttpStatus.NOT_FOUND,"user not found"),
-    CONFLICT_USER_SAME_EMAIL(HttpStatus.CONFLICT,"there is another user with this email");
+    CONFLICT_USER_SAME_EMAIL(HttpStatus.CONFLICT,"there is another user with this email"),
+    BAD_REQUEST_USER_ALREADY_LINKED(HttpStatus.BAD_REQUEST,"user already linked with current organization");
 
 
 

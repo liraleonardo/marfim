@@ -1,9 +1,20 @@
 /* eslint-disable react/no-array-index-key */
 import { confirmDialog } from 'primereact/confirmdialog';
-import { DataTable } from 'primereact/datatable';
+import {
+  DataTable,
+  ExpandedRows,
+  RowEventParams,
+  RowToggleParams,
+} from 'primereact/datatable';
 import { Column, ColumnProps } from 'primereact/column';
-import { Button, ButtonProps } from 'primereact/button';
-import React, { ReactFragment, useCallback, useMemo, useState } from 'react';
+import { Button } from 'primereact/button';
+import React, {
+  ReactFragment,
+  ReactNode,
+  useCallback,
+  useMemo,
+  useState,
+} from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 import { AxiosError } from 'axios';
 import { InputText } from 'primereact/inputtext';
@@ -14,8 +25,8 @@ import ErrorContainer from '../ErrorContainer';
 import { IErrorState } from '../../errors/AppErrorInterfaces';
 import { Container } from './styles';
 
-interface CrudPageContainerProps<T> {
-  items: T[];
+interface CrudPageContainerProps {
+  items: any[];
   isLoading: boolean;
   dataTableRef: React.RefObject<DataTable>;
   errorState?: IErrorState | undefined;
@@ -25,15 +36,20 @@ interface CrudPageContainerProps<T> {
     gender: 'M' | 'F';
   };
   columns: ColumnProps[];
-  handleConfirmDeleteItem(entity: T): void;
+  handleConfirmDeleteItem(entity: any): void;
   showCreateItemButtonForAuthorities?: string[];
   showItemActionColumn?: boolean;
-  itemActionButtons?: ButtonProps[];
+  itemActionExtraBody?(data: any): ReactNode;
 
   showEditActionForAuthorities?: string[];
   showDeleteActionForAuthorities?: string[];
   customButtonsContent?: ReactFragment;
   showCustomButtonsOnHeaderForAuthorities?: string[];
+  expandedRows?: any[] | ExpandedRows;
+  onRowToggle?(e: RowToggleParams): void;
+  onRowExpand?(e: RowEventParams): void;
+  onRowCollapse?(e: RowEventParams): void;
+  rowExpansionTemplate?(data: any): ReactNode;
 }
 
 export interface HandleErrorProps {
@@ -42,7 +58,7 @@ export interface HandleErrorProps {
   handleAsPageError?: boolean;
 }
 
-const CrudPageContainer: React.FC<CrudPageContainerProps<unknown>> = ({
+const CrudPageContainer: React.FC<CrudPageContainerProps> = ({
   items,
   isLoading,
   dataTableRef,
@@ -51,12 +67,17 @@ const CrudPageContainer: React.FC<CrudPageContainerProps<unknown>> = ({
   columns,
   showCreateItemButtonForAuthorities,
   showItemActionColumn = true,
-  itemActionButtons = [],
+  itemActionExtraBody,
   showEditActionForAuthorities,
   showDeleteActionForAuthorities,
   customButtonsContent,
   showCustomButtonsOnHeaderForAuthorities,
   handleConfirmDeleteItem,
+  expandedRows,
+  onRowToggle,
+  onRowExpand,
+  onRowCollapse,
+  rowExpansionTemplate,
 }) => {
   const [globalFilter, setGlobalFilter] = useState('');
 
@@ -150,36 +171,23 @@ const CrudPageContainer: React.FC<CrudPageContainerProps<unknown>> = ({
   const actionBodyTemplate = (rowData: any) => {
     return (
       <div className="actions">
-        {/* TODO: fix ref error on Button component */}
+        {!!itemActionExtraBody && itemActionExtraBody(rowData)}
 
-        {/* {itemActionButtons.length > 0 &&
-          itemActionButtons.map((actionButton, i) => (
-            <Button
-              key={`actionButton${i}`}
-              {...actionButton}
-              className={`${actionButton.className} p-button-rounded p-m-1`}
-            />
-          ))} */}
-
-        {itemActionButtons.length === 0 && (
-          <>
-            {showEditAction && (
-              <Button
-                icon="pi pi-pencil"
-                className="p-button-rounded p-button-success p-mr-2"
-                onClick={() => openEditPage(rowData)}
-                tooltip="Alterar"
-              />
-            )}
-            {showDeleteAction && (
-              <Button
-                icon="pi pi-trash"
-                className="p-button-rounded p-button-warning"
-                onClick={() => confirmDeleteOrganization(rowData)}
-                tooltip="Apagar"
-              />
-            )}
-          </>
+        {showEditAction && (
+          <Button
+            icon="pi pi-pencil"
+            className="p-button-rounded p-button-success p-ml-2"
+            onClick={() => openEditPage(rowData)}
+            tooltip="Alterar"
+          />
+        )}
+        {showDeleteAction && (
+          <Button
+            icon="pi pi-trash"
+            className="p-button-rounded p-button-warning p-ml-2"
+            onClick={() => confirmDeleteOrganization(rowData)}
+            tooltip="Apagar"
+          />
         )}
       </div>
     );
@@ -226,6 +234,11 @@ const CrudPageContainer: React.FC<CrudPageContainerProps<unknown>> = ({
             currentPageReportTemplate={`Exibindo {first} a {last} de {totalRecords} ${entity.namePlural.toLowerCase()}`}
             globalFilter={globalFilter}
             header={header}
+            expandedRows={expandedRows}
+            onRowToggle={onRowToggle}
+            onRowExpand={onRowExpand}
+            onRowCollapse={onRowCollapse}
+            rowExpansionTemplate={rowExpansionTemplate}
           >
             {columns.map((column, i) => (
               <Column key={`column${i}`} {...column} />

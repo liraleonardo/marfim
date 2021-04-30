@@ -6,7 +6,7 @@ import OrganizationPage from '../pages/Organization/OrganizationPage';
 import OrganizationFormPage from '../pages/Organization/OrganizationFormPage';
 import ProfilePage from '../pages/ProfilePage';
 import ProjectPage from '../pages/ProjectPage';
-import RolePage from '../pages/RolePage';
+import RolePage from '../pages/Role/RolePage';
 import SignInPage from '../pages/SignInPage';
 import SignUpPage from '../pages/SignUpPage';
 import UserPage from '../pages/User/UserPage';

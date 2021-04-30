@@ -5,7 +5,12 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.ipdec.marfim.api.model.Permission;
 import org.ipdec.marfim.api.model.RolePermission;
+import org.ipdec.marfim.security.permission.RolePermissionLevelEnum;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -16,17 +21,13 @@ public class RolePermissionDTO {
     private String name;
     private String code;
     private String description;
-    private Integer level;
-    private String authority;
+    private List<RoleLevelDTO> levels;
 
-
-    public RolePermissionDTO(RolePermission rolePermission){
-        code = rolePermission.getPermission().getCode();
-        name = rolePermission.getPermission().getName();
-        description = rolePermission.getPermission().getDescription();
-        this.level = rolePermission.getId().getLevel();
-        this.authority = rolePermission.getAuthority();
-
+    public RolePermissionDTO(Permission permission, List<RolePermission> roleLevels) {
+        name = permission.getName();
+        code = permission.getCode();
+        description = permission.getDescription();
+        levels = roleLevels.stream().map(RoleLevelDTO::new).collect(Collectors.toList());
 
     }
 }

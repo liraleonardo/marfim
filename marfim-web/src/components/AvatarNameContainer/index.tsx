@@ -8,6 +8,7 @@ interface AvatarNameContainerProps {
   avatarUrl?: string;
   defaultAvatarIcon: string;
   badge?: BadgeProps;
+  showAvatar?: boolean;
 }
 
 export const AvatarNameContainer: React.FC<AvatarNameContainerProps> = ({
@@ -15,6 +16,7 @@ export const AvatarNameContainer: React.FC<AvatarNameContainerProps> = ({
   name,
   defaultAvatarIcon,
   badge,
+  showAvatar = true,
 }) => {
   const [isImageError, setIsImageError] = useState(false);
 
@@ -25,17 +27,19 @@ export const AvatarNameContainer: React.FC<AvatarNameContainerProps> = ({
   if (isImageError) {
     return (
       <Container>
-        <Avatar
-          icon="pi pi-exclamation-triangle"
-          shape="circle" // not working because of diamond p-avatar
-          style={{
-            verticalAlign: 'middle',
-            backgroundColor: '#FBC02D',
-            borderRadius: '50%',
-            boxShadow:
-              '2px 2px 2px 0 rgba(0, 0, 0, 0.1), 0 1px 1px 0 rgba(0, 0, 0, 0.19)',
-          }}
-        />
+        {showAvatar && (
+          <Avatar
+            icon="pi pi-exclamation-triangle"
+            shape="circle" // not working because of diamond p-avatar
+            style={{
+              verticalAlign: 'middle',
+              backgroundColor: '#FBC02D',
+              borderRadius: '50%',
+              boxShadow:
+                '2px 2px 2px 0 rgba(0, 0, 0, 0.1), 0 1px 1px 0 rgba(0, 0, 0, 0.19)',
+            }}
+          />
+        )}
         <span
           style={{ marginLeft: '1em', verticalAlign: 'middle' }}
           className="image-text"
@@ -49,7 +53,7 @@ export const AvatarNameContainer: React.FC<AvatarNameContainerProps> = ({
 
   return (
     <Container>
-      {avatarUrl && (
+      {showAvatar && avatarUrl && (
         <Avatar
           image={avatarUrl}
           imageAlt={name}
@@ -65,7 +69,7 @@ export const AvatarNameContainer: React.FC<AvatarNameContainerProps> = ({
         />
       )}
 
-      {!avatarUrl && (
+      {showAvatar && !avatarUrl && (
         <Avatar
           icon={defaultAvatarIcon}
           imageAlt={name}

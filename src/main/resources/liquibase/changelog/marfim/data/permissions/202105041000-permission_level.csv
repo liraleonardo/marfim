@@ -1,0 +1,7 @@
+"code","name"
+CREATE,Criação
+UPDATE,Atualização
+DELETE,Remoção
+ALL,Todos os Níveis
+READ,Leitura
+ASSOCIATE,Associação

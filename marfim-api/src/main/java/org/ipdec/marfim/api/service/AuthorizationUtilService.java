@@ -50,9 +50,9 @@ public class AuthorizationUtilService {
             if(role.getIsAdmin()){
                 authorities.add((new CustomAuthority(CustomAuthority.ADMIN_USER, role.getOrganization().getId())));
             }
-            List<CustomAuthority> rolePermissions = role.getRolePermissions().stream()
-                    .map(rolePermission ->
-                            new CustomAuthority(rolePermission.getPermission().getCode(), rolePermission.getId().getLevel() , role.getOrganization().getId())
+            List<CustomAuthority> rolePermissions = role.getPermissions().stream()
+                    .map(permission ->
+                            new CustomAuthority(permission.getPermissionResource().getCode(), permission.getId().getPermissionLevelCode() , role.getOrganization().getId())
                     ).collect(Collectors.toList());
             authorities.addAll(rolePermissions);
         });

@@ -411,6 +411,7 @@ const UserPage: React.FC = () => {
         showCustomButtonsOnHeaderForAuthorities={[
           'USERS_ALL',
           'ROLE_ADMIN_USER',
+          'ORGANIZATION_USERS_ASSOCIATE',
         ]}
       />
       <Dialog

@@ -12,6 +12,9 @@ xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liqui
     <include  file="liquibase/changelog/marfim/202103231317_create_table_organization_user.xml"/>
     <include  file="liquibase/changelog/marfim/202103231338_add_columns_to_table_role.xml"/>
     <include  file="liquibase/changelog/marfim/202104270846_add_level_to_role_permission_primary_key.xml"/>
-
+    <include  file="liquibase/changelog/marfim/202105031145_create_table_permission_resource.xml"/>
+    <include  file="liquibase/changelog/marfim/202105031147_create_table_permission_level.xml"/>
+    <include  file="liquibase/changelog/marfim/202105031322_recreate_table_permission.xml"/>
+    <include  file="liquibase/changelog/marfim/202105031348_recreate_table_role_permission.xml"/>
 
 </databaseChangeLog>

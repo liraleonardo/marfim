@@ -36,7 +36,12 @@ public class Role implements Serializable {
     @Column(name = "admin")
     private Boolean isAdmin;
 
-    @OneToMany(mappedBy = "role")
-    private Collection<RolePermission> rolePermissions;
+    @ManyToMany
+    @JoinTable(
+            name = "role_permission",
+            schema = "marfim",
+            joinColumns = @JoinColumn(name = "role_id"),
+            inverseJoinColumns = { @JoinColumn(name = "permission_level_code"), @JoinColumn(name = "permission_resource_code")})
+    private Collection<Permission> permissions;
 
 }

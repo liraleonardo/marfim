@@ -5,8 +5,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.ipdec.marfim.api.model.Permission;
 import org.ipdec.marfim.api.model.Role;
-import org.ipdec.marfim.api.model.RolePermission;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,8 +27,8 @@ public class AuthOrganizationRoleDTO {
         id = role.getId();
         name = role.getName();
         description = role.getDescription();
-        permissions = role.getRolePermissions().stream()
-                .map(RolePermission::getAuthority)
+        permissions = role.getPermissions().stream()
+                .map(Permission::getAuthority)
                 .collect(Collectors.toList());
         isAdmin = role.getIsAdmin();
     }

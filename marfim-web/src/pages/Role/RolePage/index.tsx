@@ -1,3 +1,4 @@
+import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
 import React, {
@@ -117,7 +118,7 @@ const RolePage: React.FC = () => {
         {rowData.levels.map((level: any) => (
           <span
             key={`${level.authority}`}
-            className={`p-mr-1 p-mb-1 permission-badge level-${level.code.toLowerCase()}`}
+            className={`p-mr-1 p-mb-1 permission-badge level-${level.levelcode.toLowerCase()} p-shadow-1`}
           >
             {level.levelName}
           </span>
@@ -133,18 +134,24 @@ const RolePage: React.FC = () => {
       </span>
     ) : (
       <div className="orders-subtable">
-        <h5>Permissões para {data.name}</h5>
-        <DataTable
-          value={data.rolePermissions}
-          emptyMessage="Nenhuma permissão"
-        >
-          <Column field="name" header="Recurso" sortable />
-          <Column field="description" header="Descrição do Recurso" sortable />
+        {/* table-header */}
+        <div className="p-d-flex p-jc-between p-ai-baseline  ">
+          <h5>Permissões para {data.name}</h5>
+          <Button
+            icon="pi pi-unlock"
+            label="Alterar Permissões"
+            className="p-button p-button-info p-mr-2 "
+            onClick={() => console.log(data)}
+            tooltip={`Alterar permissões de '${data.name}'`}
+          />
+        </div>
+        <DataTable value={data.permissions} emptyMessage="Nenhuma permissão">
+          <Column field="resourceName" header="Recurso" sortable />
           <Column
             field="levels"
             header="Níveis de acesso"
             body={rolePermissionLevelBodyTemplate}
-            sortable
+            sortable={false}
           />
         </DataTable>
       </div>

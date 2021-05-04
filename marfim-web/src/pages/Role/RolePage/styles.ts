@@ -4,12 +4,14 @@ export const Container = styled.div`
   color: #0f0f0f;
 
   .permission-badge {
-    border-radius: 2px;
+    border-radius: 4px;
     padding: 0.25em 0.5rem;
     text-transform: uppercase;
     font-weight: 700;
     font-size: 12px;
     letter-spacing: 0.3px;
+    background: #fafafa;
+    color: #3f3f3f;
   }
 
   .permission-badge.level-read {
@@ -26,10 +28,6 @@ export const Container = styled.div`
   }
   .permission-badge.level-delete {
     background: #fbdced;
-    color: #c63737;
-  }
-  .permission-badge.level-5 {
-    background: #ffcdd2;
     color: #c63737;
   }
   .permission-badge.level-all {

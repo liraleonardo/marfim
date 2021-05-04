@@ -25,7 +25,7 @@ public class OrganizationUserController {
 
     @GetMapping("/unlinked")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAnyAuthority('USERS_READ', 'USERS_ALL')")
+    @PreAuthorize("hasAnyAuthority('ORGANIZATION_USERS_ASSOCIATE', 'USERS_READ', 'USERS_ALL')")
     public UserDTO findByEmail(@RequestParam(value = "email") @Valid @Email(message = "invalid email") String email) {
         Long organizationId = TenantContext.getLongTenant();
         return organizationUserService.findUserDTOByEmail(email, organizationId);
@@ -33,7 +33,7 @@ public class OrganizationUserController {
 
     @PatchMapping("/{userId}/link")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasAnyAuthority('USERS_UPDATE', 'USERS_ALL')")
+    @PreAuthorize("hasAnyAuthority('ORGANIZATION_USERS_ASSOCIATE', 'USERS_UPDATE', 'USERS_ALL')")
     public void linkUserWithOrganization(@PathVariable(value = "userId") UUID userId) {
         Long organizationId = TenantContext.getLongTenant();
         organizationUserService.linkUserWithOrganization(userId, organizationId);

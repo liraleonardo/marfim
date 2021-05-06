@@ -37,6 +37,7 @@ public class RoleDTO {
                 .collect(Collectors.groupingBy(permission -> permission.getPermissionResource()));
 
         permissions = groupedPermissions.keySet().stream()
+                .sorted()
                 .map(permissionResource -> new PermissionGroupDTO(permissionResource.getName(), groupedPermissions.get(permissionResource)))
                 .collect(Collectors.toList());
 

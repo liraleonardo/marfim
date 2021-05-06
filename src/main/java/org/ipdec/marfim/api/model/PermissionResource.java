@@ -18,7 +18,7 @@ import java.util.Objects;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "permission_resource", schema = "marfim")
-public class PermissionResource implements Serializable {
+public class PermissionResource implements Serializable, Comparable<PermissionResource> {
     @Id
     @Column(nullable = false)
     private String code;
@@ -37,5 +37,11 @@ public class PermissionResource implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(getCode());
+    }
+
+
+    @Override
+    public int compareTo(PermissionResource o) {
+        return this.name.compareTo(o.name);
     }
 }

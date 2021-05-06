@@ -31,7 +31,7 @@ export interface ICreateUpdateOrganization {
 }
 
 export interface IOrganization {
-  id: number;
+  id?: number;
   name: string;
   avatarUrl?: string;
 }

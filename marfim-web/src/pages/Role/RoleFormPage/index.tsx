@@ -27,6 +27,8 @@ import { IUser } from '../../../model/User';
 import '../role-style.css';
 import { IOrganization } from '../../../model/Organization';
 import UserService from '../../../services/UserService';
+import OrganizationService from '../../../services/OrganizationService';
+import api from '../../../services/api';
 
 interface OrganizationPathParams {
   id?: string;
@@ -48,67 +50,16 @@ const RoleFormPage: React.FC = () => {
   const [role, setRole] = useState(emptyRole);
   const [roleId, setRoleId] = useState<number | null>(null);
 
-  const dropdownOrganizations: IOrganization[] = [
-    { id: 1, name: 'Organização 1' },
-    { id: 2, name: 'Organização 2' },
-    { id: 3, name: 'Organização 3' },
-  ];
+  const [dropdownOrganizations, setDropdownOrganizations] = useState<
+    IOrganization[]
+  >([]);
+  const [isOrganizationsLoaded, setIsOrganizationsLoaded] = useState(false);
+  const [isPermissionsLoaded, setIsPermissionsLoaded] = useState(false);
 
   const [dropdownUsers, setDropdownUsers] = useState<IUser[]>([]);
-  const dropdownPermissions: IPermissionGroup[] = [
-    {
-      label: 'Usuários',
-      permissions: [
-        {
-          levelCode: 'READ',
-          levelName: 'Leitura',
-          resourceCode: 'USERS',
-          resourceName: 'Usuários',
-          authority: 'USERS_READ',
-        },
-        {
-          levelCode: 'CREATE',
-          levelName: 'Criação',
-          resourceCode: 'USERS',
-          resourceName: 'Usuários',
-          authority: 'USERS_CREATE',
-        },
-        {
-          levelCode: 'UPDATE',
-          levelName: 'Atualização',
-          resourceCode: 'USERS',
-          resourceName: 'Usuários',
-          authority: 'USERS_UPDATE',
-        },
-        {
-          levelCode: 'DELETE',
-          levelName: 'Remoção',
-          resourceCode: 'USERS',
-          resourceName: 'Usuários',
-          authority: 'USERS_DELETE',
-        },
-        {
-          levelCode: 'ALL',
-          levelName: 'Todos os acessos',
-          resourceCode: 'USERS',
-          resourceName: 'Usuários',
-          authority: 'USERS_ALL',
-        },
-      ],
-    },
-    {
-      label: 'Perfis de Acesso',
-      permissions: [
-        {
-          levelCode: 'READ',
-          levelName: 'Leitura',
-          resourceCode: 'ROLES',
-          resourceName: 'Perfis de Acesso',
-          authority: 'ROLES_READ',
-        },
-      ],
-    },
-  ];
+  const [dropdownPermissions, setDropdownPermissions] = useState<
+    IPermissionGroup[]
+  >([]);
 
   const history = useHistory();
   const {
@@ -156,6 +107,31 @@ const RoleFormPage: React.FC = () => {
     },
     [addErrorToast],
   );
+
+  useEffect(() => {
+    if (hasAnyAuthority(['ROLE_SUPER_USER'])) {
+      const organizationService: OrganizationService = new OrganizationService();
+      organizationService
+        .getOrganizations()
+        .then((data) => {
+          setDropdownOrganizations(data);
+          setIsOrganizationsLoaded(true);
+        })
+        .catch((error) => handleError(error, `carregar organizações`, true));
+    } else {
+      setIsOrganizationsLoaded(true);
+    }
+  }, [handleError, hasAnyAuthority, entity.namePlural]);
+
+  useEffect(() => {
+    api
+      .get<IPermissionGroup[]>('/permission/grouped')
+      .then(({ data }) => {
+        setDropdownPermissions(data);
+        setIsPermissionsLoaded(true);
+      })
+      .catch((error) => handleError(error, `carregar permissões`, true));
+  }, [handleError, hasAnyAuthority, entity.namePlural]);
 
   useEffect(() => {
     const id = Number(pathId);

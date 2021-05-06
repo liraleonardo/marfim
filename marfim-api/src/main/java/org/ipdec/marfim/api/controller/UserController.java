@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Validated
@@ -27,9 +28,9 @@ public class UserController {
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAnyAuthority('USERS_READ', 'USERS_ALL')")
-    public List<UserDTO> findAll() {
+    public List<UserDTO> findAll(@RequestParam(name="name") Optional<String> userName) {
         Long organizationId = TenantContext.getLongTenant();
-        return userService.findAllUsersDTO(organizationId);
+        return userService.findAllUsersDTO(organizationId, userName);
     }
 
     @GetMapping("/{id}")

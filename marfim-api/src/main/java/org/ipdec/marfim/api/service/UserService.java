@@ -10,6 +10,8 @@ import org.ipdec.marfim.api.model.Organization;
 import org.ipdec.marfim.api.model.User;
 import org.ipdec.marfim.api.repository.UserRepository;
 import org.ipdec.marfim.security.IPrincipalTokenAttributes;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -48,8 +50,8 @@ public class UserService {
         return userRepository.findAll(Sort.by(Sort.Order.asc("name").ignoreCase()));
     }
 
-    public List<User> findAll(Long organizationId) {
-        List<User> allUsers = findAll();
+    public List<User> findAll(Long organizationId, Example<User> example) {
+        List<User> allUsers = userRepository.findAll(example, Sort.by(Sort.Order.asc("name").ignoreCase()));
         if(organizationId==null) {
             return allUsers;
         }
@@ -61,8 +63,16 @@ public class UserService {
 
     }
 
-    public List<UserDTO> findAllUsersDTO(Long organizationId) {
-        return findAll(organizationId).stream().map(UserDTO::new)
+    public List<UserDTO> findAllUsersDTO(Long organizationId, Optional<String> userName) {
+        User userFilter = new User();
+        userFilter.setName(userName.orElse(""));
+        ExampleMatcher exampleMatcher = ExampleMatcher.matchingAll()
+                .withMatcher("name", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
+                .withIgnoreNullValues();
+
+        Example<User> userExample = Example.of(userFilter, exampleMatcher);
+
+       return findAll(organizationId, userExample).stream().map(UserDTO::new)
                 .collect(Collectors.toList());
     }
 

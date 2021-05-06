@@ -14,7 +14,7 @@ import { useHistory, useParams } from 'react-router-dom';
 import { MultiSelect } from 'primereact/multiselect';
 import { Fieldset } from 'primereact/fieldset';
 import { Dropdown } from 'primereact/dropdown';
-import { AutoComplete } from 'primereact/autocomplete';
+import { AutoComplete, CompleteMethodParams } from 'primereact/autocomplete';
 import { useToast } from '../../../hooks/toast';
 import { handleAxiosError } from '../../../errors/axiosErrorHandler';
 import { IErrorState } from '../../../errors/AppErrorInterfaces';
@@ -26,6 +26,7 @@ import RoleService from '../../../services/RoleService';
 import { IUser } from '../../../model/User';
 import '../role-style.css';
 import { IOrganization } from '../../../model/Organization';
+import UserService from '../../../services/UserService';
 
 interface OrganizationPathParams {
   id?: string;
@@ -53,10 +54,7 @@ const RoleFormPage: React.FC = () => {
     { id: 3, name: 'Organização 3' },
   ];
 
-  const [dropdownUsers, setDropdownUsers] = useState<IUser[]>([
-    { id: '1', name: 'Usuário 1' },
-    { id: '2', name: 'Usuário 2' },
-  ]);
+  const [dropdownUsers, setDropdownUsers] = useState<IUser[]>([]);
   const dropdownPermissions: IPermissionGroup[] = [
     {
       label: 'Usuários',
@@ -263,7 +261,15 @@ const RoleFormPage: React.FC = () => {
       );
     return '';
   };
-  // console.log(dropdownUsers);
+
+  const searchUsersByName = useCallback((e: CompleteMethodParams) => {
+    if (e.query) {
+      const userService = new UserService();
+      userService.getUsersByName(e.query).then((usersFound) => {
+        setDropdownUsers(usersFound);
+      });
+    }
+  }, []);
 
   return (
     <CrudFormPageContainer
@@ -332,15 +338,7 @@ const RoleFormPage: React.FC = () => {
                 value={props.field.value}
                 suggestions={dropdownUsers}
                 field="name"
-                completeMethod={(e) => {
-                  if (e.query) {
-                    // console.log('complete', e.query);
-                    setDropdownUsers([
-                      ...dropdownUsers,
-                      { id: '99', name: e.query } as IUser,
-                    ]);
-                  }
-                }}
+                completeMethod={searchUsersByName}
                 multiple
                 minLength={3}
                 className={errors.users ? 'p-invalid' : ''}

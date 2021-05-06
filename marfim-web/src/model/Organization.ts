@@ -29,3 +29,9 @@ export interface ICreateUpdateOrganization {
   description?: string;
   avatarUrl?: string;
 }
+
+export interface IOrganization {
+  id: number;
+  name: string;
+  avatarUrl?: string;
+}

@@ -24,7 +24,8 @@ public class RoleDTO {
     private String description;
     private Boolean isAdmin;
     private OrganizationDTO organization;
-    private List<PermissionGroupedByResourceDTO> permissions;
+    private List<PermissionGroupDTO> permissions;
+    private List<UserDTO> users;
 
     public RoleDTO(Role role) {
         id = role.getId();
@@ -36,8 +37,10 @@ public class RoleDTO {
                 .collect(Collectors.groupingBy(permission -> permission.getPermissionResource()));
 
         permissions = groupedPermissions.keySet().stream()
-                .map(permissionResource -> new PermissionGroupedByResourceDTO(permissionResource, groupedPermissions.get(permissionResource)))
+                .map(permissionResource -> new PermissionGroupDTO(permissionResource.getName(), groupedPermissions.get(permissionResource)))
                 .collect(Collectors.toList());
+
+        users = role.getUsers().stream().map(UserDTO::new).collect(Collectors.toList());
     }
 
 }

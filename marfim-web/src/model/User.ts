@@ -37,3 +37,11 @@ export interface ICreateUpdateUser {
   isSuper?: boolean;
   organizations?: Organization[];
 }
+
+export interface IUser {
+  id: string;
+  name: string;
+  email?: string;
+  avatarUrl?: string;
+  isSuper?: boolean;
+}

@@ -12,14 +12,18 @@ import org.ipdec.marfim.api.model.Permission;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @AllArgsConstructor
 @NoArgsConstructor
-public class PermissionLevelDTO {
-    private String levelcode;
+public class PermissionDTO {
+    private String levelCode;
     private String levelName;
+    private String resourceCode;
+    private String resourceName;
     private String authority;
 
-    public PermissionLevelDTO(Permission permission) {
-        this.levelcode = permission.getPermissionLevel().getCode();
+    public PermissionDTO(Permission permission) {
+        this.levelCode = permission.getPermissionLevel().getCode();
         this.levelName = permission.getPermissionLevel().getName();
-        this.authority = permission.getAuthority();
+        this.resourceCode = permission.getPermissionResource().getCode();
+        this.resourceName = permission.getPermissionResource().getName();
+        authority = permission.getAuthority();
     }
 }

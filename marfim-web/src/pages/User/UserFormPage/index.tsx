@@ -3,7 +3,7 @@ import { AxiosError } from 'axios';
 import { Controller, useForm } from 'react-hook-form';
 import { InputText } from 'primereact/inputtext';
 import { Password } from 'primereact/password';
-import { Checkbox } from 'primereact/checkbox';
+import { InputSwitch } from 'primereact/inputswitch';
 import { Divider } from 'primereact/divider';
 import { Fieldset } from 'primereact/fieldset';
 import React, {
@@ -203,6 +203,7 @@ const UserFormPage: React.FC = () => {
 
   const handleEditSubmit = useCallback(
     (data) => {
+      console.log(data);
       setIsSubmitting(true);
       const userService = new UserService();
       const userToSave = data;
@@ -386,7 +387,7 @@ const UserFormPage: React.FC = () => {
         <Fieldset legend="Administração (Super Usuário)">
           <div className="p-grid">
             <div className="p-field p-col-12 p-md-6">
-              <label htmlFor="organizations">Vincular com organizações </label>
+              <label htmlFor="organizations">Associar com organizações </label>
               <Controller
                 name="organizations"
                 control={control}
@@ -406,27 +407,22 @@ const UserFormPage: React.FC = () => {
                     options={dropdownOrganizations}
                     optionLabel="name"
                     display="chip"
+                    placeholder="Nenhuma organização associada"
                   />
                 )}
               />
             </div>
             <div className="p-field-checkbox p-col-12 p-md-4">
-              <Controller
+              <InputSwitch
+                {...register('isSuper')}
+                inputId="isSuper"
                 name="isSuper"
-                control={control}
-                render={(props) => (
-                  <Checkbox
-                    {...register('isSuper')}
-                    inputId="isSuper"
-                    name="isSuper"
-                    value={props.field.value}
-                    className={errors.isSuper ? 'p-invalid' : ''}
-                    onChange={(e) => {
-                      props.field.onChange(e.checked);
-                    }}
-                    checked={props.field.value}
-                  />
-                )}
+                className={errors.isSuper ? 'p-invalid' : ''}
+                onChange={(e) => {
+                  setUser({ ...user, isSuper: e.value });
+                  setValue('isSuper', e.value, { shouldValidate: true });
+                }}
+                checked={user.isSuper}
               />
               <label htmlFor="isSuper">
                 Conceder privilégios de Super Usuário

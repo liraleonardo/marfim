@@ -14,20 +14,13 @@ import CrudPageContainer, {
 } from '../../../components/CrudPageContainer';
 import { IErrorState } from '../../../errors/AppErrorInterfaces';
 import { handleAxiosError } from '../../../errors/axiosErrorHandler';
-import { organizationErrors } from '../../../errors/organizationErrors';
+import { roleErrors } from '../../../errors/roleErrors';
 import { useAuth } from '../../../hooks/auth';
 import { useToast } from '../../../hooks/toast';
-import Organization from '../../../model/Organization';
+import { IRole } from '../../../model/Role';
 import GenericService from '../../../services/GenericService';
 import { Container } from './styles';
-
-interface IRole {
-  id: number;
-  name: string;
-  description: string;
-  isAdmin: boolean;
-  organization: Organization;
-}
+import '../role-style.css';
 
 const RolePage: React.FC = () => {
   const [roles, setRoles] = useState<IRole[]>([]);
@@ -53,7 +46,7 @@ const RolePage: React.FC = () => {
       errorAction,
       handleAsPageError = false,
     }: HandleErrorProps) => {
-      const handledError = handleAxiosError(err, organizationErrors);
+      const handledError = handleAxiosError(err, roleErrors);
       const { messages, isPageError } = handledError;
       messages.forEach((message) => addErrorToast(errorAction, message));
       if (isPageError || handleAsPageError) {
@@ -86,16 +79,18 @@ const RolePage: React.FC = () => {
   }, [selectedOrganization, reloadRoles]);
 
   const handleConfirmDeleteRole = useCallback((rowData: any): void => {
-    console.log('delete role', rowData.name);
+    // console.log('delete role', rowData.name);
   }, []);
 
   const avatarNameBodyTemplate = (rowData: IRole) => {
     return (
-      <AvatarNameContainer
-        name={rowData.organization.name}
-        avatarUrl={rowData.organization.avatarUrl}
-        defaultAvatarIcon="pi pi-briefcase"
-      />
+      rowData.organization && (
+        <AvatarNameContainer
+          name={rowData.organization.name}
+          avatarUrl={rowData.organization.avatarUrl}
+          defaultAvatarIcon="pi pi-briefcase"
+        />
+      )
     );
   };
 
@@ -112,29 +107,30 @@ const RolePage: React.FC = () => {
     );
   };
 
-  const rolePermissionLevelBodyTemplate = (rowData: any) => {
-    return (
-      <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-        {rowData.levels.map((level: any) => (
-          <span
-            key={`${level.authority}`}
-            className={`p-mr-1 p-mb-1 permission-badge level-${level.levelcode.toLowerCase()} p-shadow-1`}
-          >
-            {level.levelName}
-          </span>
-        ))}
-      </div>
-    );
+  const rolePermissionLevelBodyTemplate = (rowData: IRole) => {
+    if (rowData.permissions && rowData.permissions.length > 0)
+      return (
+        <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+          {rowData.permissions.map((permission: any) => (
+            <span
+              key={`${permission.resourceCode}_${permission.levelCode}`}
+              className={`p-mr-1 p-mb-1 permission-badge level-${permission.levelCode.toLowerCase()} p-shadow-1`}
+            >
+              {permission.levelName}
+            </span>
+          ))}
+        </div>
+      );
+    return '';
   };
 
-  const rowExpansionTemplate = (data: any) => {
+  const rowExpansionTemplate = (data: IRole) => {
     return data.isAdmin ? (
       <span className="p-text-bold p-ml-5">
         Este perfil possui acesso a todos os recursos
       </span>
     ) : (
       <div className="orders-subtable">
-        {/* table-header */}
         <div className="p-d-flex p-jc-between p-ai-baseline  ">
           <h5>Permissões para {data.name}</h5>
           <Button
@@ -146,9 +142,9 @@ const RolePage: React.FC = () => {
           />
         </div>
         <DataTable value={data.permissions} emptyMessage="Nenhuma permissão">
-          <Column field="resourceName" header="Recurso" sortable />
+          <Column field="label" header="Recurso" sortable />
           <Column
-            field="levels"
+            field="permissions"
             header="Níveis de acesso"
             body={rolePermissionLevelBodyTemplate}
             sortable={false}
@@ -207,15 +203,7 @@ const RolePage: React.FC = () => {
         ]}
         expandedRows={expandedRows}
         onRowToggle={(e) => setExpandedRows(e.data)}
-        // onRowExpand={onRowExpand}
-        // onRowCollapse={onRowCollapse}
         rowExpansionTemplate={rowExpansionTemplate}
-        // itemActionExtraBody={(data) => (
-        //   <Button
-        //     className="p-button-rounded p-button-info"
-        //     icon="pi pi-users"
-        //   />
-        // )}
       />
     </Container>
   );

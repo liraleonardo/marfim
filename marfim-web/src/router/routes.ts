@@ -20,6 +20,7 @@ import {
 } from './types';
 import editGuard from './guards/editOrganizationGuard';
 import UserFormPage from '../pages/User/UserFormPage';
+import RoleFormPage from '../pages/Role/RoleFormPage';
 
 export interface RouteProps {
   key: string;
@@ -158,6 +159,27 @@ export default (): RouteProps[] => [
       [MENU_ICON]: 'pi pi-fw pi-unlock',
       [MENU_PERMISSIONS]: ['ROLES_READ', 'ROLES_ALL'],
     },
+  },
+  {
+    key: 'rolesFormPage',
+    path: '/roles/form',
+    exact: true,
+    component: RoleFormPage,
+    meta: {
+      [WITH_AUTH]: true,
+      [SHOW_ROUTE_LABEL]: 'Novo Perfil de Acesso',
+    },
+  },
+  {
+    key: 'rolesEditPage',
+    path: '/roles/edit/:id',
+    exact: false,
+    component: RoleFormPage,
+    meta: {
+      [WITH_AUTH]: true,
+      [SHOW_ROUTE_LABEL]: 'Alterar Perfil de Acesso',
+    },
+    guards: defaultEditGuard,
   },
   {
     key: 'projectsPage',

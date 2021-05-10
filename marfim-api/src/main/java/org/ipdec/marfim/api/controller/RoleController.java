@@ -1,6 +1,6 @@
 package org.ipdec.marfim.api.controller;
 
-import org.ipdec.marfim.api.dto.RoleDTO;
+import org.ipdec.marfim.api.dto.*;
 import org.ipdec.marfim.api.service.RoleService;
 import org.ipdec.marfim.security.tenant.TenantContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @Validated
@@ -33,6 +34,31 @@ public class RoleController {
     public RoleDTO findOne(@PathVariable(value = "id", required = true) Long userId) {
         Long tenantId = TenantContext.getLongTenant();
         return new RoleDTO(roleService.findById(userId, tenantId));
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAnyAuthority('ROLES_CREATE', 'ROLES_ALL')")
+    public CreateRoleDTO create(@RequestBody @Valid CreateRoleDTO roleDTO) {
+        Long tenantId = TenantContext.getLongTenant();
+        return roleService.create(roleDTO, tenantId);
+    }
+
+    @PutMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAnyAuthority('ROLES_UPDATE', 'ROLES_ALL')")
+    public CreateRoleDTO update(@PathVariable(value = "id", required = true) Long roleId,
+                       @RequestBody @Valid CreateRoleDTO roleDTO) {
+        Long tenantId = TenantContext.getLongTenant();
+        return roleService.update(roleId, roleDTO, tenantId);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasAnyAuthority('ROLES_DELETE', 'ROLES_ALL')")
+    public void delete(@PathVariable(value = "id", required = true) Long roleId) {
+        Long tenantId = TenantContext.getLongTenant();
+        roleService.delete(roleId, tenantId);
     }
 
 

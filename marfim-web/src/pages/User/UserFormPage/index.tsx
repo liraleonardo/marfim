@@ -49,7 +49,7 @@ const UserFormPage: React.FC = () => {
   const [userId, setUserId] = useState<string | null>(null);
 
   const history = useHistory();
-  const { hasAnyAuthority } = useAuth();
+  const { hasAnyAuthority, selectedOrganization } = useAuth();
   const {
     register,
     handleSubmit: handleFormSubmit,
@@ -158,7 +158,14 @@ const UserFormPage: React.FC = () => {
           });
       }
     }
-  }, [pathId, setValue, handleError, isDropdownLoaded, entity.namePlural]);
+  }, [
+    pathId,
+    setValue,
+    handleError,
+    isDropdownLoaded,
+    entity.namePlural,
+    selectedOrganization,
+  ]);
 
   const onInputChange = useCallback(
     (e: { target: MyTarget }, name: string): any => {

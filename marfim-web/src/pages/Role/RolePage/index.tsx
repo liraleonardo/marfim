@@ -1,5 +1,5 @@
 import { Button } from 'primereact/button';
-import { Column } from 'primereact/column';
+import { Column, ColumnProps } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
 import React, {
   useCallback,
@@ -17,10 +17,11 @@ import { handleAxiosError } from '../../../errors/axiosErrorHandler';
 import { roleErrors } from '../../../errors/roleErrors';
 import { useAuth } from '../../../hooks/auth';
 import { useToast } from '../../../hooks/toast';
-import { IRole } from '../../../model/Role';
+import { IPermission, IPermissionGroup, IRole } from '../../../model/Role';
 import GenericService from '../../../services/GenericService';
 import { Container } from './styles';
 import '../role-style.css';
+import RoleService from '../../../services/RoleService';
 
 const RolePage: React.FC = () => {
   const [roles, setRoles] = useState<IRole[]>([]);
@@ -37,8 +38,8 @@ const RolePage: React.FC = () => {
     };
   }, []);
 
-  const { addErrorToast } = useToast();
-  const { selectedOrganization } = useAuth();
+  const { addErrorToast, addToast } = useToast();
+  const { selectedOrganization, user: authUser } = useAuth();
 
   const handleError = useCallback(
     ({
@@ -78,9 +79,31 @@ const RolePage: React.FC = () => {
     reloadRoles();
   }, [selectedOrganization, reloadRoles]);
 
-  const handleConfirmDeleteRole = useCallback((rowData: any): void => {
-    // console.log('delete role', rowData.name);
-  }, []);
+  const handleConfirmDeleteRole = useCallback(
+    (rowData: IRole): void => {
+      if (rowData.id) {
+        const roleService = new RoleService();
+        roleService
+          .deleteRole(rowData.id)
+          .then(() => {
+            addToast({
+              title: `${entity.name} deletad${
+                entity.gender === 'M' ? 'o' : 'a'
+              } com Sucesso`,
+              type: 'success',
+            });
+            reloadRoles();
+          })
+          .catch((err) =>
+            handleError({
+              error: err,
+              errorAction: `apagar ${entity.name.toLowerCase()}`,
+            }),
+          );
+      }
+    },
+    [addToast, entity, handleError, reloadRoles],
+  );
 
   const avatarNameBodyTemplate = (rowData: IRole) => {
     return (
@@ -107,11 +130,11 @@ const RolePage: React.FC = () => {
     );
   };
 
-  const rolePermissionLevelBodyTemplate = (rowData: IRole) => {
+  const rolePermissionLevelBodyTemplate = (rowData: IPermissionGroup) => {
     if (rowData.permissions && rowData.permissions.length > 0)
       return (
         <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-          {rowData.permissions.map((permission: any) => (
+          {rowData.permissions.map((permission: IPermission) => (
             <span
               key={`${permission.resourceCode}_${permission.levelCode}`}
               className={`p-mr-1 p-mb-1 permission-badge level-${permission.levelCode.toLowerCase()} p-shadow-1`}
@@ -132,19 +155,22 @@ const RolePage: React.FC = () => {
     ) : (
       <div className="orders-subtable">
         <div className="p-d-flex p-jc-between p-ai-baseline  ">
-          <h5>Permissões para {data.name}</h5>
-          <Button
+          <h6>Permissões do perfil {data.name}</h6>
+          {/* <Button
             icon="pi pi-unlock"
             label="Alterar Permissões"
             className="p-button p-button-info p-mr-2 "
             onClick={() => console.log(data)}
             tooltip={`Alterar permissões de '${data.name}'`}
-          />
+          /> */}
         </div>
-        <DataTable value={data.permissions} emptyMessage="Nenhuma permissão">
+        <DataTable
+          value={data.groupedPermissions}
+          emptyMessage="Nenhuma permissão"
+        >
           <Column field="label" header="Recurso" sortable />
           <Column
-            field="permissions"
+            field="groupedPermissions"
             header="Níveis de acesso"
             body={rolePermissionLevelBodyTemplate}
             sortable={false}
@@ -160,29 +186,35 @@ const RolePage: React.FC = () => {
     'ROLE_ADMIN_USER',
   ];
 
+  const normalUserColumns: ColumnProps[] = [
+    {
+      expander: true,
+      style: { width: '3em' },
+    },
+    {
+      field: 'name',
+      header: 'Nome',
+      sortable: true,
+      body: roleNameBodyTemplate,
+    },
+    { field: 'description', header: 'Descrição', sortable: true },
+  ];
+
+  const superUserColumns: ColumnProps[] = [
+    ...normalUserColumns,
+    {
+      field: 'organization.name',
+      header: 'Organização',
+      body: avatarNameBodyTemplate,
+      sortable: true,
+    },
+  ];
+
   return (
     <Container>
       <CrudPageContainer
         items={roles}
-        columns={[
-          {
-            expander: true,
-            style: { width: '3em' },
-          },
-          {
-            field: 'name',
-            header: 'Nome',
-            sortable: true,
-            body: roleNameBodyTemplate,
-          },
-          { field: 'description', header: 'Descrição', sortable: true },
-          {
-            field: 'organization.name',
-            header: 'Organização',
-            body: avatarNameBodyTemplate,
-            sortable: true,
-          },
-        ]}
+        columns={authUser.isSuper ? superUserColumns : normalUserColumns}
         dataTableRef={dt}
         isLoading={isLoading}
         errorState={error}

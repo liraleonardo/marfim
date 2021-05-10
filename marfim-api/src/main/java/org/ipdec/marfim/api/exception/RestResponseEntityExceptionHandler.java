@@ -77,8 +77,16 @@ public class RestResponseEntityExceptionHandler
     public ResponseErrorDTO handleDataIntegrityViolationException(DataIntegrityViolationException ex, WebRequest request) {
         String path = Objects.requireNonNull(((ServletWebRequest) request).getNativeRequest(HttpServletRequest.class)).getRequestURI();
         HttpStatus status = HttpStatus.CONFLICT;
-        String message = String.format("data integrity violation: %s",ex.getRootCause().getMessage());
-        String error = ex.getRootCause().getClass().getName();
+        String message;
+        String error;
+        if(ex.getRootCause()!=null) {
+             message = String.format("data integrity violation: %s", ex.getRootCause().getMessage());
+             error = ex.getRootCause().getClass().getName();
+        }else{
+            message = String.format("data integrity violation: %s", ex.getMessage());
+            error = ex.getClass().getName();
+        }
+
 
         return new ResponseErrorDTO(path,status,message,error);
     }

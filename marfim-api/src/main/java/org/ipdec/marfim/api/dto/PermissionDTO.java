@@ -20,10 +20,12 @@ public class PermissionDTO {
     private String authority;
 
     public PermissionDTO(Permission permission) {
-        this.levelCode = permission.getPermissionLevel().getCode();
-        this.levelName = permission.getPermissionLevel().getName();
-        this.resourceCode = permission.getPermissionResource().getCode();
-        this.resourceName = permission.getPermissionResource().getName();
+        this.levelCode = permission.getId().getPermissionLevelCode();
+        if(permission.getPermissionLevel()!=null)
+            this.levelName = permission.getPermissionLevel().getName();
+        this.resourceCode = permission.getId().getPermissionResourceCode();
+        if(permission.getPermissionResource()!=null)
+            this.resourceName = permission.getPermissionResource().getName();
         authority = permission.getAuthority();
     }
 }

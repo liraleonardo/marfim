@@ -44,5 +44,5 @@ export interface IRole {
   isAdmin?: boolean;
   organization: IOrganization | null;
   users?: IUser[];
-  permissions?: IPermissionGroup[];
+  groupedPermissions?: IPermissionGroup[];
 }

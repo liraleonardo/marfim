@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -23,5 +24,12 @@ public interface RoleRepository extends JpaRepository<Role, Long> {
             " left join fetch r.permissions" +
             " where u.id = ?1")
     List<Role> findAllByUserId(UUID userId);
+
+
+    @Query(value=" select r from Role r " +
+            " where r.name = ?1 and r.organization.id = ?2")
+    Optional<Role> findByNameAndOrganizationId(String name, Long organizationId);
+
+
 
 }

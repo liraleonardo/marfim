@@ -5,9 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.ipdec.marfim.api.model.Permission;
-import org.ipdec.marfim.api.model.PermissionResource;
-import org.ipdec.marfim.api.model.Role;
+import org.ipdec.marfim.api.model.*;
 
 import java.util.List;
 import java.util.Map;
@@ -24,7 +22,7 @@ public class RoleDTO {
     private String description;
     private Boolean isAdmin;
     private OrganizationDTO organization;
-    private List<PermissionGroupDTO> permissions;
+    private List<PermissionGroupDTO> groupedPermissions;
     private List<UserDTO> users;
 
     public RoleDTO(Role role) {
@@ -33,12 +31,12 @@ public class RoleDTO {
         description = role.getDescription();
         isAdmin = role.getIsAdmin();
         organization = new OrganizationDTO(role.getOrganization());
-        Map<PermissionResource, List<Permission>> groupedPermissions = role.getPermissions().stream()
+        Map<PermissionResource, List<Permission>> groupedPermissionsMap = role.getPermissions().stream()
                 .collect(Collectors.groupingBy(permission -> permission.getPermissionResource()));
 
-        permissions = groupedPermissions.keySet().stream()
+        groupedPermissions = groupedPermissionsMap.keySet().stream()
                 .sorted()
-                .map(permissionResource -> new PermissionGroupDTO(permissionResource.getName(), groupedPermissions.get(permissionResource)))
+                .map(permissionResource -> new PermissionGroupDTO(permissionResource.getName(), groupedPermissionsMap.get(permissionResource)))
                 .collect(Collectors.toList());
 
         users = role.getUsers().stream().map(UserDTO::new).collect(Collectors.toList());

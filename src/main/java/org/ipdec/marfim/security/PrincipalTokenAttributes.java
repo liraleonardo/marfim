@@ -1,6 +1,7 @@
 package org.ipdec.marfim.security;
 
 import org.ipdec.marfim.api.model.User;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.DefaultOAuth2AuthenticatedPrincipal;
@@ -12,6 +13,9 @@ import java.util.UUID;
 
 @Component
 public class PrincipalTokenAttributes implements IPrincipalTokenAttributes{
+    @Autowired
+    MarfimUserDetailsService userDetailsService;
+
     @Override
     public User getUser() {
         User user = new User();
@@ -26,5 +30,13 @@ public class PrincipalTokenAttributes implements IPrincipalTokenAttributes{
         user.setAvatarUrl((String) attributes.get("avatarUrl"));
         //TODO: Fill user organizations and roles
         return user;
+    }
+
+    @Override
+    public MarfimUserDetails getUserDetails() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Map<String, Object> attributes = ((DefaultOAuth2AuthenticatedPrincipal) authentication.getPrincipal()).getAttributes();
+        MarfimUserDetails userDetails = (MarfimUserDetails) userDetailsService.loadUserByUsername((String) attributes.get("email"));
+        return userDetails;
     }
 }

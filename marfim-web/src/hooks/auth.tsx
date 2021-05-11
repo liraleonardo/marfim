@@ -106,11 +106,6 @@ export const AuthProvider: React.FC = ({ children }) => {
       const { user } = authState;
       const handledAuthState: AuthState = authState;
 
-      if (user.isSuper) {
-        handledAuthState.organizations = undefined;
-        handledAuthState.selectedOrganization = undefined;
-      }
-
       if (
         handledAuthState.organizations &&
         !handledAuthState.selectedOrganization

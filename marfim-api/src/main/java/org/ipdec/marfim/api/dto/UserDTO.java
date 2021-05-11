@@ -31,7 +31,8 @@ public class UserDTO {
         name = user.getName();
         avatarUrl = user.getAvatarUrl();
         isSuper = user.getIsSuper();
-        organizations = user.getOrganizations().stream().map(OrganizationDTO::new).collect(Collectors.toList());
+        if(user.getOrganizations()!=null)
+            organizations = user.getOrganizations().stream().map(OrganizationDTO::new).collect(Collectors.toList());
     }
 
 }

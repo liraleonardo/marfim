@@ -7,10 +7,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -21,7 +18,7 @@ import java.util.Objects;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "permission_resource", schema = "marfim")
-public class PermissionResource implements Serializable {
+public class PermissionResource implements Serializable, Comparable<PermissionResource> {
     @Id
     @Column(nullable = false)
     private String code;
@@ -40,5 +37,11 @@ public class PermissionResource implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(getCode());
+    }
+
+
+    @Override
+    public int compareTo(PermissionResource o) {
+        return this.name.compareTo(o.name);
     }
 }

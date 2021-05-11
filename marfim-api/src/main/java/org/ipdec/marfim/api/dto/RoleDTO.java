@@ -1,0 +1,45 @@
+package org.ipdec.marfim.api.dto;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.ipdec.marfim.api.model.*;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@Data
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@AllArgsConstructor
+@NoArgsConstructor
+public class RoleDTO {
+    private Long id;
+    private String name;
+    private String description;
+    private Boolean isAdmin;
+    private OrganizationDTO organization;
+    private List<PermissionGroupDTO> groupedPermissions;
+    private List<UserDTO> users;
+
+    public RoleDTO(Role role) {
+        id = role.getId();
+        name = role.getName();
+        description = role.getDescription();
+        isAdmin = role.getIsAdmin();
+        organization = new OrganizationDTO(role.getOrganization());
+        Map<PermissionResource, List<Permission>> groupedPermissionsMap = role.getPermissions().stream()
+                .collect(Collectors.groupingBy(permission -> permission.getPermissionResource()));
+
+        groupedPermissions = groupedPermissionsMap.keySet().stream()
+                .sorted()
+                .map(permissionResource -> new PermissionGroupDTO(permissionResource.getName(), groupedPermissionsMap.get(permissionResource)))
+                .collect(Collectors.toList());
+
+        users = role.getUsers().stream().map(UserDTO::new).collect(Collectors.toList());
+    }
+
+}

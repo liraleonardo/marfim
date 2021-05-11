@@ -21,7 +21,7 @@ import java.util.Objects;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "permission_level", schema = "marfim")
-public class PermissionLevel implements Serializable {
+public class PermissionLevel implements Serializable, Comparable<PermissionLevel> {
     @Id
     @Column(nullable = false)
     private String code;
@@ -40,5 +40,10 @@ public class PermissionLevel implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(getCode());
+    }
+
+    @Override
+    public int compareTo(PermissionLevel o) {
+        return this.name.compareTo(o.name);
     }
 }

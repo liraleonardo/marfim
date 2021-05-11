@@ -3,6 +3,7 @@ import { IAppError, IErrorState } from './AppErrorInterfaces';
 import {
   getEntityAxiosErrors,
   getGlobalAxiosErrors,
+  getGlobalErrors,
 } from './globalAxiosErrors';
 import { getHttpError, unexpectedError } from './httpErrors';
 
@@ -52,6 +53,8 @@ export const handleAxiosError = (
     if (messages.length === 0) {
       messages = [`Erro inesperado: ${err.response.data.message}`];
     }
+  } else {
+    messages = getGlobalErrors(err.message);
   }
   if (messages.length === 0) {
     messages = [`Erro inesperado: ${err.message}`];

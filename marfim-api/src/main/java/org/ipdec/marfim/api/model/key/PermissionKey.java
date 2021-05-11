@@ -1,7 +1,9 @@
 package org.ipdec.marfim.api.model.key;
 
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
@@ -11,6 +13,8 @@ import java.util.Objects;
 
 @Embeddable
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class PermissionKey implements Serializable {
     @Column(name = "permission_resource_code")
     private String permissionResourceCode;

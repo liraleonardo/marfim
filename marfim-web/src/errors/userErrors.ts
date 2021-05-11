@@ -24,7 +24,7 @@ export const userErrors: IAppError[] = [
   },
   {
     code: 'requested user is not from current tenant organization',
-    message: 'O usuário não pertence a sua organização',
+    message: 'O usuário não pertence a esta organização',
   },
   {
     code: 'empty email',

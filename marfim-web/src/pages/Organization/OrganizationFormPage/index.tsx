@@ -22,12 +22,14 @@ import { maskedCnpj, unmaskCnpj } from '../../../utils/maskUtils';
 import { handleAxiosError } from '../../../errors/axiosErrorHandler';
 import { IErrorState } from '../../../errors/AppErrorInterfaces';
 import CrudFormPageContainer from '../../../components/CrudFormPageContainer';
+import { useAuth } from '../../../hooks/auth';
 
 interface OrganizationPathParams {
   id?: string;
 }
 
 const OrganizationFormPage: React.FC = () => {
+  const { selectedOrganization } = useAuth();
   const emptyOrganization: ICreateUpdateOrganization = new Organization();
   const [isEdit, setIsEdit] = useState(false);
   const [errorState, setErrorState] = useState<IErrorState>();
@@ -109,7 +111,7 @@ const OrganizationFormPage: React.FC = () => {
           handleError(error, 'carregar organizações', true);
         });
     }
-  }, [pathId, setValue, handleError]);
+  }, [pathId, setValue, handleError, selectedOrganization]);
 
   const onInputChange = useCallback(
     (e: { target: { value: string } }, name: string): any => {

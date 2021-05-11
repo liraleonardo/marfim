@@ -10,6 +10,12 @@ export default class UserService extends GenericService<User, string> {
     return this.findAll();
   }
 
+  public getUsersByName(name: string): Promise<User[]> {
+    return this.api
+      .get<User[]>(this.path.concat(`?name=${name}`))
+      .then((res) => res.data);
+  }
+
   public createUser(user: User): Promise<User> {
     return this.create(user);
   }

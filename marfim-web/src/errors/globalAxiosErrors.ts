@@ -7,6 +7,13 @@ const globalAxiosErrors: IAppError[] = [
   },
 ];
 
+const globalErrors: IAppError[] = [
+  {
+    code: 'Network Error',
+    message: 'Sem conexão com o servidor',
+  },
+];
+
 export const getEntityAxiosErrors = (
   entityErrors: IAppError[],
   code: string,
@@ -19,4 +26,8 @@ export const getEntityAxiosErrors = (
 
 export const getGlobalAxiosErrors = (code: string): string[] => {
   return getEntityAxiosErrors(globalAxiosErrors, code);
+};
+
+export const getGlobalErrors = (code: string): string[] => {
+  return getEntityAxiosErrors(globalErrors, code);
 };

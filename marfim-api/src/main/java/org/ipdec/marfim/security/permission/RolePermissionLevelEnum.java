@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 @AllArgsConstructor
 @Getter
@@ -22,6 +23,10 @@ public enum RolePermissionLevelEnum {
 
     public static RolePermissionLevelEnum get(int level){
         return Arrays.stream(RolePermissionLevelEnum.values()).filter(permission -> permission.getLevel() == level).findFirst().orElse(NONE);
+    }
+
+    public static RolePermissionLevelEnum get(String code){
+        return Arrays.stream(RolePermissionLevelEnum.values()).filter(permission -> Objects.equals(permission.getCode(), code)).findFirst().orElse(NONE);
     }
 
 }

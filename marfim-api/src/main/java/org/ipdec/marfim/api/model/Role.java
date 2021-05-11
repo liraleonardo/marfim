@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -43,5 +44,20 @@ public class Role implements Serializable {
             joinColumns = @JoinColumn(name = "role_id"),
             inverseJoinColumns = { @JoinColumn(name = "permission_level_code"), @JoinColumn(name = "permission_resource_code")})
     private Collection<Permission> permissions;
+
+    @ManyToMany
+    @JoinTable(
+            name = "user_role",
+            schema = "marfim",
+            joinColumns = @JoinColumn(name = "role_id"),
+            inverseJoinColumns = { @JoinColumn(name = "user_id")})
+    private Collection<User> users;
+
+    @PreRemove
+    public void checkForUsersWithThisRole(){
+        if(!users.isEmpty()){
+            throw new DataIntegrityViolationException("should not delete role with users associated");
+        }
+    }
 
 }

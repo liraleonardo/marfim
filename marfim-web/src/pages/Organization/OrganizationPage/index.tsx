@@ -68,6 +68,7 @@ const OrganizationPage: React.FC = () => {
         name={rowData.name}
         avatarUrl={rowData.avatarUrl}
         defaultAvatarIcon="pi pi-briefcase"
+        key={rowData.id}
       />
     );
   };

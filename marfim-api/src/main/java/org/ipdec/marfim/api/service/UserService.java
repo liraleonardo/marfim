@@ -34,8 +34,8 @@ public class UserService {
         User user = userRepository.findById(id).orElseThrow(()->{
             return new UserException(UserExceptionsEnum.NOT_FOUND);
         });
-        // should find an user only if it exist on current tenant
-        if(organizationId!=null){
+        // should find an user only if it exist on current tenant or principal is super
+        if(!principal.getUser().isSuper()){
             boolean isUserFromTenantOrganization = user.getOrganizations().stream()
                     .anyMatch(organization -> Objects.equals(organization.getId(), organizationId));
             if(!isUserFromTenantOrganization){
@@ -51,7 +51,7 @@ public class UserService {
     }
 
     public List<User> findAll(Long organizationId, Example<User> example) {
-        List<User> allUsers = userRepository.findAll(example, Sort.by(Sort.Order.asc("name").ignoreCase()));
+        List<User> allUsers = findAll(example);
         if(organizationId==null) {
             return allUsers;
         }
@@ -62,6 +62,10 @@ public class UserService {
         }).collect(Collectors.toList());
 
     }
+    public List<User> findAll(Example<User> example) {
+        List<User> allUsers = userRepository.findAll(example, Sort.by(Sort.Order.asc("name").ignoreCase()));
+        return allUsers;
+    }
 
     public List<UserDTO> findAllUsersDTO(Long organizationId, Optional<String> userName) {
         User userFilter = new User();
@@ -71,6 +75,11 @@ public class UserService {
                 .withIgnoreNullValues();
 
         Example<User> userExample = Example.of(userFilter, exampleMatcher);
+
+        if(principal.getUser().isSuper()){
+            return findAll(userExample).stream().map(UserDTO::new)
+                    .collect(Collectors.toList());
+        }
 
        return findAll(organizationId, userExample).stream().map(UserDTO::new)
                 .collect(Collectors.toList());
@@ -84,7 +93,8 @@ public class UserService {
             throw new UserException(UserExceptionsEnum.FORBIDDEN_BECOME_SUPER_USER_BY_NON_SUPER_USER);
         }
 
-        if(organizationId!=null) {
+        //if principal not a super user, the new user will be created on current (tenant) organization
+        if(!principalIsSuper) {
             List<Organization> organizations = new ArrayList<>();
             Organization organization = new Organization();
             organization.setId(organizationId);
@@ -149,15 +159,15 @@ public class UserService {
         User userToBeRemoved = findById(id, tenantId);
         Boolean principalIsSuper = principal.getUser().isSuper();
 
-        // an user should not be able to delete a super user
-        if(!principalIsSuper && userToBeRemoved.isSuper()){
-            throw new UserException(UserExceptionsEnum.FORBIDDEN_UPDATE_SUPER_USER_BY_NON_SUPER_USER);
-        }
-
-        if(tenantId==null) {
+        if(principalIsSuper) {
             // a super user should delete any user
             userRepository.deleteById(id);
             return;
+        }
+
+        // an user should not be able to delete a super user
+        if(userToBeRemoved.isSuper()){
+            throw new UserException(UserExceptionsEnum.FORBIDDEN_UPDATE_SUPER_USER_BY_NON_SUPER_USER);
         }
 
         // an user should only remove the relationship with the current organization (tenantId)

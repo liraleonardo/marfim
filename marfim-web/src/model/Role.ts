@@ -42,7 +42,6 @@ export interface IRole {
   name: string;
   description?: string;
   isAdmin?: boolean;
-  organization: IOrganization | null;
   users?: IUser[];
   groupedPermissions?: IPermissionGroup[];
 }

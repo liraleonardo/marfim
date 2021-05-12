@@ -130,6 +130,7 @@ const UserPage: React.FC = () => {
   const avatarNameBodyTemplate = (rowData: User) => {
     return (
       <AvatarNameContainer
+        key={rowData.id}
         name={rowData.name}
         avatarUrl={rowData.avatarUrl}
         defaultAvatarIcon="pi pi-user"

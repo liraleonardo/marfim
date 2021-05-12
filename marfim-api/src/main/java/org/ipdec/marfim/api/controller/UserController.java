@@ -29,8 +29,8 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAnyAuthority('USERS_READ', 'USERS_ALL')")
     public List<UserDTO> findAll(@RequestParam(name="name") Optional<String> userName) {
-        Long organizationId = TenantContext.getLongTenant();
-        return userService.findAllUsersDTO(organizationId, userName);
+        Long tenantId = TenantContext.getLongTenant();
+        return userService.findAllUsersDTO(tenantId, userName);
     }
 
     @GetMapping("/{id}")

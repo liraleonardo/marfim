@@ -26,6 +26,7 @@ public class MyInfosController {
         return principal.getAuthorities().stream()
                 .filter(grantedAuthority ->
                     Objects.equals(((CustomAuthority) grantedAuthority).getOrganizationId(),tenantId)
+                        ||  grantedAuthority.getAuthority().equalsIgnoreCase("ROLE_SUPER_USER")
                 )
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());

@@ -21,6 +21,8 @@ public class AuthenticationUtilService {
 
     private final MarfimJWTToken marfimJWTToken;
 
+    private final OrganizationService organizationService;
+
     private String getToken(User user) {
         return marfimJWTToken.generateToken(user);
     }
@@ -29,7 +31,12 @@ public class AuthenticationUtilService {
     public AuthDTO createAuthDTO(User user) {
         AuthUserDTO userDTO = new AuthUserDTO(user);
         String token = getToken(user);
-        List<AuthOrganizationDTO> organizationsDTO = getRolesGroupedByOrganizations(user);
+        List<AuthOrganizationDTO> organizationsDTO;
+        if(user.isSuper()){
+            organizationsDTO = getAllOrganizations();
+        }else{
+            organizationsDTO = getRolesGroupedByOrganizations(user);
+        }
         return new AuthDTO(token,userDTO,organizationsDTO);
     }
 
@@ -62,6 +69,12 @@ public class AuthenticationUtilService {
         });
 
         return organizationDTOS;
+    }
+
+    private List<AuthOrganizationDTO> getAllOrganizations(){
+        return organizationService.findAll().stream()
+                .map(organization -> new AuthOrganizationDTO(organization.getId(),organization.getName(),null))
+                .collect(Collectors.toList());
     }
 
 }

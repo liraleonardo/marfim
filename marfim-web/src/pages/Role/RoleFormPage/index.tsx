@@ -12,8 +12,6 @@ import React, {
 } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
 import { MultiSelect } from 'primereact/multiselect';
-import { Fieldset } from 'primereact/fieldset';
-import { Dropdown } from 'primereact/dropdown';
 import { InputSwitch } from 'primereact/inputswitch';
 import { AutoComplete, CompleteMethodParams } from 'primereact/autocomplete';
 import { useToast } from '../../../hooks/toast';
@@ -26,9 +24,7 @@ import { roleErrors } from '../../../errors/roleErrors';
 import RoleService from '../../../services/RoleService';
 import { IUser } from '../../../model/User';
 import '../role-style.css';
-import { IOrganization } from '../../../model/Organization';
 import UserService from '../../../services/UserService';
-import OrganizationService from '../../../services/OrganizationService';
 import api from '../../../services/api';
 
 interface OrganizationPathParams {
@@ -41,7 +37,6 @@ const RoleFormPage: React.FC = () => {
     name: '',
     description: '',
     isAdmin: false,
-    organization: null,
     users: [],
     groupedPermissions: [],
   };
@@ -51,10 +46,6 @@ const RoleFormPage: React.FC = () => {
   const [role, setRole] = useState(emptyRole);
   const [roleId, setRoleId] = useState<number | null>(null);
 
-  const [dropdownOrganizations, setDropdownOrganizations] = useState<
-    IOrganization[]
-  >([]);
-  const [isOrganizationsLoaded, setIsOrganizationsLoaded] = useState(false);
   const [isPermissionsLoaded, setIsPermissionsLoaded] = useState(false);
 
   const [dropdownUsers, setDropdownUsers] = useState<IUser[]>([]);
@@ -75,7 +66,6 @@ const RoleFormPage: React.FC = () => {
       name: role.name,
       description: role.description,
       isAdmin: role.isAdmin,
-      organization: role.organization,
       users: role.users,
       permissions: role.groupedPermissions?.flatMap(
         (groupedPermission) => groupedPermission.permissions,
@@ -84,14 +74,6 @@ const RoleFormPage: React.FC = () => {
     mode: 'all',
     reValidateMode: 'onChange',
   });
-
-  const isAdmin = useMemo(() => {
-    return hasAnyAuthority(['ROLE_ADMIN_USER']);
-  }, [hasAnyAuthority]);
-
-  const isSuper = useMemo(() => {
-    return hasAnyAuthority(['ROLE_SUPER_USER']);
-  }, [hasAnyAuthority]);
 
   const { id: pathId } = useParams<OrganizationPathParams>();
 
@@ -119,23 +101,6 @@ const RoleFormPage: React.FC = () => {
   );
 
   useEffect(() => {
-    if (hasAnyAuthority(['ROLE_SUPER_USER'])) {
-      const organizationService: OrganizationService = new OrganizationService();
-      organizationService
-        .getOrganizations()
-        .then((data) => {
-          setDropdownOrganizations(data);
-        })
-        .catch((error) => handleError(error, `carregar organizações`, false))
-        .finally(() => {
-          setIsOrganizationsLoaded(true);
-        });
-    } else {
-      setIsOrganizationsLoaded(true);
-    }
-  }, [handleError, hasAnyAuthority, entity.namePlural]);
-
-  useEffect(() => {
     api
       .get<IPermissionGroup[]>('/permission/grouped')
       .then(({ data }) => {
@@ -154,7 +119,7 @@ const RoleFormPage: React.FC = () => {
       setRoleId(id);
       const roleService = new RoleService();
 
-      if (isOrganizationsLoaded && isPermissionsLoaded) {
+      if (isPermissionsLoaded) {
         roleService
           .getRole(id)
           .then((response) => {
@@ -165,9 +130,6 @@ const RoleFormPage: React.FC = () => {
               shouldValidate: true,
             });
             setValue('isAdmin', response.isAdmin, {
-              shouldValidate: true,
-            });
-            setValue('organization', response.organization, {
               shouldValidate: true,
             });
             setValue('users', response.users, { shouldValidate: true });
@@ -187,7 +149,6 @@ const RoleFormPage: React.FC = () => {
     pathId,
     setValue,
     handleError,
-    isOrganizationsLoaded,
     isPermissionsLoaded,
     selectedOrganization,
   ]);
@@ -311,7 +272,7 @@ const RoleFormPage: React.FC = () => {
       errorState={errorState}
     >
       <div className="p-grid">
-        <div className="p-field p-col-12 p-md-12">
+        <div className="p-field p-col-12 p-md-10">
           <label htmlFor="nameInput">Nome do Perfil *</label>
           <InputText
             {...register('name', {
@@ -332,6 +293,23 @@ const RoleFormPage: React.FC = () => {
               {errors.name.message}
             </small>
           )}
+        </div>
+        <div className="p-field-checkbox p-fluid p-col-12 p-md-2">
+          <InputSwitch
+            {...register('isAdmin')}
+            inputId="isAdmin"
+            name="isAdmin"
+            className={errors.isAdmin ? 'p-invalid' : ''}
+            onChange={(e) => {
+              setRole({ ...role, isAdmin: e.value });
+              setValue('isAdmin', e.value, { shouldValidate: true });
+              if (e.value === true) {
+                setValue('permissions', []);
+              }
+            }}
+            checked={role.isAdmin}
+          />
+          <label htmlFor="isAdmin">Administrador</label>
         </div>
         <div className="p-field p-col-12 p-md-12">
           <label htmlFor="descriptionInput">Descrição</label>
@@ -408,65 +386,6 @@ const RoleFormPage: React.FC = () => {
           />
         </div>
       </div>
-      {(isAdmin || isSuper) && (
-        <Fieldset legend="Administração">
-          <div className="p-grid">
-            {isSuper && (
-              <div className="p-field p-col-12 p-md-6">
-                <label htmlFor="organization">Organização *</label>
-                <Controller
-                  name="organization"
-                  control={control}
-                  rules={{
-                    required: 'É necessário selecionar uma organização',
-                  }}
-                  render={(props) => (
-                    <Dropdown
-                      id="organizationDrop"
-                      name="organizationDrop"
-                      value={props.field.value}
-                      emptyFilterMessage="Nenhuma organização encontrada"
-                      className={errors.organization ? 'p-invalid' : ''}
-                      onChange={(e) => {
-                        props.field.onChange(e.target.value);
-                      }}
-                      onBlur={(e) => {
-                        props.field.onBlur();
-                      }}
-                      options={dropdownOrganizations}
-                      optionLabel="name"
-                      dataKey="id"
-                      placeholder="Selecione uma organização"
-                    />
-                  )}
-                />
-                {errors?.organization?.message && (
-                  <small id="description-help" className="p-error">
-                    {errors.organization.message}
-                  </small>
-                )}
-              </div>
-            )}
-            <div className="p-field-checkbox p-fluid p-col-12 p-md-6">
-              <InputSwitch
-                {...register('isAdmin')}
-                inputId="isAdmin"
-                name="isAdmin"
-                className={errors.isAdmin ? 'p-invalid' : ''}
-                onChange={(e) => {
-                  setRole({ ...role, isAdmin: e.value });
-                  setValue('isAdmin', e.value, { shouldValidate: true });
-                  if (e.value === true) {
-                    setValue('permissions', []);
-                  }
-                }}
-                checked={role.isAdmin}
-              />
-              <label htmlFor="isAdmin">Administrador</label>
-            </div>
-          </div>
-        </Fieldset>
-      )}
     </CrudFormPageContainer>
   );
 };

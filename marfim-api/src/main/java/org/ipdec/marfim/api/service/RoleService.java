@@ -9,8 +9,6 @@ import org.ipdec.marfim.api.model.Organization;
 import org.ipdec.marfim.api.model.Role;
 import org.ipdec.marfim.api.repository.RoleRepository;
 import org.ipdec.marfim.security.IPrincipalTokenAttributes;
-import org.ipdec.marfim.security.MarfimUserDetails;
-import org.ipdec.marfim.security.permission.CustomAuthority;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -30,8 +28,8 @@ public class RoleService {
         Role role = roleRepository.findById(id).orElseThrow(()->{
             return new RoleException(RoleExceptionsEnum.NOT_FOUND);
         });
-        // should find a role only if it exist on current tenant
-        if(organizationId!=null){
+        // should find a role only if it exist on current tenant, or requester is super
+        if(!principal.getUser().isSuper()){
             boolean isRoleFromTenantOrganization = Objects.equals(role.getOrganization().getId(), organizationId);
             if(!isRoleFromTenantOrganization){
                 throw new RoleException(RoleExceptionsEnum.FORBIDDEN_ROLE_ORGANIZATION_DIFFERENT_FROM_TENANT);
@@ -64,28 +62,14 @@ public class RoleService {
 
 
     public CreateRoleDTO create(CreateRoleDTO roleDTO, Long organizationId) {
-        MarfimUserDetails userDetails = principal.getUserDetails();
-        Boolean principalIsSuper = userDetails.getUser().isSuper();
-        Boolean principalIsAdmin = userDetails.getAuthorities().stream()
-                .anyMatch(grantedAuthority ->
-                        Objects.equals(((CustomAuthority) grantedAuthority).getOrganizationId(), organizationId)
-                                && grantedAuthority.getAuthority().equalsIgnoreCase("ROLE_ADMIN_USER"));
-
+        if(organizationId==null){
+            throw new RoleException(RoleExceptionsEnum.BAD_REQUEST_MISSING_TENANT_ID);
+        }
         Role role = roleDTO.parseToRole(new Role());
 
-
-        if(role.getIsAdmin() && !(principalIsSuper || principalIsAdmin)){
-            throw new RoleException(RoleExceptionsEnum.FORBIDDEN_SET_ADMIN_ROLE_BY_NON_SUPER_OR_ADMIN);
-        }
-
-        if(organizationId!=null) {
-            Organization organization = new Organization();
-            organization.setId(organizationId);
-            role.setOrganization(organization);
-        }
-        if(role.getOrganization().getId()==null){
-            throw new RoleException(RoleExceptionsEnum.BAD_REQUEST_MISSING_ROLE_ORGANIZATION);
-        }
+        Organization organization = new Organization();
+        organization.setId(organizationId);
+        role.setOrganization(organization);
 
         boolean isRoleSameName = roleRepository.findByNameAndOrganizationId(role.getName(), role.getOrganization().getId()).isPresent();
         if(isRoleSameName){
@@ -93,43 +77,21 @@ public class RoleService {
         }
 
         role = roleRepository.save(role);
-
-
         return new CreateRoleDTO(role);
     }
 
     public CreateRoleDTO update(Long roleId, CreateRoleDTO roleDTO, Long organizationId) {
-        MarfimUserDetails userDetails = principal.getUserDetails();
-        Role originalRole = findById(roleId, organizationId);
-
-        Boolean principalIsSuper = userDetails.getUser().isSuper();
-        Boolean principalIsAdmin = userDetails.getAuthorities().stream()
-                .anyMatch(grantedAuthority ->
-                        Objects.equals(((CustomAuthority) grantedAuthority).getOrganizationId(), organizationId)
-                                && grantedAuthority.getAuthority().equalsIgnoreCase("ROLE_ADMIN_USER"));
-
-        if(!principalIsSuper && !principalIsAdmin){
-            // normal user should not update an admin role
-            if(originalRole.getIsAdmin()){
-                throw new RoleException(RoleExceptionsEnum.FORBIDDEN_UPDATE_ADMIN_ROLE_BY_NON_SUPER_OR_ADMIN);
-            }
-
-            // normal user should not change a role to become admin
-            if(roleDTO.getIsAdmin()){
-                throw new RoleException(RoleExceptionsEnum.FORBIDDEN_SET_ADMIN_ROLE_BY_NON_SUPER_OR_ADMIN);
-            }
+        if(organizationId==null){
+            throw new RoleException(RoleExceptionsEnum.BAD_REQUEST_MISSING_TENANT_ID);
         }
         roleDTO.setId(roleId);
+
+        Role originalRole = findById(roleId, organizationId);
         Role roleToSave = roleDTO.parseToRole(originalRole);
 
-        if(organizationId!=null) {
-            Organization organization = new Organization();
-            organization.setId(organizationId);
-            roleToSave.setOrganization(organization);
-        }
-        if(roleToSave.getOrganization().getId()==null){
-            throw new RoleException(RoleExceptionsEnum.BAD_REQUEST_MISSING_ROLE_ORGANIZATION);
-        }
+        Organization organization = new Organization();
+        organization.setId(organizationId);
+        roleToSave.setOrganization(organization);
 
         Optional<Role> roleSameName = roleRepository.findByNameAndOrganizationId(roleToSave.getName(), roleToSave.getOrganization().getId());
         if(roleSameName.isPresent() && !Objects.equals(roleSameName.get().getId(),roleId)){
@@ -142,19 +104,9 @@ public class RoleService {
     }
 
     public void delete(Long roleId, Long organizationId) {
-        MarfimUserDetails userDetails = principal.getUserDetails();
-        Role roleToBeRemoved = findById(roleId, organizationId);
-
-        Boolean principalIsSuper = userDetails.getUser().isSuper();
-        Boolean principalIsAdmin = userDetails.getAuthorities().stream()
-                .anyMatch(grantedAuthority ->
-                        Objects.equals(((CustomAuthority) grantedAuthority).getOrganizationId(), organizationId)
-                                && grantedAuthority.getAuthority().equalsIgnoreCase("ROLE_ADMIN_USER"));
-
-        if(!principalIsSuper && !principalIsAdmin && roleToBeRemoved.getIsAdmin()){
-            throw new RoleException(RoleExceptionsEnum.FORBIDDEN_UPDATE_ADMIN_ROLE_BY_NON_SUPER_OR_ADMIN);
+        if(organizationId==null){
+            throw new RoleException(RoleExceptionsEnum.BAD_REQUEST_MISSING_TENANT_ID);
         }
-
         roleRepository.deleteById(roleId);
     }
 }

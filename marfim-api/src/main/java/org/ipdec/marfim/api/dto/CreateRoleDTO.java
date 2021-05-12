@@ -24,7 +24,6 @@ public class CreateRoleDTO {
     private String name;
     private String description;
     private Boolean isAdmin;
-    private OrganizationDTO organization;
     private List<PermissionDTO> permissions;
     private List<UserDTO> users;
 
@@ -33,7 +32,6 @@ public class CreateRoleDTO {
         name = role.getName();
         description = role.getDescription();
         isAdmin = role.getIsAdmin();
-        organization = new OrganizationDTO(role.getOrganization());
         permissions = role.getPermissions().stream().map(PermissionDTO::new).collect(Collectors.toList());
         users = role.getUsers().stream().map(UserDTO::new).collect(Collectors.toList());
     }
@@ -45,12 +43,6 @@ public class CreateRoleDTO {
         role.setName(name);
         role.setDescription(description);
         role.setIsAdmin(isAdmin);
-
-        if(organization!=null) {
-            Organization organization = new Organization();
-            organization.setId(this.organization.getId());
-            role.setOrganization(organization);
-        }
 
         if(users!=null) {
             List<User> usersList = users.stream().map(userDTO -> {

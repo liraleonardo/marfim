@@ -17,7 +17,11 @@ import { handleAxiosError } from '../../../errors/axiosErrorHandler';
 import { roleErrors } from '../../../errors/roleErrors';
 import { useAuth } from '../../../hooks/auth';
 import { useToast } from '../../../hooks/toast';
-import { IPermission, IPermissionGroup, IRole } from '../../../model/Role';
+import Role, {
+  IPermission,
+  IPermissionGroup,
+  IRole,
+} from '../../../model/Role';
 import GenericService from '../../../services/GenericService';
 import { Container } from './styles';
 import '../role-style.css';
@@ -105,7 +109,7 @@ const RolePage: React.FC = () => {
     [addToast, entity, handleError, reloadRoles],
   );
 
-  const avatarNameBodyTemplate = (rowData: IRole) => {
+  const avatarNameBodyTemplate = (rowData: Role) => {
     return (
       rowData.organization && (
         <AvatarNameContainer
@@ -156,13 +160,6 @@ const RolePage: React.FC = () => {
       <div className="orders-subtable">
         <div className="p-d-flex p-jc-between p-ai-baseline  ">
           <h6>Permissões do perfil {data.name}</h6>
-          {/* <Button
-            icon="pi pi-unlock"
-            label="Alterar Permissões"
-            className="p-button p-button-info p-mr-2 "
-            onClick={() => console.log(data)}
-            tooltip={`Alterar permissões de '${data.name}'`}
-          /> */}
         </div>
         <DataTable
           value={data.groupedPermissions}
@@ -180,11 +177,7 @@ const RolePage: React.FC = () => {
     );
   };
 
-  const fullAccessForAuthoritiesList = [
-    'ROLES_ALL',
-    'ROLE_SUPER_USER',
-    'ROLE_ADMIN_USER',
-  ];
+  const fullAccessForAuthoritiesList = ['ROLE_SUPER_USER', 'ROLE_ADMIN_USER'];
 
   const normalUserColumns: ColumnProps[] = [
     {
@@ -221,18 +214,9 @@ const RolePage: React.FC = () => {
         entity={entity}
         handleConfirmDeleteItem={handleConfirmDeleteRole}
         showItemActionColumn
-        showCreateItemButtonForAuthorities={[
-          'ROLES_CREATE',
-          ...fullAccessForAuthoritiesList,
-        ]}
-        showEditActionForAuthorities={[
-          'ROLES_UPDATE',
-          ...fullAccessForAuthoritiesList,
-        ]}
-        showDeleteActionForAuthorities={[
-          'ROLES_DELETE',
-          ...fullAccessForAuthoritiesList,
-        ]}
+        showCreateItemButtonForAuthorities={fullAccessForAuthoritiesList}
+        showEditActionForAuthorities={fullAccessForAuthoritiesList}
+        showDeleteActionForAuthorities={fullAccessForAuthoritiesList}
         expandedRows={expandedRows}
         onRowToggle={(e) => setExpandedRows(e.data)}
         rowExpansionTemplate={rowExpansionTemplate}

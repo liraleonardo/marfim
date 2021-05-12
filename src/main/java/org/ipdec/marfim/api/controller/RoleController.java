@@ -22,7 +22,7 @@ public class RoleController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAnyAuthority('ROLES_READ', 'ROLES_ALL')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN_USER')")
     public List<RoleDTO> findAll() {
         Long organizationId = TenantContext.getLongTenant();
         return roleService.findAllRolesDTO(organizationId);
@@ -30,7 +30,7 @@ public class RoleController {
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAnyAuthority('ROLES_READ', 'ROLES_ALL')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN_USER')")
     public RoleDTO findOne(@PathVariable(value = "id", required = true) Long userId) {
         Long tenantId = TenantContext.getLongTenant();
         return new RoleDTO(roleService.findById(userId, tenantId));
@@ -38,7 +38,7 @@ public class RoleController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAnyAuthority('ROLES_CREATE', 'ROLES_ALL')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN_USER')")
     public CreateRoleDTO create(@RequestBody @Valid CreateRoleDTO roleDTO) {
         Long tenantId = TenantContext.getLongTenant();
         return roleService.create(roleDTO, tenantId);
@@ -46,7 +46,7 @@ public class RoleController {
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAnyAuthority('ROLES_UPDATE', 'ROLES_ALL')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN_USER')")
     public CreateRoleDTO update(@PathVariable(value = "id", required = true) Long roleId,
                        @RequestBody @Valid CreateRoleDTO roleDTO) {
         Long tenantId = TenantContext.getLongTenant();
@@ -55,7 +55,7 @@ public class RoleController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasAnyAuthority('ROLES_DELETE', 'ROLES_ALL')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN_USER')")
     public void delete(@PathVariable(value = "id", required = true) Long roleId) {
         Long tenantId = TenantContext.getLongTenant();
         roleService.delete(roleId, tenantId);

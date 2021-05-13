@@ -239,12 +239,14 @@ const CrudPageContainer: React.FC<CrudPageContainerProps> = ({
             onRowExpand={onRowExpand}
             onRowCollapse={onRowCollapse}
             rowExpansionTemplate={rowExpansionTemplate}
+            autoLayout
+            resizableColumns
           >
             {columns.map((column, i) => (
               <Column key={`column${i}`} {...column} />
             ))}
             {showItemActionColumn && (showEditAction || showDeleteAction) && (
-              <Column style={{ width: `10%` }} body={actionBodyTemplate} />
+              <Column body={actionBodyTemplate} />
             )}
           </DataTable>
         </div>

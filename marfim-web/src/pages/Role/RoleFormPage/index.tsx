@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import { AxiosError } from 'axios';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
 import React, {
@@ -11,20 +11,16 @@ import React, {
   useState,
 } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
-import { MultiSelect } from 'primereact/multiselect';
 import { InputSwitch } from 'primereact/inputswitch';
-import { AutoComplete, CompleteMethodParams } from 'primereact/autocomplete';
 import { useToast } from '../../../hooks/toast';
 import { handleAxiosError } from '../../../errors/axiosErrorHandler';
 import { IErrorState } from '../../../errors/AppErrorInterfaces';
 import CrudFormPageContainer from '../../../components/CrudFormPageContainer';
-import { IPermission, IPermissionGroup, IRole } from '../../../model/Role';
+import { IPermissionGroup, IRole } from '../../../model/Role';
 import { useAuth } from '../../../hooks/auth';
 import { roleErrors } from '../../../errors/roleErrors';
 import RoleService from '../../../services/RoleService';
-import { IUser } from '../../../model/User';
 import '../role-style.css';
-import UserService from '../../../services/UserService';
 import api from '../../../services/api';
 
 interface OrganizationPathParams {
@@ -37,8 +33,6 @@ const RoleFormPage: React.FC = () => {
     name: '',
     description: '',
     isAdmin: false,
-    users: [],
-    groupedPermissions: [],
   };
   const [isEdit, setIsEdit] = useState(false);
   const [errorState, setErrorState] = useState<IErrorState>();
@@ -48,17 +42,11 @@ const RoleFormPage: React.FC = () => {
 
   const [isPermissionsLoaded, setIsPermissionsLoaded] = useState(false);
 
-  const [dropdownUsers, setDropdownUsers] = useState<IUser[]>([]);
-  const [dropdownPermissions, setDropdownPermissions] = useState<
-    IPermissionGroup[]
-  >([]);
-
   const history = useHistory();
   const {
     register,
     handleSubmit: handleFormSubmit,
     setValue,
-    control,
     getValues,
     formState: { errors, isDirty, isValid },
   } = useForm({
@@ -66,10 +54,6 @@ const RoleFormPage: React.FC = () => {
       name: role.name,
       description: role.description,
       isAdmin: role.isAdmin,
-      users: role.users,
-      permissions: role.groupedPermissions?.flatMap(
-        (groupedPermission) => groupedPermission.permissions,
-      ),
     },
     mode: 'all',
     reValidateMode: 'onChange',
@@ -101,49 +85,26 @@ const RoleFormPage: React.FC = () => {
   );
 
   useEffect(() => {
-    api
-      .get<IPermissionGroup[]>('/permission/grouped')
-      .then(({ data }) => {
-        setDropdownPermissions(data);
-      })
-      .catch((error) => handleError(error, `carregar permissões`, false))
-      .finally(() => {
-        setIsPermissionsLoaded(true);
-      });
-  }, [handleError, hasAnyAuthority, entity.namePlural]);
-
-  useEffect(() => {
     const id = Number(pathId);
     if (id) {
       setIsEdit(true);
       setRoleId(id);
       const roleService = new RoleService();
 
-      if (isPermissionsLoaded) {
-        roleService
-          .getRole(id)
-          .then((response) => {
-            setRole(response);
+      roleService
+        .getRole(id)
+        .then((response) => {
+          setRole(response);
 
-            setValue('name', response.name, { shouldValidate: true });
-            setValue('description', response.description, {
-              shouldValidate: true,
-            });
-            setValue('isAdmin', response.isAdmin, {
-              shouldValidate: true,
-            });
-            setValue('users', response.users, { shouldValidate: true });
-            if (response.groupedPermissions) {
-              const allPermissions = response.groupedPermissions.flatMap(
-                (groupedPermissions) => groupedPermissions.permissions,
-              );
-              setValue('permissions', allPermissions, {
-                shouldValidate: true,
-              });
-            }
-          })
-          .catch((err) => handleError(err, 'carregar perfil de acesso', true));
-      }
+          setValue('name', response.name, { shouldValidate: true });
+          setValue('description', response.description, {
+            shouldValidate: true,
+          });
+          setValue('isAdmin', response.isAdmin, {
+            shouldValidate: true,
+          });
+        })
+        .catch((err) => handleError(err, 'carregar perfil de acesso', true));
     }
   }, [
     pathId,
@@ -222,42 +183,6 @@ const RoleFormPage: React.FC = () => {
     history.goBack();
   }, [history]);
 
-  const permissionsOptionGroupTemplate = (data: IPermissionGroup) => (
-    <span className="p-ml-2 p-text-bold">{data.label}</span>
-  );
-  const permissionItemTemplate = (rowData: IPermission) => {
-    return (
-      <span
-        key={`${rowData.resourceCode}_${rowData.levelCode}`}
-        className={`permission-badge level-${rowData.levelCode.toLowerCase()} p-shadow-1`}
-      >
-        {rowData.levelName} de {rowData.resourceName}
-      </span>
-    );
-  };
-
-  const selectedPermissionItemTemplate = (rowData: any) => {
-    if (rowData)
-      return (
-        <span
-          key={`${rowData.resourceCode}_${rowData.levelCode}`}
-          className={`p-mr-2 permission-badge level-${rowData.levelCode.toLowerCase()} p-shadow-1`}
-        >
-          {rowData.levelName} de {rowData.resourceName}
-        </span>
-      );
-    return '';
-  };
-
-  const searchUsersByName = useCallback((e: CompleteMethodParams) => {
-    if (e.query) {
-      const userService = new UserService();
-      userService.getUsersByName(e.query).then((usersFound) => {
-        setDropdownUsers(usersFound);
-      });
-    }
-  }, []);
-
   return (
     <CrudFormPageContainer
       isEdit={isEdit}
@@ -303,9 +228,6 @@ const RoleFormPage: React.FC = () => {
             onChange={(e) => {
               setRole({ ...role, isAdmin: e.value });
               setValue('isAdmin', e.value, { shouldValidate: true });
-              if (e.value === true) {
-                setValue('permissions', []);
-              }
             }}
             checked={role.isAdmin}
           />
@@ -328,62 +250,6 @@ const RoleFormPage: React.FC = () => {
               {errors.description.message}
             </small>
           )}
-        </div>
-        <div className="p-field p-col-12 p-md-6">
-          <label htmlFor="users">Usuários </label>
-          <Controller
-            name="users"
-            control={control}
-            render={(props) => (
-              <AutoComplete
-                id="users"
-                name="users"
-                value={props.field.value}
-                suggestions={dropdownUsers}
-                field="name"
-                completeMethod={searchUsersByName}
-                multiple
-                minLength={3}
-                className={errors.users ? 'p-invalid' : ''}
-                onChange={(e) => {
-                  props.field.onChange(e.value);
-                }}
-                onBlur={(e) => {
-                  props.field.onBlur();
-                }}
-                placeholder="Nenhum usuário selecionado"
-              />
-            )}
-          />
-        </div>
-        <div className="p-field p-col-12 p-md-6">
-          <label htmlFor="permissions">Permissões</label>
-          <Controller
-            name="permissions"
-            control={control}
-            render={(props) => (
-              <MultiSelect
-                id="permissions"
-                name="permissions"
-                value={props.field.value}
-                emptyFilterMessage="Nenhuma permissão encontrada"
-                selectedItemsLabel="{0} permissões selecionadas"
-                className={errors.permissions ? 'p-invalid' : ''}
-                onChange={(e) => {
-                  props.field.onChange(e.target.value);
-                }}
-                options={dropdownPermissions}
-                itemTemplate={permissionItemTemplate}
-                optionGroupLabel="label"
-                optionGroupChildren="permissions"
-                optionGroupTemplate={permissionsOptionGroupTemplate}
-                selectedItemTemplate={selectedPermissionItemTemplate}
-                dataKey="authority"
-                placeholder="Nenhuma permissão associada"
-                disabled={role.isAdmin}
-              />
-            )}
-          />
         </div>
       </div>
     </CrudFormPageContainer>

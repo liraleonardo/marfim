@@ -1,5 +1,5 @@
-import Organization, { IOrganization } from './Organization';
-import User, { IUser } from './User';
+import Organization from './Organization';
+import User from './User';
 
 export default class Role {
   public id?: string;
@@ -42,6 +42,6 @@ export interface IRole {
   name: string;
   description?: string;
   isAdmin?: boolean;
-  users?: IUser[];
-  groupedPermissions?: IPermissionGroup[];
+  usersNumber?: number;
+  permissionsNumber?: number;
 }

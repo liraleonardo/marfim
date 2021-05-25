@@ -1,8 +1,6 @@
 package org.ipdec.marfim.api.service;
 
 import lombok.AllArgsConstructor;
-import org.ipdec.marfim.api.dto.CreateUserDTO;
-import org.ipdec.marfim.api.dto.UpdateUserDTO;
 import org.ipdec.marfim.api.dto.UserDTO;
 import org.ipdec.marfim.api.exception.OrganizationException;
 import org.ipdec.marfim.api.exception.UserException;
@@ -12,9 +10,8 @@ import org.ipdec.marfim.api.model.Organization;
 import org.ipdec.marfim.api.model.User;
 import org.ipdec.marfim.api.repository.OrganizationRepository;
 import org.ipdec.marfim.api.repository.UserRepository;
-import org.ipdec.marfim.security.IPrincipalTokenAttributes;
-import org.springframework.data.domain.Sort;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -26,6 +23,7 @@ import java.util.stream.Collectors;
 public class OrganizationUserService {
 
     private final UserRepository userRepository;
+    private final UserService userService;
     private final OrganizationRepository organizationRepository;
 
     public UserDTO findUserDTOByEmail(String email, Long organizationId) {
@@ -57,5 +55,18 @@ public class OrganizationUserService {
         organizations.add(organizationFound);
         userFound.setOrganizations(organizations);
         userRepository.save(userFound);
+    }
+
+    public List<UserDTO> findAllUsersDTO(Long organizationId, Optional<String> userName) {
+        User userFilter = new User();
+        userFilter.setName(userName.orElse(""));
+        ExampleMatcher exampleMatcher = ExampleMatcher.matchingAll()
+                .withMatcher("name", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
+                .withIgnoreNullValues();
+
+        Example<User> userExample = Example.of(userFilter, exampleMatcher);
+
+        return userService.findAll(organizationId, userExample).stream().map(UserDTO::new)
+                .collect(Collectors.toList());
     }
 }

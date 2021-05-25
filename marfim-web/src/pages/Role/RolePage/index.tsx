@@ -8,6 +8,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useHistory, useLocation } from 'react-router-dom';
 import { AvatarNameContainer } from '../../../components/AvatarNameContainer';
 import CrudPageContainer, {
   HandleErrorProps,
@@ -17,7 +18,7 @@ import { handleAxiosError } from '../../../errors/axiosErrorHandler';
 import { roleErrors } from '../../../errors/roleErrors';
 import { useAuth } from '../../../hooks/auth';
 import { useToast } from '../../../hooks/toast';
-import Role, { IRole } from '../../../model/Role';
+import { IRole } from '../../../model/Role';
 import GenericService from '../../../services/GenericService';
 import { Container } from './styles';
 import '../role-style.css';
@@ -27,6 +28,7 @@ const RolePage: React.FC = () => {
   const [roles, setRoles] = useState<IRole[]>([]);
   const [error, setError] = useState<IErrorState | undefined>();
   const [isLoading, setIsLoading] = useState(true);
+  const history = useHistory();
 
   const dt: React.RefObject<DataTable> = useRef(null);
   const entity = useMemo(() => {
@@ -66,7 +68,7 @@ const RolePage: React.FC = () => {
         if (data) setRoles(data);
       })
       .catch((err) => {
-        handleError({ error: err, errorAction: 'carregar organizações' });
+        handleError({ error: err, errorAction: 'carregar perfis de acesso' });
       })
       .finally(() => {
         setIsLoading(false);
@@ -125,6 +127,13 @@ const RolePage: React.FC = () => {
           className="p-button-text p-button-info"
           icon="pi pi-users"
           iconPos="right"
+          tooltip="Alterar usuários"
+          onClick={() => {
+            history.push(`/roles/${data.id}/users`, {
+              role: data,
+              organizationId: selectedOrganization.id,
+            });
+          }}
         />
       </div>
     );
@@ -145,7 +154,8 @@ const RolePage: React.FC = () => {
           className="p-button-text p-button-info"
           icon="pi pi-unlock"
           iconPos="right"
-          tooltip=""
+          tooltip="Alterar permissões"
+          onClick={() => history.push(`/roles/${data.id}/permissions`)}
         />
       </div>
     );

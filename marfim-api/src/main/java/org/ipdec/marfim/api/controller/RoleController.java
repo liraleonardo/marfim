@@ -31,9 +31,9 @@ public class RoleController {
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN_USER')")
-    public RoleDTO findOne(@PathVariable(value = "id", required = true) Long userId) {
+    public RoleDTO findOne(@PathVariable(value = "id", required = true) Long roleId) {
         Long tenantId = TenantContext.getLongTenant();
-        return new RoleDTO(roleService.findById(userId, tenantId));
+        return new RoleDTO(roleService.findById(roleId, tenantId));
     }
 
     @PostMapping
@@ -61,7 +61,22 @@ public class RoleController {
         roleService.delete(roleId, tenantId);
     }
 
+    @GetMapping("/{id}/users")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN_USER')")
+    public List<UserDTO> findRoleUsers(@PathVariable(value = "id", required = true) Long roleId) {
+        Long tenantId = TenantContext.getLongTenant();
+        return roleService.findRoleUsersById(roleId, tenantId);
+    }
 
+    @PatchMapping("/{id}/users")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN_USER')")
+    public void updateUsersFromRole(@PathVariable(value = "id", required = true) Long roleId,
+                                    @RequestBody @Valid List<UserDTO> userDTOS) {
+        Long tenantId = TenantContext.getLongTenant();
+        roleService.updateRoleUsers(roleId,userDTOS, tenantId);
+    }
 
 }
 

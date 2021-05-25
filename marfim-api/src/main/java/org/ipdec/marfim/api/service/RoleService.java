@@ -2,11 +2,14 @@ package org.ipdec.marfim.api.service;
 
 import lombok.AllArgsConstructor;
 import org.ipdec.marfim.api.dto.CreateRoleDTO;
+import org.ipdec.marfim.api.dto.PermissionDTO;
 import org.ipdec.marfim.api.dto.RoleDTO;
+import org.ipdec.marfim.api.dto.UserDTO;
 import org.ipdec.marfim.api.exception.RoleException;
 import org.ipdec.marfim.api.exception.type.RoleExceptionsEnum;
 import org.ipdec.marfim.api.model.Organization;
 import org.ipdec.marfim.api.model.Role;
+import org.ipdec.marfim.api.model.User;
 import org.ipdec.marfim.api.repository.RoleRepository;
 import org.ipdec.marfim.security.IPrincipalTokenAttributes;
 import org.springframework.data.domain.Sort;
@@ -29,11 +32,9 @@ public class RoleService {
             return new RoleException(RoleExceptionsEnum.NOT_FOUND);
         });
         // should find a role only if it exist on current tenant, or requester is super
-        if(!principal.getUser().isSuper()){
             boolean isRoleFromTenantOrganization = Objects.equals(role.getOrganization().getId(), organizationId);
             if(!isRoleFromTenantOrganization){
                 throw new RoleException(RoleExceptionsEnum.FORBIDDEN_ROLE_ORGANIZATION_DIFFERENT_FROM_TENANT);
-            }
         }
         return role;
     }
@@ -108,5 +109,22 @@ public class RoleService {
             throw new RoleException(RoleExceptionsEnum.BAD_REQUEST_MISSING_TENANT_ID);
         }
         roleRepository.deleteById(roleId);
+    }
+    public List<UserDTO> findRoleUsersById(Long roleId, Long tenantId) {
+        Role role = findById(roleId, tenantId);
+        return role.getUsers().stream().map(UserDTO::new)
+                .sorted(Comparator.comparing(UserDTO::getName,String::compareToIgnoreCase))
+                .collect(Collectors.toList());
+    }
+
+    public void updateRoleUsers(Long roleId, List<UserDTO> userDTOS, Long organizationId) {
+        Role role = findById(roleId, organizationId);
+        List<User> users = userDTOS.stream().map(userDTO -> {
+            User user = new User();
+            user.setId(userDTO.getId());
+            return user;
+        }).collect(Collectors.toList());
+        role.setUsers(users);
+        roleRepository.save(role);
     }
 }

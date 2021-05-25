@@ -16,19 +16,18 @@ import { useToast } from '../../../hooks/toast';
 import { handleAxiosError } from '../../../errors/axiosErrorHandler';
 import { IErrorState } from '../../../errors/AppErrorInterfaces';
 import CrudFormPageContainer from '../../../components/CrudFormPageContainer';
-import { IPermissionGroup, IRole } from '../../../model/Role';
+import { IRole } from '../../../model/Role';
 import { useAuth } from '../../../hooks/auth';
 import { roleErrors } from '../../../errors/roleErrors';
 import RoleService from '../../../services/RoleService';
 import '../role-style.css';
-import api from '../../../services/api';
 
-interface OrganizationPathParams {
+export interface RolePathParams {
   id?: string;
 }
 
 const RoleFormPage: React.FC = () => {
-  const { hasAnyAuthority, selectedOrganization } = useAuth();
+  const { selectedOrganization } = useAuth();
   const emptyRole: IRole = {
     name: '',
     description: '',
@@ -39,8 +38,6 @@ const RoleFormPage: React.FC = () => {
   const [isSubmiting, setIsSubmitting] = useState(false);
   const [role, setRole] = useState(emptyRole);
   const [roleId, setRoleId] = useState<number | null>(null);
-
-  const [isPermissionsLoaded, setIsPermissionsLoaded] = useState(false);
 
   const history = useHistory();
   const {
@@ -59,7 +56,7 @@ const RoleFormPage: React.FC = () => {
     reValidateMode: 'onChange',
   });
 
-  const { id: pathId } = useParams<OrganizationPathParams>();
+  const { id: pathId } = useParams<RolePathParams>();
 
   const { addToast, addErrorToast } = useToast();
 
@@ -106,13 +103,7 @@ const RoleFormPage: React.FC = () => {
         })
         .catch((err) => handleError(err, 'carregar perfil de acesso', true));
     }
-  }, [
-    pathId,
-    setValue,
-    handleError,
-    isPermissionsLoaded,
-    selectedOrganization,
-  ]);
+  }, [pathId, setValue, handleError, selectedOrganization]);
 
   const onInputChange = useCallback(
     (e: { target: { value: string } }, name: string): any => {

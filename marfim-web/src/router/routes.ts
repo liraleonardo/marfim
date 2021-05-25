@@ -7,6 +7,7 @@ import OrganizationFormPage from '../pages/Organization/OrganizationFormPage';
 import ProfilePage from '../pages/ProfilePage';
 import ProjectPage from '../pages/ProjectPage';
 import RolePage from '../pages/Role/RolePage';
+import RoleUserPage from '../pages/Role/RoleUserPage';
 import SignInPage from '../pages/SignInPage';
 import SignUpPage from '../pages/SignUpPage';
 import UserPage from '../pages/User/UserPage';
@@ -178,6 +179,28 @@ export default (): RouteProps[] => [
     meta: {
       [WITH_AUTH]: true,
       [SHOW_ROUTE_LABEL]: 'Alterar Perfil de Acesso',
+    },
+    guards: defaultEditGuard,
+  },
+  {
+    key: 'roleUsersPage',
+    path: '/roles/:id/users',
+    exact: false,
+    component: RoleUserPage,
+    meta: {
+      [WITH_AUTH]: true,
+      [SHOW_ROUTE_LABEL]: 'Alterar Usuários do Perfil',
+    },
+    guards: defaultEditGuard,
+  },
+  {
+    key: 'roleUsersPage',
+    path: '/roles/:id/permissions',
+    exact: false,
+    component: RoleUserPage,
+    meta: {
+      [WITH_AUTH]: true,
+      [SHOW_ROUTE_LABEL]: 'Alterar Usuários do Perfil',
     },
     guards: defaultEditGuard,
   },

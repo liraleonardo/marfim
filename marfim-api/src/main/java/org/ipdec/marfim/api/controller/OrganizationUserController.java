@@ -1,8 +1,6 @@
 package org.ipdec.marfim.api.controller;
 
-import org.ipdec.marfim.api.dto.UpdateUserDTO;
 import org.ipdec.marfim.api.dto.UserDTO;
-import org.ipdec.marfim.api.model.User;
 import org.ipdec.marfim.api.service.OrganizationUserService;
 import org.ipdec.marfim.security.tenant.TenantContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +11,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Email;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Validated
@@ -22,6 +22,14 @@ public class OrganizationUserController {
 
     @Autowired
     private OrganizationUserService organizationUserService;
+
+    @GetMapping
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAnyAuthority('USERS_READ', 'USERS_ALL')")
+    public List<UserDTO> findAll(@RequestParam(name="name") Optional<String> userName) {
+        Long tenantId = TenantContext.getLongTenant();
+        return organizationUserService.findAllUsersDTO(tenantId, userName);
+    }
 
     @GetMapping("/unlinked")
     @ResponseStatus(HttpStatus.OK)

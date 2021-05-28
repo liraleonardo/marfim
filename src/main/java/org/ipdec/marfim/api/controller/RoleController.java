@@ -78,6 +78,25 @@ public class RoleController {
         roleService.updateRoleUsers(roleId,userDTOS, tenantId);
     }
 
+    @GetMapping("/{id}/permissions")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN_USER')")
+    public List<PermissionMapDTO> findRolePermissions(@PathVariable(value = "id", required = true) Long roleId) {
+        Long tenantId = TenantContext.getLongTenant();
+        return roleService.findGroupedRolePermissionsById(roleId, tenantId);
+    }
+
+    @PatchMapping("/{id}/permissions")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN_USER')")
+    public void updatePermissionsFromRole(@PathVariable(value = "id", required = true) Long roleId,
+                                    @RequestBody @Valid List<PermissionDTO> permissionDTOS) {
+        Long tenantId = TenantContext.getLongTenant();
+        roleService.updateRolePermissions(roleId, permissionDTOS, tenantId);
+    }
+
+
+
 }
 
 

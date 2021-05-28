@@ -9,10 +9,14 @@ interface AvatarNameContainerProps {
   defaultAvatarIcon: string;
   badge?: BadgeProps;
   showAvatar?: boolean;
+  avatarStyle?: object;
+  avatarErrorStyle?: object;
 }
 
 export const AvatarNameContainer: React.FC<AvatarNameContainerProps> = ({
   avatarUrl,
+  avatarStyle,
+  avatarErrorStyle,
   name,
   defaultAvatarIcon,
   badge,
@@ -24,6 +28,22 @@ export const AvatarNameContainer: React.FC<AvatarNameContainerProps> = ({
     setIsImageError(true);
   }, []);
 
+  const defaultStyle = avatarStyle || {
+    verticalAlign: 'middle',
+    backgroundColor: '#fff',
+    borderRadius: '50%',
+    boxShadow:
+      '2px 2px 2px 0 rgba(0, 0, 0, 0.1), 0 1px 1px 0 rgba(0, 0, 0, 0.19)',
+  };
+
+  const defaultErrorStyle = avatarErrorStyle || {
+    verticalAlign: 'middle',
+    backgroundColor: '#FBC02D',
+    borderRadius: '50%',
+    boxShadow:
+      '2px 2px 2px 0 rgba(0, 0, 0, 0.1), 0 1px 1px 0 rgba(0, 0, 0, 0.19)',
+  };
+
   if (isImageError) {
     return (
       <Container>
@@ -31,17 +51,14 @@ export const AvatarNameContainer: React.FC<AvatarNameContainerProps> = ({
           <Avatar
             icon="pi pi-exclamation-triangle"
             shape="circle" // not working because of diamond p-avatar
-            style={{
-              verticalAlign: 'middle',
-              backgroundColor: '#FBC02D',
-              borderRadius: '50%',
-              boxShadow:
-                '2px 2px 2px 0 rgba(0, 0, 0, 0.1), 0 1px 1px 0 rgba(0, 0, 0, 0.19)',
-            }}
+            style={defaultErrorStyle}
           />
         )}
         <span
-          style={{ marginLeft: '1em', verticalAlign: 'middle' }}
+          style={{
+            marginLeft: '1rem',
+            verticalAlign: 'middle',
+          }}
           className="image-text"
         >
           {name}
@@ -58,13 +75,7 @@ export const AvatarNameContainer: React.FC<AvatarNameContainerProps> = ({
           image={avatarUrl}
           imageAlt={name}
           shape="circle" // not working because of diamond p-avatar
-          style={{
-            verticalAlign: 'middle',
-            backgroundColor: '#fff',
-            borderRadius: '50%',
-            boxShadow:
-              '2px 2px 2px 0 rgba(0, 0, 0, 0.1), 0 1px 1px 0 rgba(0, 0, 0, 0.19)',
-          }}
+          style={defaultStyle}
           onImageError={onImageError}
         />
       )}
@@ -74,13 +85,7 @@ export const AvatarNameContainer: React.FC<AvatarNameContainerProps> = ({
           icon={defaultAvatarIcon}
           imageAlt={name}
           shape="circle" // not working because of diamond p-avatar
-          style={{
-            verticalAlign: 'middle',
-            backgroundColor: '#fff',
-            borderRadius: '50%',
-            boxShadow:
-              '2px 2px 2px 0 rgba(0, 0, 0, 0.1), 0 1px 1px 0 rgba(0, 0, 0, 0.19)',
-          }}
+          style={defaultStyle}
           onImageError={onImageError}
         />
       )}

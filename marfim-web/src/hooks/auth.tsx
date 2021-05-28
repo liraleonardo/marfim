@@ -108,12 +108,18 @@ export const AuthProvider: React.FC = ({ children }) => {
 
       if (
         handledAuthState.organizations &&
+        handledAuthState.organizations.length === 0
+      ) {
+        if (!user.isSuper)
+          throw new Error('There is no organization associated with this user');
+        handledAuthState.organizations = undefined;
+        handledAuthState.selectedOrganization = undefined;
+      }
+
+      if (
+        handledAuthState.organizations &&
         !handledAuthState.selectedOrganization
       ) {
-        if (handledAuthState.organizations.length === 0) {
-          throw new Error('There is no organization associated with this user');
-        }
-
         if (handledAuthState.organizations.length === 1) {
           [
             handledAuthState.selectedOrganization,

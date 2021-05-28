@@ -155,7 +155,12 @@ const RolePage: React.FC = () => {
           icon="pi pi-unlock"
           iconPos="right"
           tooltip="Alterar permissões"
-          onClick={() => history.push(`/roles/${data.id}/permissions`)}
+          onClick={() => {
+            history.push(`/roles/${data.id}/permissions`, {
+              role: data,
+              organizationId: selectedOrganization.id,
+            });
+          }}
         />
       </div>
     );

@@ -27,14 +27,21 @@ export default class Role {
 export interface IPermission {
   levelCode: string;
   levelName: string;
+  levelIcon?: string;
   resourceCode: string;
   resourceName: string;
+  resourceIcon?: string;
   authority: string;
 }
 
 export interface IPermissionGroup {
   label: string;
+  resourceCode: string;
+  resourceIcon?: string;
   permissions: IPermission[];
+  level: {
+    [code: string]: boolean;
+  };
 }
 
 export interface IRole {

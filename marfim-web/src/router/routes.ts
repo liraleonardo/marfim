@@ -8,6 +8,7 @@ import ProfilePage from '../pages/ProfilePage';
 import ProjectPage from '../pages/ProjectPage';
 import RolePage from '../pages/Role/RolePage';
 import RoleUserPage from '../pages/Role/RoleUserPage';
+import RolePermissionPage from '../pages/Role/RolePermissionPage';
 import SignInPage from '../pages/SignInPage';
 import SignUpPage from '../pages/SignUpPage';
 import UserPage from '../pages/User/UserPage';
@@ -194,13 +195,13 @@ export default (): RouteProps[] => [
     guards: defaultEditGuard,
   },
   {
-    key: 'roleUsersPage',
+    key: 'rolePermissionsPage',
     path: '/roles/:id/permissions',
     exact: false,
-    component: RoleUserPage,
+    component: RolePermissionPage,
     meta: {
       [WITH_AUTH]: true,
-      [SHOW_ROUTE_LABEL]: 'Alterar Usuários do Perfil',
+      [SHOW_ROUTE_LABEL]: 'Alterar Permissões do Perfil',
     },
     guards: defaultEditGuard,
   },

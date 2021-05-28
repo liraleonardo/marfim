@@ -1,6 +1,6 @@
 /* eslint-disable react/no-array-index-key */
 import { Column, ColumnProps } from 'primereact/column';
-import { DataTable, SelectionChangeParams } from 'primereact/datatable';
+import { DataTable } from 'primereact/datatable';
 import { Card } from 'primereact/card';
 import React, {
   useCallback,
@@ -10,10 +10,7 @@ import React, {
   useState,
 } from 'react';
 import { useHistory, useLocation, useParams } from 'react-router-dom';
-import { SeverityType } from 'primereact/messages';
-import { BadgeProps, SizeType } from 'primereact/badge';
 import { InputText } from 'primereact/inputtext';
-import { InputSwitch } from 'primereact/inputswitch';
 import { AvatarNameContainer } from '../../../components/AvatarNameContainer';
 import { HandleErrorProps } from '../../../components/CrudPageContainer';
 import { IErrorState } from '../../../errors/AppErrorInterfaces';
@@ -21,30 +18,30 @@ import { handleAxiosError } from '../../../errors/axiosErrorHandler';
 import { roleErrors } from '../../../errors/roleErrors';
 import { useAuth } from '../../../hooks/auth';
 import { useToast } from '../../../hooks/toast';
-import { IRole } from '../../../model/Role';
+import { IPermission, IPermissionGroup, IRole } from '../../../model/Role';
 import GenericService from '../../../services/GenericService';
 import { Container } from './styles';
 import '../role-style.css';
-import { IUser } from '../../../model/User';
 import { RolePathParams } from '../RoleFormPage';
 import Loading from '../../../components/Loading';
 import FormCancelSubmitFooter from '../../../components/FormCancelSubmitFooter';
 import api from '../../../services/api';
 import ErrorContainer from '../../../components/ErrorContainer';
+import { PermissionCheckBoxContainer } from '../../../components/PermissionCheckBoxContainer';
 
 interface roleUserlocationProps {
   role: IRole;
   organizationId: number;
 }
 
-const RoleUserPage: React.FC = () => {
-  const [allUsers, setAllUsers] = useState<IUser[]>([]);
+const RolePermissionPage: React.FC = () => {
+  const [allPermissions, setAllPermissions] = useState<IPermissionGroup[]>([]);
   const [error, setError] = useState<IErrorState | undefined>();
-  const [isLoadingAllUsers, setIsLoadingAllUsers] = useState(true);
-  const [isLoadingRoleUsers, setIsLoadingRoleUsers] = useState(true);
+  const [isLoadingAllPermissions, setIsLoadingAllPermissions] = useState(true);
   const [globalFilter, setGlobalFilter] = useState('');
-  const [selectedUsers, setSelectedUsers] = useState<IUser[]>([]);
-  const [isToFilterSelectedUsers, setIsToFilterSelectedUsers] = useState(false);
+  const [permissionLevelsColumns, setPermissionLevelsColumns] = useState<
+    ColumnProps[]
+  >([]);
   const [isSubmiting, setIsSubmiting] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
 
@@ -59,9 +56,9 @@ const RoleUserPage: React.FC = () => {
   const dt: React.RefObject<DataTable> = useRef(null);
   const entity = useMemo(() => {
     return {
-      name: 'Usuário do Perfil',
-      namePlural: 'Usuários do Perfil',
-      gender: 'M' as 'M' | 'F',
+      name: 'Permissão do Perfil',
+      namePlural: 'Permissões do Perfil',
+      gender: 'F' as 'M' | 'F',
     };
   }, []);
 
@@ -84,53 +81,102 @@ const RoleUserPage: React.FC = () => {
     [addErrorToast],
   );
 
-  const reloadRoleUsers = useCallback(() => {
-    setIsLoadingRoleUsers(true);
-    setSelectedUsers([]);
-    const service = new GenericService<IUser, string>(`role/${roleId}/users`);
-    service
-      .findAll()
-      .then((data) => {
-        if (data) setSelectedUsers(data);
-      })
-      .catch((err) => {
-        handleError({
-          error: err,
-          errorAction: `carregar ${entity.namePlural.toLowerCase()}`,
-        });
-      })
-      .finally(() => {
-        setIsLoadingRoleUsers(false);
-      });
-  }, [roleId, handleError, entity.namePlural]);
+  const onPermissionChange = useCallback(
+    (permission: IPermission, checked: boolean) => {
+      const tmpAllpermissions = [...allPermissions];
+      const groupPermissions = tmpAllpermissions.find(
+        (tmpPermission) =>
+          tmpPermission.resourceCode === permission.resourceCode,
+      );
+      if (groupPermissions) {
+        groupPermissions.level[permission.levelCode] = !checked;
+      }
+      setAllPermissions(tmpAllpermissions);
+      setIsDirty(true);
+    },
+    [allPermissions],
+  );
 
-  const reloadAllUsers = useCallback(() => {
-    setIsLoadingAllUsers(true);
-    setAllUsers([]);
-    const service = new GenericService<IUser, string>(`organization/user`);
+  const avatarNameBodyTemplate = (
+    name: string,
+    icon = 'pi pi-exclamation-circle',
+  ) => {
+    return (
+      <AvatarNameContainer
+        name={name}
+        defaultAvatarIcon={icon}
+        showAvatar
+        avatarStyle={{ backgroundColor: 'inherit', marginRight: '-0.5rem' }}
+      />
+    );
+  };
+
+  const reloadAllPermissions = useCallback(() => {
+    setIsLoadingAllPermissions(true);
+    const service = new GenericService<IPermissionGroup, string>(
+      `role/${roleId}/permissions`,
+    );
     service
       .findAll()
       .then((data) => {
         if (data) {
-          setAllUsers(data);
+          const allPerm = data.flatMap(
+            (permissionGroup) => permissionGroup.permissions,
+          );
+          const allLevels = new Map<
+            string,
+            { levelCode: string; levelName: string; levelIcon?: string }
+          >();
+          allPerm.forEach((permission) => {
+            allLevels.set(permission.levelCode, {
+              levelCode: permission.levelCode,
+              levelName: permission.levelName,
+              levelIcon: permission.levelIcon,
+            });
+          });
+
+          const levelColumns: ColumnProps[] = [];
+          allLevels.forEach((level) => {
+            levelColumns.push({
+              header: avatarNameBodyTemplate(level.levelName, level.levelIcon),
+              style: { width: '100px' },
+              field: `level.${level.levelCode}`,
+              body: ({ level: lvl, permissions }: IPermissionGroup) => {
+                const show = lvl[`${level.levelCode}`] !== undefined;
+                const checked = lvl[`${level.levelCode}`] === true;
+                const permission = permissions.find(
+                  (perm) => perm.levelCode === level.levelCode,
+                );
+
+                return (
+                  <PermissionCheckBoxContainer
+                    permission={permission}
+                    checked={checked}
+                    show={show}
+                    handleChange={onPermissionChange}
+                  />
+                );
+              },
+            });
+          });
+          setAllPermissions(data);
+          setPermissionLevelsColumns([...levelColumns]);
         }
       })
       .catch((err) => {
-        handleError({ error: err, errorAction: 'carregar usuários' });
+        handleError({ error: err, errorAction: 'carregar permissões' });
       })
       .finally(() => {
-        setIsLoadingAllUsers(false);
+        setIsLoadingAllPermissions(false);
       });
-  }, [handleError]);
+  }, [handleError, onPermissionChange, roleId]);
 
   useEffect(() => {
     setError(undefined);
-    if (isLoadingAllUsers) {
-      reloadAllUsers();
-    } else {
-      reloadRoleUsers();
+    if (isLoadingAllPermissions) {
+      reloadAllPermissions();
     }
-  }, [reloadAllUsers, isLoadingAllUsers, reloadRoleUsers]);
+  }, [reloadAllPermissions, isLoadingAllPermissions]);
 
   useEffect(() => {
     if (selectedOrganization.id !== organizationId) {
@@ -138,30 +184,15 @@ const RoleUserPage: React.FC = () => {
     }
   }, [selectedOrganization, history, organizationId]);
 
-  const avatarNameBodyTemplate = (rowData: IUser) => {
-    return (
-      <AvatarNameContainer
-        key={rowData.id}
-        name={rowData.name}
-        avatarUrl={rowData.avatarUrl}
-        defaultAvatarIcon="pi pi-user"
-        badge={
-          rowData.isSuper
-            ? ({
-                value: 'SUPER',
-                severity: 'info' as SeverityType,
-                size: 'small' as SizeType,
-              } as BadgeProps)
-            : undefined
-        }
-      />
-    );
-  };
-
   const handleSubmit = useCallback(() => {
     setIsSubmiting(true);
+    const rolePermissions = allPermissions.flatMap((permGroup) => {
+      return permGroup.permissions.filter(
+        (perm) => permGroup.level[`${perm.levelCode}`],
+      );
+    });
     api
-      .patch(`/role/${roleId}/users`, selectedUsers)
+      .patch(`/role/${roleId}/permissions`, rolePermissions)
       .then(() => {
         addToast({
           type: 'success',
@@ -183,10 +214,10 @@ const RoleUserPage: React.FC = () => {
   }, [
     addToast,
     handleError,
+    allPermissions,
     history,
     role.name,
     roleId,
-    selectedUsers,
     entity,
   ]);
 
@@ -194,20 +225,6 @@ const RoleUserPage: React.FC = () => {
     <div className="table-header">
       <h5 className="p-m-0">Gerenciar {entity.namePlural}</h5>
       <div className="p-grid p-ai-baseline">
-        <div className="p-field-checkbox">
-          <span className="p-mr-1">Filtrar Selecionados</span>
-          <InputSwitch
-            onChange={(e) => {
-              setIsToFilterSelectedUsers(e.value);
-              if (dt.current) {
-                dt.current.filter(e.value, 'id', 'custom');
-              }
-            }}
-            checked={isToFilterSelectedUsers}
-            className="p-mr-3"
-          />
-        </div>
-
         <span className="p-input-icon-left">
           <i className="pi pi-search" />
           <InputText
@@ -222,28 +239,18 @@ const RoleUserPage: React.FC = () => {
       </div>
     </div>
   );
-  const handleFilterSelectedUsers = (value: any, filter: any) => {
-    return (
-      !filter || selectedUsers.find((selectedUser) => selectedUser.id === value)
-    );
-  };
 
-  const normalUserColumns: ColumnProps[] = [
+  const normalPermissionsColumns: ColumnProps[] = [
     {
-      selectionMode: 'multiple',
-      headerStyle: { width: '3rem' },
-      filterMatchMode: 'custom',
-      filterFunction: (value, filter) =>
-        handleFilterSelectedUsers(value, filter),
-      field: 'id',
-    },
-    {
-      field: 'name',
-      header: 'Nome',
-      body: avatarNameBodyTemplate,
+      field: 'label',
+      header: 'Recurso',
+      style: { width: '240px' },
       sortable: true,
+      body: ({ label, resourceIcon }: IPermissionGroup) => {
+        return avatarNameBodyTemplate(label, resourceIcon);
+      },
     },
-    { field: 'email', header: 'E-mail', sortable: true },
+    ...permissionLevelsColumns,
   ];
 
   const pageCancelSubmitFooter = () => {
@@ -254,13 +261,6 @@ const RoleUserPage: React.FC = () => {
         onCancelClick={() => history.goBack()}
       />
     );
-  };
-
-  const onSelectionChange = (e: SelectionChangeParams) => {
-    setSelectedUsers(e.value);
-    if (!isDirty) {
-      setIsDirty(true);
-    }
   };
 
   const handleErrorButtonCLick = useCallback(() => {
@@ -284,32 +284,27 @@ const RoleUserPage: React.FC = () => {
 
   return (
     <Container className="datatable crud-demo">
-      <Loading isLoading={isLoadingAllUsers} />
-      {!isLoadingAllUsers && (
+      <Loading isLoading={isLoadingAllPermissions} />
+      {!isLoadingAllPermissions && (
         <Card
           title={`Perfil de Acesso: ${role.name}`}
           subTitle={role.description ? `${role.description}` : null}
           footer={pageCancelSubmitFooter}
         >
           <DataTable
-            className="p-datatable-striped p-datatable-gridlines"
+            className="p-datatable-gridlines"
             ref={dt}
-            value={allUsers}
-            emptyMessage="Nenhum usuário encontrado"
+            value={allPermissions}
+            emptyMessage="Nenhuma permissão encontrada"
             dataKey="id"
             globalFilter={globalFilter}
             header={tableHeader}
-            selection={selectedUsers}
-            onSelectionChange={onSelectionChange}
             autoLayout
             resizableColumns
-            paginator
-            rows={10}
-            rowsPerPageOptions={[10, 30, 50]}
-            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-            currentPageReportTemplate={`Exibindo {first} a {last} de {totalRecords} ${entity.namePlural.toLowerCase()}`}
+            scrollable
+            scrollHeight="400px"
           >
-            {normalUserColumns.map((column, i) => (
+            {normalPermissionsColumns.map((column, i) => (
               <Column key={`column${i}`} {...column} />
             ))}
           </DataTable>
@@ -319,4 +314,4 @@ const RoleUserPage: React.FC = () => {
   );
 };
 
-export default RoleUserPage;
+export default RolePermissionPage;

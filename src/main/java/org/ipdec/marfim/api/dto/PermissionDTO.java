@@ -15,17 +15,23 @@ import org.ipdec.marfim.api.model.Permission;
 public class PermissionDTO {
     private String levelCode;
     private String levelName;
+    private String levelIcon;
     private String resourceCode;
     private String resourceName;
+    private String resourceIcon;
     private String authority;
 
     public PermissionDTO(Permission permission) {
         this.levelCode = permission.getId().getPermissionLevelCode();
-        if(permission.getPermissionLevel()!=null)
+        if(permission.getPermissionLevel()!=null) {
             this.levelName = permission.getPermissionLevel().getName();
+            this.levelIcon = permission.getPermissionLevel().getIcon();
+        }
         this.resourceCode = permission.getId().getPermissionResourceCode();
-        if(permission.getPermissionResource()!=null)
+        if(permission.getPermissionResource()!=null) {
             this.resourceName = permission.getPermissionResource().getName();
+            this.resourceIcon = permission.getPermissionResource().getIcon();
+        }
         authority = permission.getAuthority();
     }
 }

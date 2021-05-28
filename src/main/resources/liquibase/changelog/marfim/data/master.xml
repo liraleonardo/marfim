@@ -2,7 +2,8 @@
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-    <include  file="liquibase/changelog/marfim/master.xml"/>
-    <include  file="liquibase/changelog/marfim/data/master.xml"/>
+    <include  file="liquibase/changelog/marfim/data/202105041000_populate_permissions.xml"/>
+    <include  file="liquibase/changelog/marfim/data/202105041040_populate_super_users.xml"/>
+    <include  file="liquibase/changelog/marfim/data/202105280840_populate_permissions_icons.xml"/>
 
 </databaseChangeLog>

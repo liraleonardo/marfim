@@ -29,6 +29,9 @@ public class PermissionLevel implements Serializable, Comparable<PermissionLevel
     @Column(nullable = false)
     private String name;
 
+    @Column
+    private String icon;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

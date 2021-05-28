@@ -1,0 +1,7 @@
+"code","icon"
+CREATE,pi pi-plus
+UPDATE,pi pi-pencil
+DELETE,pi pi-trash
+ALL,pi pi-lock-open
+READ,pi pi-eye
+ASSOCIATE,pi pi-link

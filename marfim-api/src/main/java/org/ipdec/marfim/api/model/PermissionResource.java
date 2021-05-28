@@ -26,6 +26,9 @@ public class PermissionResource implements Serializable, Comparable<PermissionRe
     @Column(nullable = false)
     private String name;
 
+    @Column
+    private String icon;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

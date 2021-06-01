@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Optional;
 
 @Validated
 @RestController
@@ -23,9 +24,9 @@ public class RoleController {
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN_USER')")
-    public List<RoleDTO> findAll() {
+    public List<RoleDTO> findAll(@RequestParam(name="ignoreTenantId") Optional<Boolean> ignoreTenantId) {
         Long organizationId = TenantContext.getLongTenant();
-        return roleService.findAllRolesDTO(organizationId);
+        return roleService.findAllRolesDTO(organizationId, ignoreTenantId.orElse(false));
     }
 
     @GetMapping("/{id}")

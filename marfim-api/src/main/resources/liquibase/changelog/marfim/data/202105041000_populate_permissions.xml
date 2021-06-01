@@ -1,7 +1,7 @@
 <?xml version="1.1" encoding="UTF-8" standalone="no"?>
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:pro="http://www.liquibase.org/xml/ns/pro" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-4.1.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
     <changeSet author="leonardo.lira" id="202105041000-1">
-        <loadData file="data/permissions/202105041000-permission_resource.csv"
+        <loadData file="../data/permissions/202105041000-permission_resource.csv"
                   relativeToChangelogFile="true"
                   schemaName="marfim"
                   separator=","
@@ -15,7 +15,7 @@
         </loadData>
     </changeSet>
     <changeSet author="leonardo.lira" id="202105041000-2">
-        <loadData file="data/permissions/202105041000-permission_level.csv"
+        <loadData file="permissions/202105041000-permission_level.csv"
                   relativeToChangelogFile="true"
                   schemaName="marfim"
                   separator=","
@@ -29,7 +29,7 @@
         </loadData>
     </changeSet>
     <changeSet author="leonardo.lira" id="202105041000-3">
-        <loadData file="data/permissions/202105041000-permission.csv"
+        <loadData file="permissions/202105041000-permission.csv"
                   relativeToChangelogFile="true"
                   schemaName="marfim"
                   separator=","

@@ -1,8 +1,8 @@
 import Organization, { IOrganization } from './Organization';
-import User, { IUser } from './User';
+import User from './User';
 
 export default class Role {
-  public id?: string;
+  public id?: number;
 
   public name: string;
 
@@ -27,14 +27,21 @@ export default class Role {
 export interface IPermission {
   levelCode: string;
   levelName: string;
+  levelIcon?: string;
   resourceCode: string;
   resourceName: string;
+  resourceIcon?: string;
   authority: string;
 }
 
 export interface IPermissionGroup {
   label: string;
+  resourceCode: string;
+  resourceIcon?: string;
   permissions: IPermission[];
+  level: {
+    [code: string]: boolean;
+  };
 }
 
 export interface IRole {
@@ -42,6 +49,7 @@ export interface IRole {
   name: string;
   description?: string;
   isAdmin?: boolean;
-  users?: IUser[];
-  groupedPermissions?: IPermissionGroup[];
+  usersNumber?: number;
+  permissionsNumber?: number;
+  organization?: IOrganization;
 }

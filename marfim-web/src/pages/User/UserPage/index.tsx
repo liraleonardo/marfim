@@ -15,6 +15,7 @@ import { MultiSelect } from 'primereact/multiselect';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
+import { useHistory } from 'react-router-dom';
 import CrudPageContainer, {
   HandleErrorProps,
 } from '../../../components/CrudPageContainer';
@@ -24,11 +25,13 @@ import { handleAxiosError } from '../../../errors/axiosErrorHandler';
 import { useToast } from '../../../hooks/toast';
 import { IErrorState } from '../../../errors/AppErrorInterfaces';
 import UserService from '../../../services/UserService';
-import User from '../../../model/User';
+import User, { IUser } from '../../../model/User';
 import Organization from '../../../model/Organization';
 import OrganizationService from '../../../services/OrganizationService';
 import api from '../../../services/api';
 import { userErrors } from '../../../errors/userErrors';
+import { IRole } from '../../../model/Role';
+import RoleService from '../../../services/RoleService';
 
 const UserPage: React.FC = () => {
   const dt: React.RefObject<DataTable> = useRef(null);
@@ -38,6 +41,7 @@ const UserPage: React.FC = () => {
   const [organizationsToFilter, setOrganizationsToFilter] = useState<
     Organization[]
   >([]);
+  const [rolesToFilter, setRolesToFilter] = useState<IRole[]>([]);
   const defaultOrganizationOption: Organization = useMemo(() => {
     return {
       id: -1,
@@ -45,10 +49,20 @@ const UserPage: React.FC = () => {
       cnpj: '',
     };
   }, []);
+  const defaultRoleOption: IRole = useMemo(() => {
+    return {
+      id: -1,
+      name: 'sem perfis de acesso',
+    };
+  }, []);
   const [organizationsOptions, setOrganizationsOptions] = useState<
     Organization[]
   >([defaultOrganizationOption]);
+  const [rolesOptions, setRolesOptions] = useState<IRole[]>([
+    defaultRoleOption,
+  ]);
   const [loadedOrganizations, setLoadedOrganizations] = useState(false);
+  const [loadedRoles, setLoadedRoles] = useState(false);
   const [
     showLinkUserOrganizationDialog,
     setShowLinkUserOrganizationDialog,
@@ -59,9 +73,11 @@ const UserPage: React.FC = () => {
     undefined,
   );
 
-  const { selectedOrganization, user: authUser } = useAuth();
+  const { selectedOrganization, user: authUser, hasAnyAuthority } = useAuth();
   const { addErrorToast, addToast } = useToast();
+  const history = useHistory();
   const MAX_ORGANIZATIONS_TO_SHOW = 5;
+  const MAX_ROLES_TO_SHOW = 5;
 
   const entity = useMemo(() => {
     return {
@@ -106,6 +122,26 @@ const UserPage: React.FC = () => {
         setLoadedOrganizations(true);
       });
   }, [handleError, defaultOrganizationOption]);
+
+  const loadRoles = useCallback(() => {
+    setLoadedRoles(false);
+
+    const roleService = new RoleService();
+    roleService
+      .getRoles(hasAnyAuthority(['ROLE_SUPER_USER']))
+      .then((data) => {
+        if (data) setRolesOptions([defaultRoleOption, ...data]);
+      })
+      .catch((err) => {
+        handleError({
+          error: err,
+          errorAction: `carregar perfis de acesso`,
+        });
+      })
+      .finally(() => {
+        setLoadedRoles(true);
+      });
+  }, [handleError, defaultRoleOption, hasAnyAuthority]);
 
   const reloadUsers = useCallback(() => {
     setIsLoading(true);
@@ -181,13 +217,18 @@ const UserPage: React.FC = () => {
               key={`tooltip-${org.id}`}
               target={`.avatar-${org.id}`}
               content={`${org.name}`}
+              position="top"
             />
           );
         })}
 
         {moreOrganizations && (
           <>
-            <Tooltip target=".avatar-more" content={`${moreOrganizations}`} />
+            <Tooltip
+              target=".avatar-more"
+              content={`${moreOrganizations}`}
+              position="top"
+            />
             <Avatar
               className="avatar-more"
               label={moreOrganizations}
@@ -199,12 +240,104 @@ const UserPage: React.FC = () => {
     );
   };
 
-  const onOrganizationsChange = useCallback((value: any): void => {
+  const rolesBodyTemplate = (rowData: User) => {
+    if (!rowData.roles || rowData.roles.length === 0) {
+      return <span style={{ fontStyle: 'italic' }}>sem perfil de acesso</span>;
+    }
+    let { roles } = rowData;
+    let moreRoles: string | undefined;
+
+    if (roles.length > MAX_ROLES_TO_SHOW) {
+      moreRoles = `+${roles.length - MAX_ROLES_TO_SHOW}`;
+      roles = roles.slice(0, MAX_ROLES_TO_SHOW);
+    }
+
+    return (
+      <AvatarGroup>
+        {roles.map((role) => {
+          return (
+            <Avatar
+              key={`avatar-role-${role.id}`}
+              className={`avatar-role-${role.id}`}
+              icon="pi pi-unlock"
+              style={{ backgroundColor: '#efefef', borderRadius: '50%' }}
+            />
+          );
+        })}
+
+        {roles.map((role) => {
+          return (
+            <Tooltip
+              key={`tooltip-role-${role.id}`}
+              target={`.avatar-role-${role.id}`}
+              content={`${role.name}\n(${role.organization?.name})`}
+              position="top"
+            />
+          );
+        })}
+
+        {moreRoles && (
+          <>
+            <Tooltip
+              target=".avatar-role-more"
+              content={`${moreRoles}`}
+              position="top"
+            />
+            <Avatar
+              className="avatar-role-more"
+              label={moreRoles}
+              style={{ backgroundColor: '#efefef', borderRadius: '50%' }}
+            />
+          </>
+        )}
+      </AvatarGroup>
+    );
+  };
+
+  const onOrganizationsChange = useCallback((value: Organization[]): void => {
     setOrganizationsToFilter(value);
     if (dt.current) {
       dt.current.filter(value, 'organizations', 'custom');
     }
   }, []);
+
+  const onRolesChange = useCallback((value: IRole[]): void => {
+    setRolesToFilter(value);
+    if (dt.current) {
+      dt.current.filter(value, 'roles', 'custom');
+    }
+  }, []);
+
+  const rolesFilterItemTemplate = (item: IRole) => {
+    if (item) {
+      let itemLabel = `${item.name}`;
+      if (
+        hasAnyAuthority(['ROLE_SUPER_USER']) &&
+        item.organization &&
+        item.organization.name
+      ) {
+        itemLabel += ` - ${item.organization?.name}`;
+      }
+      return itemLabel;
+    }
+    return undefined;
+  };
+
+  const rolesFilter = (
+    <MultiSelect
+      value={rolesToFilter}
+      itemTemplate={rolesFilterItemTemplate}
+      selectedItemTemplate={rolesFilterItemTemplate}
+      options={rolesOptions}
+      onChange={(e) => onRolesChange(e.value)}
+      optionLabel="name"
+      placeholder="Buscar por perfis de acesso"
+      showClear
+      emptyFilterMessage="Nenhum perfil de acesso encontrado"
+      selectedItemsLabel="{0} perfis selecionados"
+      maxSelectedLabels={2}
+    />
+  );
 
   const organizationsFilter = (
     <MultiSelect
@@ -214,7 +347,6 @@ const UserPage: React.FC = () => {
       optionLabel="name"
       placeholder="Buscar por organizações"
       showClear
-      // display="chip"
       emptyFilterMessage="Nenhuma organização encontrada"
       selectedItemsLabel="{0} organizações selecionadas"
       maxSelectedLabels={2}
@@ -237,41 +369,89 @@ const UserPage: React.FC = () => {
     );
   };
 
-  const normalUserColumns: ColumnProps[] = [
-    {
-      field: 'name',
-      header: 'Nome',
-      body: avatarNameBodyTemplate,
-      sortable: true,
-    },
-    { field: 'email', header: 'E-mail', sortable: true },
-  ];
+  const filterByRole = (value: any, filter: any) => {
+    const roleValue = value as IRole[];
+    const roleFilter = filter as IRole[];
+    return (
+      roleFilter.filter((f) => {
+        if (f.id === defaultRoleOption.id && roleValue.length === 0) {
+          return true;
+        }
+        return (
+          f.id !== defaultRoleOption.id &&
+          roleValue.findIndex((v) => v.id === f.id) !== -1
+        );
+      }).length > 0
+    );
+  };
 
-  const superUserColumns: ColumnProps[] = [
-    ...normalUserColumns,
-    {
-      field: 'organizations',
-      header: 'Organizações',
-      filter: true,
-      filterMatchMode: 'custom',
-      filterElement: organizationsFilter,
-      filterFunction: (value, filter) => filterByOrganization(value, filter),
-      body: organizationsBodyTemplate,
-    },
-  ];
+  const columns = () => {
+    const normalUserColumns: ColumnProps[] = [
+      {
+        field: 'name',
+        header: 'Nome',
+        body: avatarNameBodyTemplate,
+        sortable: true,
+      },
+      { field: 'email', header: 'E-mail', sortable: true },
+    ];
+
+    const adminUserColumns: ColumnProps[] = [
+      ...normalUserColumns,
+      {
+        field: 'roles',
+        header: 'Perfis de Acesso',
+        filter: true,
+        filterMatchMode: 'custom',
+        filterElement: rolesFilter,
+        filterFunction: (value, filter) => filterByRole(value, filter),
+        body: rolesBodyTemplate,
+      },
+    ];
+
+    const superUserColumns: ColumnProps[] = [
+      ...adminUserColumns,
+      {
+        field: 'organizations',
+        header: 'Organizações',
+        filter: true,
+        filterMatchMode: 'custom',
+        filterElement: organizationsFilter,
+        filterFunction: (value, filter) => filterByOrganization(value, filter),
+        body: organizationsBodyTemplate,
+      },
+    ];
+
+    if (hasAnyAuthority(['ROLE_SUPER_USER'])) {
+      return superUserColumns;
+    }
+    if (hasAnyAuthority(['ROLE_ADMIN_USER'])) {
+      return adminUserColumns;
+    }
+    return normalUserColumns;
+  };
 
   useEffect(() => {
     setError(undefined);
     if (!loadedOrganizations && authUser.isSuper) {
       loadOrganizations();
     }
+    if (
+      !loadedRoles &&
+      hasAnyAuthority(['ROLE_SUPER_USER', 'ROLE_ADMIN_USER'])
+    ) {
+      loadRoles();
+    }
     reloadUsers();
   }, [
     selectedOrganization,
     reloadUsers,
     loadedOrganizations,
+    loadedRoles,
     authUser.isSuper,
     loadOrganizations,
+    loadRoles,
+    hasAnyAuthority,
   ]);
 
   const handleConfirmDeleteUser = useCallback(
@@ -385,11 +565,41 @@ const UserPage: React.FC = () => {
       );
   }, [userEmail, handleError, entity.name]);
 
+  const userRolesExtraActionBody = (data: IUser) => {
+    if (hasAnyAuthority(['ROLE_SUPER_USER', 'ROLE_ADMIN_USER'])) {
+      return (
+        <Button
+          icon="pi pi-unlock"
+          className="p-button-rounded p-button-info"
+          onClick={() => {
+            if (
+              data.organizations?.some(
+                (org) => org.id === selectedOrganization.id,
+              )
+            ) {
+              history.push(`/users/${data.id}/roles`, {
+                user: data,
+                organizationId: selectedOrganization.id,
+              });
+            } else {
+              addErrorToast(
+                'carregar perfis de acesso',
+                `Usuário não pertence a esta organização (logado em '${selectedOrganization.name}')`,
+              );
+            }
+          }}
+          tooltip="Perfis de Acesso"
+        />
+      );
+    }
+    return null;
+  };
+
   return (
     <div>
       <CrudPageContainer
         items={users}
-        columns={authUser.isSuper ? superUserColumns : normalUserColumns}
+        columns={columns()}
         dataTableRef={dt}
         isLoading={isLoading}
         errorState={error}
@@ -414,6 +624,7 @@ const UserPage: React.FC = () => {
           'ROLE_ADMIN_USER',
           'ORGANIZATION_USERS_ASSOCIATE',
         ]}
+        itemActionExtraBody={userRolesExtraActionBody}
       />
       <Dialog
         visible={showLinkUserOrganizationDialog}

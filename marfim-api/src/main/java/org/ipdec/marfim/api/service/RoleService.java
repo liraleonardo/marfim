@@ -1,12 +1,14 @@
 package org.ipdec.marfim.api.service;
 
 import lombok.AllArgsConstructor;
-import org.ipdec.marfim.api.dto.CreateRoleDTO;
-import org.ipdec.marfim.api.dto.RoleDTO;
+import org.ipdec.marfim.api.dto.*;
 import org.ipdec.marfim.api.exception.RoleException;
 import org.ipdec.marfim.api.exception.type.RoleExceptionsEnum;
 import org.ipdec.marfim.api.model.Organization;
+import org.ipdec.marfim.api.model.Permission;
 import org.ipdec.marfim.api.model.Role;
+import org.ipdec.marfim.api.model.User;
+import org.ipdec.marfim.api.model.key.PermissionKey;
 import org.ipdec.marfim.api.repository.RoleRepository;
 import org.ipdec.marfim.security.IPrincipalTokenAttributes;
 import org.springframework.data.domain.Sort;
@@ -22,6 +24,8 @@ public class RoleService {
 
     private final RoleRepository roleRepository;
 
+    private final PermissionService permissionService;
+
     private final IPrincipalTokenAttributes principal;
 
     public Role findById(Long id, Long organizationId) {
@@ -29,11 +33,9 @@ public class RoleService {
             return new RoleException(RoleExceptionsEnum.NOT_FOUND);
         });
         // should find a role only if it exist on current tenant, or requester is super
-        if(!principal.getUser().isSuper()){
             boolean isRoleFromTenantOrganization = Objects.equals(role.getOrganization().getId(), organizationId);
             if(!isRoleFromTenantOrganization){
                 throw new RoleException(RoleExceptionsEnum.FORBIDDEN_ROLE_ORGANIZATION_DIFFERENT_FROM_TENANT);
-            }
         }
         return role;
     }
@@ -43,9 +45,9 @@ public class RoleService {
         return roleRepository.findAll(Sort.by(Sort.Order.asc("name").ignoreCase()));
     }
 
-    public List<Role> findAll(Long organizationId) {
+    public List<Role> findAll(Long organizationId, Boolean ignoreOrganizationId) {
         List<Role> allRoles = findAll();
-        if(organizationId==null) {
+        if(organizationId==null || (ignoreOrganizationId && principal.getUser().isSuper())) {
             return allRoles;
         }
 
@@ -55,8 +57,8 @@ public class RoleService {
 
     }
 
-    public List<RoleDTO> findAllRolesDTO(Long organizationId) {
-        return findAll(organizationId).stream().map(RoleDTO::new)
+    public List<RoleDTO> findAllRolesDTO(Long organizationId, Boolean ignoreOrganizationId) {
+        return findAll(organizationId, ignoreOrganizationId).stream().map(RoleDTO::new)
                 .collect(Collectors.toList());
     }
 
@@ -108,5 +110,54 @@ public class RoleService {
             throw new RoleException(RoleExceptionsEnum.BAD_REQUEST_MISSING_TENANT_ID);
         }
         roleRepository.deleteById(roleId);
+    }
+
+    public List<PermissionDTO> findRolePermissionsById(Long roleId, Long tenantId) {
+        Role role = findById(roleId, tenantId);
+        return role.getPermissions().stream().map(PermissionDTO::new).collect(Collectors.toList());
+    }
+
+    public List<PermissionMapDTO> findGroupedRolePermissionsById(Long roleId, Long tenantId) {
+        List<PermissionDTO> rolePermissionsById = findRolePermissionsById(roleId, tenantId);
+        List<PermissionMapDTO> allPermissionsGrouped = permissionService.findAllPermissionsGroupedMap();
+        allPermissionsGrouped.forEach(groupedPermission -> {
+            List<PermissionDTO> rolePermissionsByResource = rolePermissionsById.stream()
+                    .filter(rolePermission ->
+                            rolePermission.getResourceCode().equalsIgnoreCase(groupedPermission.getResourceCode())).collect(Collectors.toList());
+            rolePermissionsByResource.forEach(rolePermissionByResource -> {
+                groupedPermission.getLevel().put(rolePermissionByResource.getLevelCode(),true);
+            });
+        });
+        return allPermissionsGrouped;
+    }
+
+    public List<UserDTO> findRoleUsersById(Long roleId, Long tenantId) {
+        Role role = findById(roleId, tenantId);
+        return role.getUsers().stream().map(UserDTO::new)
+                .sorted(Comparator.comparing(UserDTO::getName,String::compareToIgnoreCase))
+                .collect(Collectors.toList());
+    }
+
+    public void updateRoleUsers(Long roleId, List<UserDTO> userDTOS, Long organizationId) {
+        Role role = findById(roleId, organizationId);
+        List<User> users = userDTOS.stream().map(userDTO -> {
+            User user = new User();
+            user.setId(userDTO.getId());
+            return user;
+        }).collect(Collectors.toList());
+        role.setUsers(users);
+        roleRepository.save(role);
+    }
+
+    public void updateRolePermissions(Long roleId, List<PermissionDTO> permissionDTOS, Long organizationId) {
+        Role role = findById(roleId, organizationId);
+        List<Permission> permissions = permissionDTOS.stream().map(permissionDTO -> {
+            Permission permission = new Permission();
+            PermissionKey id = new PermissionKey(permissionDTO.getResourceCode(),permissionDTO.getLevelCode());
+            permission.setId(id);
+            return permission;
+        }).collect(Collectors.toList());
+        role.setPermissions(permissions);
+        roleRepository.save(role);
     }
 }

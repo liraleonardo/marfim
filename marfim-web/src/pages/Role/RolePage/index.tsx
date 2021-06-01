@@ -1,5 +1,5 @@
 import { Button } from 'primereact/button';
-import { Column, ColumnProps } from 'primereact/column';
+import { ColumnProps } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
 import React, {
   useCallback,
@@ -8,6 +8,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useHistory, useLocation } from 'react-router-dom';
 import { AvatarNameContainer } from '../../../components/AvatarNameContainer';
 import CrudPageContainer, {
   HandleErrorProps,
@@ -17,21 +18,16 @@ import { handleAxiosError } from '../../../errors/axiosErrorHandler';
 import { roleErrors } from '../../../errors/roleErrors';
 import { useAuth } from '../../../hooks/auth';
 import { useToast } from '../../../hooks/toast';
-import Role, {
-  IPermission,
-  IPermissionGroup,
-  IRole,
-} from '../../../model/Role';
+import { IRole } from '../../../model/Role';
 import GenericService from '../../../services/GenericService';
 import { Container } from './styles';
-import '../role-style.css';
 import RoleService from '../../../services/RoleService';
 
 const RolePage: React.FC = () => {
   const [roles, setRoles] = useState<IRole[]>([]);
   const [error, setError] = useState<IErrorState | undefined>();
   const [isLoading, setIsLoading] = useState(true);
-  const [expandedRows, setExpandedRows] = useState<IRole[]>([]);
+  const history = useHistory();
 
   const dt: React.RefObject<DataTable> = useRef(null);
   const entity = useMemo(() => {
@@ -43,7 +39,7 @@ const RolePage: React.FC = () => {
   }, []);
 
   const { addErrorToast, addToast } = useToast();
-  const { selectedOrganization, user: authUser } = useAuth();
+  const { selectedOrganization } = useAuth();
 
   const handleError = useCallback(
     ({
@@ -71,7 +67,7 @@ const RolePage: React.FC = () => {
         if (data) setRoles(data);
       })
       .catch((err) => {
-        handleError({ error: err, errorAction: 'carregar organizações' });
+        handleError({ error: err, errorAction: 'carregar perfis de acesso' });
       })
       .finally(() => {
         setIsLoading(false);
@@ -109,18 +105,6 @@ const RolePage: React.FC = () => {
     [addToast, entity, handleError, reloadRoles],
   );
 
-  const avatarNameBodyTemplate = (rowData: Role) => {
-    return (
-      rowData.organization && (
-        <AvatarNameContainer
-          name={rowData.organization.name}
-          avatarUrl={rowData.organization.avatarUrl}
-          defaultAvatarIcon="pi pi-briefcase"
-        />
-      )
-    );
-  };
-
   const roleNameBodyTemplate = (rowData: IRole) => {
     return (
       <AvatarNameContainer
@@ -134,56 +118,54 @@ const RolePage: React.FC = () => {
     );
   };
 
-  const rolePermissionLevelBodyTemplate = (rowData: IPermissionGroup) => {
-    if (rowData.permissions && rowData.permissions.length > 0)
-      return (
-        <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-          {rowData.permissions.map((permission: IPermission) => (
-            <span
-              key={`${permission.resourceCode}_${permission.levelCode}`}
-              className={`p-mr-1 p-mb-1 permission-badge level-${permission.levelCode.toLowerCase()} p-shadow-1`}
-            >
-              {permission.levelName}
-            </span>
-          ))}
-        </div>
-      );
-    return '';
-  };
-
-  const rowExpansionTemplate = (data: IRole) => {
-    return data.isAdmin ? (
-      <span className="p-text-bold p-ml-5">
-        Este perfil possui acesso a todos os recursos
-      </span>
-    ) : (
-      <div className="orders-subtable">
-        <div className="p-d-flex p-jc-between p-ai-baseline  ">
-          <h6>Permissões do perfil {data.name}</h6>
-        </div>
-        <DataTable
-          value={data.groupedPermissions}
-          emptyMessage="Nenhuma permissão"
-        >
-          <Column field="label" header="Recurso" sortable />
-          <Column
-            field="groupedPermissions"
-            header="Níveis de acesso"
-            body={rolePermissionLevelBodyTemplate}
-            sortable={false}
-          />
-        </DataTable>
+  const roleUsersBodyTemplate = (data: IRole) => {
+    return (
+      <div>
+        <Button
+          label={data.usersNumber ? `${data.usersNumber}` : '0'}
+          className="p-button-text p-button-info"
+          icon="pi pi-users"
+          iconPos="right"
+          tooltip="Alterar usuários"
+          onClick={() => {
+            history.push(`/roles/${data.id}/users`, {
+              role: data,
+              organizationId: selectedOrganization.id,
+            });
+          }}
+        />
       </div>
     );
   };
 
-  const fullAccessForAuthoritiesList = ['ROLE_SUPER_USER', 'ROLE_ADMIN_USER'];
+  const rolePermissionsBodyTemplate = (data: IRole) => {
+    if (data.isAdmin) {
+      return (
+        <span className="p-text-italic">
+          Acesso completo a todos os recursos
+        </span>
+      );
+    }
+    return (
+      <div>
+        <Button
+          label={data.permissionsNumber ? `${data.permissionsNumber}` : '0'}
+          className="p-button-text p-button-info"
+          icon="pi pi-unlock"
+          iconPos="right"
+          tooltip="Alterar permissões"
+          onClick={() => {
+            history.push(`/roles/${data.id}/permissions`, {
+              role: data,
+              organizationId: selectedOrganization.id,
+            });
+          }}
+        />
+      </div>
+    );
+  };
 
   const normalUserColumns: ColumnProps[] = [
-    {
-      expander: true,
-      style: { width: '3em' },
-    },
     {
       field: 'name',
       header: 'Nome',
@@ -191,23 +173,34 @@ const RolePage: React.FC = () => {
       body: roleNameBodyTemplate,
     },
     { field: 'description', header: 'Descrição', sortable: true },
-  ];
-
-  const superUserColumns: ColumnProps[] = [
-    ...normalUserColumns,
     {
-      field: 'organization.name',
-      header: 'Organização',
-      body: avatarNameBodyTemplate,
+      field: 'usersNumber',
+      header: 'Usuários',
       sortable: true,
+      body: roleUsersBodyTemplate,
+      style: {
+        width: '10%',
+        maxWidth: '120px',
+      },
+    },
+    {
+      field: 'permissionsNumber',
+      header: 'Permissões',
+      sortable: true,
+      body: rolePermissionsBodyTemplate,
+      style: {
+        width: '10%',
+      },
     },
   ];
+
+  const fullAccessForAuthoritiesList = ['ROLE_SUPER_USER', 'ROLE_ADMIN_USER'];
 
   return (
     <Container>
       <CrudPageContainer
         items={roles}
-        columns={authUser.isSuper ? superUserColumns : normalUserColumns}
+        columns={normalUserColumns}
         dataTableRef={dt}
         isLoading={isLoading}
         errorState={error}
@@ -217,9 +210,6 @@ const RolePage: React.FC = () => {
         showCreateItemButtonForAuthorities={fullAccessForAuthoritiesList}
         showEditActionForAuthorities={fullAccessForAuthoritiesList}
         showDeleteActionForAuthorities={fullAccessForAuthoritiesList}
-        expandedRows={expandedRows}
-        onRowToggle={(e) => setExpandedRows(e.data)}
-        rowExpansionTemplate={rowExpansionTemplate}
       />
     </Container>
   );

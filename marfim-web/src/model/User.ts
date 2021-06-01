@@ -1,4 +1,5 @@
-import Organization from './Organization';
+import Organization, { IOrganization } from './Organization';
+import { IRole } from './Role';
 
 export default class User {
   public id?: string;
@@ -21,11 +22,14 @@ export default class User {
 
   public organizations?: Organization[];
 
+  public roles?: IRole[];
+
   constructor() {
     this.name = '';
     this.email = '';
     this.avatarUrl = '';
     this.organizations = [];
+    this.roles = [];
   }
 }
 
@@ -44,4 +48,5 @@ export interface IUser {
   email?: string;
   avatarUrl?: string;
   isSuper?: boolean;
+  organizations?: IOrganization[];
 }

@@ -10,8 +10,8 @@ export default class GenericService<T, K> {
     this.path = path;
   }
 
-  public findAll(): Promise<T[]> {
-    return this.api.get<T[]>(this.path).then((res) => res.data);
+  public findAll(args = ''): Promise<T[]> {
+    return this.api.get<T[]>(this.path + args).then((res) => res.data);
   }
 
   public create(object: T): Promise<T> {

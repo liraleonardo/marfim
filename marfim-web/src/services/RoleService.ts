@@ -6,8 +6,9 @@ export default class RoleService extends GenericService<IRole, number> {
     super('/role');
   }
 
-  public getRoles(): Promise<IRole[]> {
-    return this.findAll();
+  public getRoles(ignoreTenantId = false): Promise<IRole[]> {
+    const args = ignoreTenantId === true ? `?ignoreTenantId=true` : undefined;
+    return this.findAll(args);
   }
 
   public createRole(role: IRole): Promise<IRole> {

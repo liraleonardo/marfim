@@ -21,7 +21,6 @@ import { useToast } from '../../../hooks/toast';
 import { IPermission, IPermissionGroup, IRole } from '../../../model/Role';
 import GenericService from '../../../services/GenericService';
 import { Container } from './styles';
-import '../role-style.css';
 import { RolePathParams } from '../RoleFormPage';
 import Loading from '../../../components/Loading';
 import FormCancelSubmitFooter from '../../../components/FormCancelSubmitFooter';
@@ -221,6 +220,20 @@ const RolePermissionPage: React.FC = () => {
     entity,
   ]);
 
+  const titleBody = (
+    <div className="p-d-flex p-ai-baseline">
+      <h5 className="p-mr-2 p-mb-0">Perfil de Acesso:</h5>
+      <AvatarNameContainer
+        name={`${role.name}`}
+        defaultAvatarIcon="pi pi-lock"
+        showAvatar={false}
+        badge={
+          role.isAdmin ? { value: 'ADMIN', severity: 'success' } : undefined
+        }
+      />
+    </div>
+  );
+
   const tableHeader = (
     <div className="table-header">
       <h5 className="p-m-0">Gerenciar {entity.namePlural}</h5>
@@ -287,12 +300,12 @@ const RolePermissionPage: React.FC = () => {
       <Loading isLoading={isLoadingAllPermissions} />
       {!isLoadingAllPermissions && (
         <Card
-          title={`Perfil de Acesso: ${role.name}`}
+          title={titleBody}
           subTitle={role.description ? `${role.description}` : null}
           footer={pageCancelSubmitFooter}
         >
           <DataTable
-            className="p-datatable-gridlines"
+            className="p-datatable-striped p-datatable-gridlines"
             ref={dt}
             value={allPermissions}
             emptyMessage="Nenhuma permissão encontrada"

@@ -20,7 +20,6 @@ import { IRole } from '../../../model/Role';
 import { useAuth } from '../../../hooks/auth';
 import { roleErrors } from '../../../errors/roleErrors';
 import RoleService from '../../../services/RoleService';
-import '../role-style.css';
 
 export interface RolePathParams {
   id?: string;

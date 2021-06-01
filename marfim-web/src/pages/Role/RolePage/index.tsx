@@ -21,7 +21,6 @@ import { useToast } from '../../../hooks/toast';
 import { IRole } from '../../../model/Role';
 import GenericService from '../../../services/GenericService';
 import { Container } from './styles';
-import '../role-style.css';
 import RoleService from '../../../services/RoleService';
 
 const RolePage: React.FC = () => {

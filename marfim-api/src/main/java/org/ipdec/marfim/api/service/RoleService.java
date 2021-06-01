@@ -45,9 +45,9 @@ public class RoleService {
         return roleRepository.findAll(Sort.by(Sort.Order.asc("name").ignoreCase()));
     }
 
-    public List<Role> findAll(Long organizationId) {
+    public List<Role> findAll(Long organizationId, Boolean ignoreOrganizationId) {
         List<Role> allRoles = findAll();
-        if(organizationId==null) {
+        if(organizationId==null || (ignoreOrganizationId && principal.getUser().isSuper())) {
             return allRoles;
         }
 
@@ -57,8 +57,8 @@ public class RoleService {
 
     }
 
-    public List<RoleDTO> findAllRolesDTO(Long organizationId) {
-        return findAll(organizationId).stream().map(RoleDTO::new)
+    public List<RoleDTO> findAllRolesDTO(Long organizationId, Boolean ignoreOrganizationId) {
+        return findAll(organizationId, ignoreOrganizationId).stream().map(RoleDTO::new)
                 .collect(Collectors.toList());
     }
 

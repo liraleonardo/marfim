@@ -27,7 +27,7 @@ import OrganizationService from '../../../services/OrganizationService';
 import Organization from '../../../model/Organization';
 import { useAuth } from '../../../hooks/auth';
 
-interface UserPathParams {
+export interface UserPathParams {
   id?: string;
 }
 

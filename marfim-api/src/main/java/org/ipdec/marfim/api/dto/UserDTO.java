@@ -23,6 +23,7 @@ public class UserDTO {
     private String avatarUrl;
     private Boolean isSuper;
     private List<OrganizationDTO> organizations;
+    private List<RoleDTO> roles;
 
 
     public UserDTO(User user) {
@@ -33,6 +34,8 @@ public class UserDTO {
         isSuper = user.getIsSuper();
         if(user.getOrganizations()!=null)
             organizations = user.getOrganizations().stream().map(OrganizationDTO::new).collect(Collectors.toList());
+        if(user.getRoles()!=null)
+            roles = user.getRoles().stream().map(RoleDTO::new).collect(Collectors.toList());
     }
 
 }

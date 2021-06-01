@@ -23,6 +23,7 @@ import {
 import editGuard from './guards/editOrganizationGuard';
 import UserFormPage from '../pages/User/UserFormPage';
 import RoleFormPage from '../pages/Role/RoleFormPage';
+import UserRolePage from '../pages/User/UserRolePage';
 
 export interface RouteProps {
   key: string;
@@ -146,6 +147,17 @@ export default (): RouteProps[] => [
     meta: {
       [WITH_AUTH]: true,
       [SHOW_ROUTE_LABEL]: 'Alterar Usuário',
+    },
+    guards: defaultEditGuard,
+  },
+  {
+    key: 'userRolesPage',
+    path: '/users/:id/roles',
+    exact: false,
+    component: UserRolePage,
+    meta: {
+      [WITH_AUTH]: true,
+      [SHOW_ROUTE_LABEL]: 'Alterar Perfis do Usuário',
     },
     guards: defaultEditGuard,
   },

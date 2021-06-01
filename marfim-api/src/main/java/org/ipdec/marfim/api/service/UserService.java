@@ -1,12 +1,14 @@
 package org.ipdec.marfim.api.service;
 
 import lombok.AllArgsConstructor;
+import org.ipdec.marfim.api.dto.RoleDTO;
 import org.ipdec.marfim.api.dto.UserDTO;
 import org.ipdec.marfim.api.dto.CreateUserDTO;
 import org.ipdec.marfim.api.dto.UpdateUserDTO;
 import org.ipdec.marfim.api.exception.UserException;
 import org.ipdec.marfim.api.exception.type.UserExceptionsEnum;
 import org.ipdec.marfim.api.model.Organization;
+import org.ipdec.marfim.api.model.Role;
 import org.ipdec.marfim.api.model.User;
 import org.ipdec.marfim.api.repository.UserRepository;
 import org.ipdec.marfim.security.IPrincipalTokenAttributes;
@@ -59,6 +61,9 @@ public class UserService {
         return allUsers.stream().filter(user -> {
             return user.getOrganizations().stream().anyMatch(userOrganization ->
                     userOrganization.getId().longValue() == organizationId);
+        }).map(user -> {
+            user.getRoles().removeIf(role -> !Objects.equals(role.getOrganization().getId(),organizationId));
+            return user;
         }).collect(Collectors.toList());
 
     }
@@ -178,4 +183,21 @@ public class UserService {
         }
     }
 
+    public List<RoleDTO> findUserRolesById(UUID userId, Long organizationId) {
+        User user = findById(userId, organizationId);
+        return user.getRoles().stream().map(RoleDTO::new)
+                .sorted(Comparator.comparing(RoleDTO::getName,String::compareToIgnoreCase))
+                .collect(Collectors.toList());
+    }
+
+    public void updateUserRoles(UUID userId, List<RoleDTO> roleDTOS, Long organizationId) {
+        User user = findById(userId, organizationId);
+        List<Role> roles = roleDTOS.stream().map(roleDTO -> {
+            Role role = new Role();
+            role.setId(roleDTO.getId());
+            return role;
+        }).collect(Collectors.toList());
+        user.setRoles(roles);
+        userRepository.save(user);
+    }
 }

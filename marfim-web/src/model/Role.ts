@@ -1,8 +1,8 @@
-import Organization from './Organization';
+import Organization, { IOrganization } from './Organization';
 import User from './User';
 
 export default class Role {
-  public id?: string;
+  public id?: number;
 
   public name: string;
 
@@ -51,4 +51,5 @@ export interface IRole {
   isAdmin?: boolean;
   usersNumber?: number;
   permissionsNumber?: number;
+  organization?: IOrganization;
 }

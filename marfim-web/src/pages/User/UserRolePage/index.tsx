@@ -10,8 +10,6 @@ import React, {
   useState,
 } from 'react';
 import { useHistory, useLocation, useParams } from 'react-router-dom';
-import { SeverityType } from 'primereact/messages';
-import { BadgeProps, SizeType } from 'primereact/badge';
 import { InputText } from 'primereact/inputtext';
 import { InputSwitch } from 'primereact/inputswitch';
 import { AvatarNameContainer } from '../../../components/AvatarNameContainer';
@@ -24,43 +22,42 @@ import { useToast } from '../../../hooks/toast';
 import { IRole } from '../../../model/Role';
 import GenericService from '../../../services/GenericService';
 import { Container } from './styles';
-// import '../role-style.css';
 import { IUser } from '../../../model/User';
-import { RolePathParams } from '../RoleFormPage';
+import { UserPathParams } from '../UserFormPage';
 import Loading from '../../../components/Loading';
 import FormCancelSubmitFooter from '../../../components/FormCancelSubmitFooter';
 import api from '../../../services/api';
 import ErrorContainer from '../../../components/ErrorContainer';
+import RoleService from '../../../services/RoleService';
 
-interface RoleUserlocationProps {
-  role: IRole;
+interface UserRolelocationProps {
+  user: IUser;
   organizationId: number;
 }
 
-const RoleUserPage: React.FC = () => {
-  const [allUsers, setAllUsers] = useState<IUser[]>([]);
+const UserRolePage: React.FC = () => {
+  const [allRoles, setAllRoles] = useState<IRole[]>([]);
   const [error, setError] = useState<IErrorState | undefined>();
-  const [isLoadingAllUsers, setIsLoadingAllUsers] = useState(true);
-  const [isLoadingRoleUsers, setIsLoadingRoleUsers] = useState(true);
+  const [isLoadingAllRoles, setIsLoadingAllRoles] = useState(true);
+  const [isLoadingUserRoles, setIsLoadingUserRoles] = useState(true);
   const [globalFilter, setGlobalFilter] = useState('');
-  const [selectedUsers, setSelectedUsers] = useState<IUser[]>([]);
-  const [isToFilterSelectedUsers, setIsToFilterSelectedUsers] = useState(false);
+  const [selectedRoles, setSelectedRoles] = useState<IRole[]>([]);
+  const [isToFilterSelectedRoles, setIsToFilterSelectedRoles] = useState(false);
   const [isSubmiting, setIsSubmiting] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
 
   const history = useHistory();
-  const location = useLocation<RoleUserlocationProps>();
+  const location = useLocation<UserRolelocationProps>();
 
-  const { role, organizationId } = location.state;
+  const { user, organizationId } = location.state;
 
-  const { id: roleIdStr } = useParams<RolePathParams>();
-  const roleId = Number(roleIdStr);
+  const { id: userId } = useParams<UserPathParams>();
 
   const dt: React.RefObject<DataTable> = useRef(null);
   const entity = useMemo(() => {
     return {
-      name: 'Usuário do Perfil',
-      namePlural: 'Usuários do Perfil',
+      name: 'Perfil do Usuário',
+      namePlural: 'Perfis do Usuário',
       gender: 'M' as 'M' | 'F',
     };
   }, []);
@@ -85,13 +82,13 @@ const RoleUserPage: React.FC = () => {
   );
 
   const reloadRoleUsers = useCallback(() => {
-    setIsLoadingRoleUsers(true);
-    setSelectedUsers([]);
-    const service = new GenericService<IUser, string>(`role/${roleId}/users`);
+    setIsLoadingUserRoles(true);
+    setSelectedRoles([]);
+    const service = new GenericService<IRole, number>(`user/${userId}/roles`);
     service
       .findAll()
       .then((data) => {
-        if (data) setSelectedUsers(data);
+        if (data) setSelectedRoles(data);
       })
       .catch((err) => {
         handleError({
@@ -100,37 +97,37 @@ const RoleUserPage: React.FC = () => {
         });
       })
       .finally(() => {
-        setIsLoadingRoleUsers(false);
+        setIsLoadingUserRoles(false);
       });
-  }, [roleId, handleError, entity.namePlural]);
+  }, [userId, handleError, entity.namePlural]);
 
-  const reloadAllUsers = useCallback(() => {
-    setIsLoadingAllUsers(true);
-    setAllUsers([]);
-    const service = new GenericService<IUser, string>(`organization/user`);
+  const reloadAllRoles = useCallback(() => {
+    setIsLoadingAllRoles(true);
+    setAllRoles([]);
+    const service = new RoleService();
     service
-      .findAll()
+      .getRoles()
       .then((data) => {
         if (data) {
-          setAllUsers(data);
+          setAllRoles(data);
         }
       })
       .catch((err) => {
-        handleError({ error: err, errorAction: 'carregar usuários' });
+        handleError({ error: err, errorAction: 'carregar perfis de acesso' });
       })
       .finally(() => {
-        setIsLoadingAllUsers(false);
+        setIsLoadingAllRoles(false);
       });
   }, [handleError]);
 
   useEffect(() => {
     setError(undefined);
-    if (isLoadingAllUsers) {
-      reloadAllUsers();
+    if (isLoadingAllRoles) {
+      reloadAllRoles();
     } else {
       reloadRoleUsers();
     }
-  }, [reloadAllUsers, isLoadingAllUsers, reloadRoleUsers]);
+  }, [reloadAllRoles, isLoadingAllRoles, reloadRoleUsers]);
 
   useEffect(() => {
     if (selectedOrganization.id !== organizationId) {
@@ -138,21 +135,14 @@ const RoleUserPage: React.FC = () => {
     }
   }, [selectedOrganization, history, organizationId]);
 
-  const avatarNameBodyTemplate = (rowData: IUser) => {
+  const roleNameBodyTemplate = (rowData: IRole) => {
     return (
       <AvatarNameContainer
-        key={rowData.id}
         name={rowData.name}
-        avatarUrl={rowData.avatarUrl}
-        defaultAvatarIcon="pi pi-user"
+        defaultAvatarIcon="pi pi-lock"
+        showAvatar={false}
         badge={
-          rowData.isSuper
-            ? ({
-                value: 'SUPER',
-                severity: 'info' as SeverityType,
-                size: 'small' as SizeType,
-              } as BadgeProps)
-            : undefined
+          rowData.isAdmin ? { value: 'ADMIN', severity: 'success' } : undefined
         }
       />
     );
@@ -161,11 +151,11 @@ const RoleUserPage: React.FC = () => {
   const handleSubmit = useCallback(() => {
     setIsSubmiting(true);
     api
-      .patch(`/role/${roleId}/users`, selectedUsers)
+      .patch(`/user/${userId}/roles`, selectedRoles)
       .then(() => {
         addToast({
           type: 'success',
-          title: `${entity.namePlural} '${role.name}' salv${
+          title: `${entity.namePlural} '${user.name}' salv${
             entity.gender === 'F' ? 'a' : 'o'
           }s com sucesso`,
         });
@@ -180,29 +170,7 @@ const RoleUserPage: React.FC = () => {
       .finally(() => {
         setIsSubmiting(false);
       });
-  }, [
-    addToast,
-    handleError,
-    history,
-    role.name,
-    roleId,
-    selectedUsers,
-    entity,
-  ]);
-
-  const titleBody = (
-    <div className="p-d-flex p-ai-baseline">
-      <h5 className="p-mr-2 p-mb-0">Perfil de Acesso:</h5>
-      <AvatarNameContainer
-        name={`${role.name}`}
-        defaultAvatarIcon="pi pi-lock"
-        showAvatar={false}
-        badge={
-          role.isAdmin ? { value: 'ADMIN', severity: 'success' } : undefined
-        }
-      />
-    </div>
-  );
+  }, [addToast, handleError, history, user, userId, selectedRoles, entity]);
 
   const tableHeader = (
     <div className="table-header">
@@ -212,12 +180,12 @@ const RoleUserPage: React.FC = () => {
           <span className="p-mr-1">Filtrar Selecionados</span>
           <InputSwitch
             onChange={(e) => {
-              setIsToFilterSelectedUsers(e.value);
+              setIsToFilterSelectedRoles(e.value);
               if (dt.current) {
                 dt.current.filter(e.value, 'id', 'custom');
               }
             }}
-            checked={isToFilterSelectedUsers}
+            checked={isToFilterSelectedRoles}
             className="p-mr-3"
           />
         </div>
@@ -236,9 +204,9 @@ const RoleUserPage: React.FC = () => {
       </div>
     </div>
   );
-  const handleFilterSelectedUsers = (value: any, filter: any) => {
+  const handleFilterSelectedRoles = (value: any, filter: any) => {
     return (
-      !filter || selectedUsers.find((selectedUser) => selectedUser.id === value)
+      !filter || selectedRoles.find((selectedUser) => selectedUser.id === value)
     );
   };
 
@@ -248,16 +216,16 @@ const RoleUserPage: React.FC = () => {
       headerStyle: { width: '3rem' },
       filterMatchMode: 'custom',
       filterFunction: (value, filter) =>
-        handleFilterSelectedUsers(value, filter),
+        handleFilterSelectedRoles(value, filter),
       field: 'id',
     },
     {
       field: 'name',
       header: 'Nome',
-      body: avatarNameBodyTemplate,
+      body: roleNameBodyTemplate,
       sortable: true,
     },
-    { field: 'email', header: 'E-mail', sortable: true },
+    { field: 'description', header: 'Descrição', sortable: true },
   ];
 
   const pageCancelSubmitFooter = () => {
@@ -271,7 +239,7 @@ const RoleUserPage: React.FC = () => {
   };
 
   const onSelectionChange = (e: SelectionChangeParams) => {
-    setSelectedUsers(e.value);
+    setSelectedRoles(e.value);
     if (!isDirty) {
       setIsDirty(true);
     }
@@ -298,22 +266,22 @@ const RoleUserPage: React.FC = () => {
 
   return (
     <Container className="datatable crud-demo">
-      <Loading isLoading={isLoadingAllUsers} />
-      {!isLoadingAllUsers && (
+      <Loading isLoading={isLoadingAllRoles} />
+      {!isLoadingAllRoles && (
         <Card
-          title={titleBody}
-          subTitle={role.description ? `${role.description}` : null}
+          title={`Usuário: ${user.name}`}
+          subTitle={user.email ? `${user.email}` : null}
           footer={pageCancelSubmitFooter}
         >
           <DataTable
             className="p-datatable-striped p-datatable-gridlines"
             ref={dt}
-            value={allUsers}
+            value={allRoles}
             emptyMessage="Nenhum usuário encontrado"
             dataKey="id"
             globalFilter={globalFilter}
             header={tableHeader}
-            selection={selectedUsers}
+            selection={selectedRoles}
             onSelectionChange={onSelectionChange}
             autoLayout
             resizableColumns
@@ -333,4 +301,4 @@ const RoleUserPage: React.FC = () => {
   );
 };
 
-export default RoleUserPage;
+export default UserRolePage;

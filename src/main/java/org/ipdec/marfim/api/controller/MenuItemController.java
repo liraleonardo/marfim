@@ -23,7 +23,7 @@ public class MenuItemController {
     public List<MenuItemDTO> findAllParents() {
         Long organizationId = TenantContext.getLongTenant();
         //THINKABOUT: it could be interesting to consider the organization menu items?
-        return menuItemService.findParentMenuItemDTO();
+        return menuItemService.findParentMenuItemDTO(organizationId);
     }
 
 }

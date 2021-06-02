@@ -48,8 +48,22 @@ export const AppSideBar = styled.div`
     }
   }
 
+  .layout-menu-container {
+    width: 100%;
+  }
+
   .app-pages-menu {
     background-color: inherit;
+  }
+
+  .expandable-menu-item > .p-panelmenu-header {
+    /* border-left: 3px #1faa1f solid; */
+  }
+
+  .expandable-menu-item > .p-menuitem-link {
+    /* border: 1px #dee2e6 solid; */
+    /* border-left: 3px #1faa1f solid; */
+    background: #f8f9fa;
   }
 `;
 

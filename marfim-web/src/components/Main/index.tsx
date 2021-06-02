@@ -7,7 +7,7 @@ import React, {
 } from 'react';
 import classNames from 'classnames';
 import { Menubar } from 'primereact/menubar';
-import { Menu } from 'primereact/menu';
+import { PanelMenu } from 'primereact/panelmenu';
 import { MenuItem } from 'primereact/components/menuitem/MenuItem';
 import { Link, matchPath, useHistory, useLocation } from 'react-router-dom';
 import {
@@ -21,13 +21,11 @@ import {
 import logoImg from '../../assets/logo-horizontal.svg';
 import { useAuth } from '../../hooks/auth';
 import getRoutes from '../../router/routes';
-import {
-  getMenuItems,
-  getMenuItemsWithAuthorities,
-} from '../../utils/routeUtils';
+import { getMenuItems } from '../../utils/routeUtils';
 
 import { SHOW_ROUTE_LABEL, SHOW_MENU, MENU_ICON } from '../../router/types';
-import GenericService from '../../services/GenericService';
+import MenuService from '../../services/MenuService';
+import { parseToMenuItem } from '../../model/IMenuItem';
 
 interface OrganizationMenuItem extends MenuItem {
   organizationId: number;
@@ -45,14 +43,14 @@ const Main: React.FC<MainProps> = ({ children, isToshowMain }) => {
   const routes = useMemo(() => getRoutes(), []);
   const history = useHistory();
 
-  const defaultSideBar = useMemo(() => getMenuItems(history.push), []);
-  const [sideBarMenuItems, setSideBarMenuItems] = useState<MenuItem[]>(
-    defaultSideBar,
-  );
+  // const defaultSideBar = useMemo(() => getMenuItems(history.push), [
+  //   history.push,
+  // ]);
+  const [sideBarMenuItems, setSideBarMenuItems] = useState<MenuItem[]>([]);
 
   const location = useLocation();
 
-  const menuRef = useRef<Menu>(null);
+  const menuRef = useRef<PanelMenu>(null);
 
   const {
     user,
@@ -77,13 +75,29 @@ const Main: React.FC<MainProps> = ({ children, isToshowMain }) => {
     else setRouteLabel('');
   }, [routes, location.pathname]);
 
+  const loadSideBarMenuItem = useCallback(() => {
+    const menuService = new MenuService();
+    menuService
+      .getMenuItems()
+      .then((menus) => {
+        const menuItems = menus.map((menu) => {
+          return parseToMenuItem(menu, history.push);
+        });
+        setSideBarMenuItems(menuItems);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  }, [history.push]);
+
   useEffect(() => {
     if (authenticated) {
-      setSideBarMenuItems(
-        getMenuItemsWithAuthorities(authorities, history.push),
-      );
+      // setSideBarMenuItems(
+      //   getMenuItemsWithAuthorities(authorities, history.push),
+      // );
+      loadSideBarMenuItem();
     }
-  }, [authorities, history.push, authenticated]);
+  }, [authenticated, loadSideBarMenuItem, selectedOrganization]);
 
   const handleSignOut = useCallback(() => {
     signOut();
@@ -158,12 +172,12 @@ const Main: React.FC<MainProps> = ({ children, isToshowMain }) => {
             </Link>
             <SidebarSeparator />
             <div className="layout-menu-container">
-              <Menu
+              <PanelMenu
                 className="layout-menu"
                 model={sideBarMenuItems}
-                style={{ border: 0 }}
                 ref={menuRef}
                 id="app-menu"
+                multiple={false}
               />
             </div>
           </AppSideBar>

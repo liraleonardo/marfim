@@ -9,7 +9,6 @@ import org.hibernate.annotations.SortNatural;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.Set;
 import java.util.SortedSet;
 
 

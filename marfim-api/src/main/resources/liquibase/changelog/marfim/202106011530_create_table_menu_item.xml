@@ -1,0 +1,57 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<!-- https://transang.me/access-control/ -->
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:pro="http://www.liquibase.org/xml/ns/pro" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-4.1.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
+    <changeSet author="leonardo.lira" id="202106011530-1">
+        <createTable schemaName="marfim" tableName="menu_item">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="menu_item_pk"/>
+            </column>
+            <column name="label" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="icon" type="VARCHAR(100)" defaultValue="pi pi-exclamation-circle">
+                <constraints nullable="false"/>
+            </column>
+            <column name="parent_id" type="BIGINT">
+                <constraints nullable="true"/>
+            </column>
+            <column name="permission_resource_code" type="VARCHAR(80)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="page_url" type="VARCHAR(255)"/>
+            <column name="order" type="BIGINT" defaultValueNumeric="0">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="leonardo.lira" id="202106011530-2">
+        <addForeignKeyConstraint
+                baseColumnNames="parent_id"
+                baseTableName="menu_item"
+                baseTableSchemaName="marfim"
+                constraintName="menu_item_fk_parent_id"
+                deferrable="false"
+                initiallyDeferred="false"
+                onDelete="CASCADE"
+                onUpdate="CASCADE"
+                referencedColumnNames="id"
+                referencedTableName="menu_item"
+                referencedTableSchemaName="marfim"
+                validate="true"/>
+    </changeSet>
+    <changeSet author="leonardo.lira" id="202106011530-3">
+        <addForeignKeyConstraint
+                baseColumnNames="permission_resource_code"
+                baseTableName="menu_item"
+                baseTableSchemaName="marfim"
+                constraintName="menu_item_fk_permission_resource_code"
+                deferrable="false"
+                initiallyDeferred="false"
+                onDelete="CASCADE"
+                onUpdate="CASCADE"
+                referencedColumnNames="code"
+                referencedTableName="permission_resource"
+                referencedTableSchemaName="marfim"
+                validate="true"/>
+    </changeSet>
+</databaseChangeLog>

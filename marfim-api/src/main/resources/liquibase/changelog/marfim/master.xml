@@ -16,9 +16,8 @@ xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liqui
     <include  file="liquibase/changelog/marfim/202105031147_create_table_permission_level.xml"/>
     <include  file="liquibase/changelog/marfim/202105031322_recreate_table_permission.xml"/>
     <include  file="liquibase/changelog/marfim/202105031348_recreate_table_role_permission.xml"/>
-<!--    <include  file="liquibase/changelog/marfim/202105041000_populate_permissions.xml"/>-->
-<!--    <include  file="liquibase/changelog/marfim/202105041040_populate_super_users.xml"/>-->
     <include  file="liquibase/changelog/marfim/202105051004_change_name_unique_constraint_from_table_role.xml"/>
     <include  file="liquibase/changelog/marfim/202105280830_add_column_icon_to_tables_permission_resource_and_level.xml"/>
+    <include  file="liquibase/changelog/marfim/202106011530_create_table_menu_item.xml"/>
 
 </databaseChangeLog>

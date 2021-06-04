@@ -92,7 +92,7 @@ export const AvatarNameContainer: React.FC<AvatarNameContainerProps> = ({
 
       <span
         style={{ marginLeft: showAvatar ? '1em' : 0 }}
-        className="image-text p-d-flex p-ai-center"
+        className="image-text p-d-flex p-text-truncate p-ai-center"
       >
         {name}
         {badge && <Badge className="p-ml-2" {...badge} />}

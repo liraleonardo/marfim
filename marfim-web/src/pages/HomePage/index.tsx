@@ -16,7 +16,7 @@ import { useAuth, User } from '../../hooks/auth';
 import api from '../../services/api';
 import { useToast } from '../../hooks/toast';
 
-const DashboardPage: React.FC = () => {
+const HomePage: React.FC = () => {
   const { signOut, user, selectedOrganization } = useAuth();
   const { addToast } = useToast();
 
@@ -81,4 +81,4 @@ const DashboardPage: React.FC = () => {
   );
 };
 
-export default DashboardPage;
+export default HomePage;

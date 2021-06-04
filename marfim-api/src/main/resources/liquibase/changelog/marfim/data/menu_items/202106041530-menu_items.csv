@@ -1,0 +1,8 @@
+"id","label","icon","parent_id","permission_resource_code","page_url","order"
+1,Home,pi pi-home,NULL,NULL,/,0
+2,Painel Administrativo,pi pi-th-large,NULL,NULL,NULL,1
+3,Cadastros,pi pi-file,NULL,NULL,NULL,1
+4,Organizações,pi pi-briefcase,2,ORGANIZATIONS,/organizations,1
+5,Usuários,pi pi-users,2,USERS,/users,2
+6,Perfis de Acesso,pi pi-unlock,2,ROLES,/roles,3
+7,Projetos,pi pi-list,3,PROJECTS,/projects,1

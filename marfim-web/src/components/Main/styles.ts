@@ -4,6 +4,13 @@ export const Container = styled.div`
   flex: 1;
   display: flex;
   flex-direction: row;
+
+  .layout-topbar-menu {
+    border-bottom: 1px solid #dee2e6;
+    height: inherit;
+    /* background: #ffaaaa; */
+    padding: 0;
+  }
 `;
 
 export const AppMain = styled.div`
@@ -11,7 +18,24 @@ export const AppMain = styled.div`
   height: 100vh;
 `;
 
-export const AppTopBar = styled.div``;
+export const AppTopBar = styled.div`
+  .p-submenu-list {
+    /* border: 2px #aaaaff solid; */
+    width: auto;
+    min-width: 200px;
+    max-width: 300px;
+    max-height: 70vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .layout-topbar-menu {
+    border: 0;
+    /* border-bottom: 1px solid #dee2e6; */
+    height: inherit;
+    padding: 0;
+  }
+`;
 
 export const PageTitle = styled.h2`
   color: #2f2f2f;

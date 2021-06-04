@@ -8,7 +8,10 @@ import React, {
 import classNames from 'classnames';
 import { Menubar } from 'primereact/menubar';
 import { PanelMenu } from 'primereact/panelmenu';
-import { MenuItem } from 'primereact/components/menuitem/MenuItem';
+import {
+  MenuItem,
+  MenuItemOptions,
+} from 'primereact/components/menuitem/MenuItem';
 import { Link, matchPath, useHistory, useLocation } from 'react-router-dom';
 import {
   Container,
@@ -21,11 +24,11 @@ import {
 import logoImg from '../../assets/logo-horizontal.svg';
 import { useAuth } from '../../hooks/auth';
 import getRoutes from '../../router/routes';
-import { getMenuItems } from '../../utils/routeUtils';
 
-import { SHOW_ROUTE_LABEL, SHOW_MENU, MENU_ICON } from '../../router/types';
+import { SHOW_ROUTE_LABEL } from '../../router/types';
 import MenuService from '../../services/MenuService';
 import { parseToMenuItem } from '../../model/IMenuItem';
+import { AvatarNameContainer } from '../AvatarNameContainer';
 
 interface OrganizationMenuItem extends MenuItem {
   organizationId: number;
@@ -43,9 +46,6 @@ const Main: React.FC<MainProps> = ({ children, isToshowMain }) => {
   const routes = useMemo(() => getRoutes(), []);
   const history = useHistory();
 
-  // const defaultSideBar = useMemo(() => getMenuItems(history.push), [
-  //   history.push,
-  // ]);
   const [sideBarMenuItems, setSideBarMenuItems] = useState<MenuItem[]>([]);
 
   const location = useLocation();
@@ -57,7 +57,6 @@ const Main: React.FC<MainProps> = ({ children, isToshowMain }) => {
     signOut,
     chooseOrganization,
     selectedOrganization,
-    authorities,
     organizations,
     authenticated,
   } = useAuth();
@@ -92,9 +91,6 @@ const Main: React.FC<MainProps> = ({ children, isToshowMain }) => {
 
   useEffect(() => {
     if (authenticated) {
-      // setSideBarMenuItems(
-      //   getMenuItemsWithAuthorities(authorities, history.push),
-      // );
       loadSideBarMenuItem();
     }
   }, [authenticated, loadSideBarMenuItem, selectedOrganization]);
@@ -104,11 +100,48 @@ const Main: React.FC<MainProps> = ({ children, isToshowMain }) => {
     history.push('/'); // forcing location to be on '/', so the next login will redirect to '/'
   }, [signOut, history]);
 
+  const menuUserOrganizationTemplate = (
+    userOrg: { id: any; name?: string; avatarUrl?: string },
+    isUser: boolean,
+    item: MenuItem,
+    options: MenuItemOptions,
+  ) => {
+    if (userOrg) {
+      return (
+        /* eslint-disable */
+        <a
+          className={options.className}
+          target={item.target}
+          onClick={options.onClick}
+          role="menuitem"
+          href="#"
+          key={userOrg.id}
+        >
+          <AvatarNameContainer
+            name={userOrg.name || '<Nome do Usuário>'}
+            avatarUrl={userOrg.avatarUrl}
+            defaultAvatarIcon={isUser ? 'pi pi-users' : 'pi pi-briefcase'}
+          />
+          {item.items!! && (<span className="p-submenu-icon pi pi-angle-down" />)}
+        </a>
+        /* eslint-enable */
+      );
+    }
+    return undefined;
+  };
   // TODO: refactor to useCallback
   const topBarMenuItems: MenuItem[] = [
     {
       label: selectedOrganization.name,
       icon: 'pi pi-fw pi-briefcase',
+      template: (item, options) => {
+        return menuUserOrganizationTemplate(
+          selectedOrganization,
+          false,
+          item,
+          options,
+        );
+      },
       items: organizations
         .filter((organization) => organization.id !== selectedOrganization.id)
         .map((organization) => {
@@ -116,6 +149,14 @@ const Main: React.FC<MainProps> = ({ children, isToshowMain }) => {
             organizationId: organization.id,
             label: organization.name,
             icon: 'pi pi-fw pi-briefcase',
+            template: (item, options) => {
+              return menuUserOrganizationTemplate(
+                organization,
+                false,
+                item,
+                options,
+              );
+            },
             command: (e) => {
               const { organizationId } = e.item as OrganizationMenuItem;
               const organizationChoosed = organizations.find(
@@ -130,6 +171,9 @@ const Main: React.FC<MainProps> = ({ children, isToshowMain }) => {
     {
       label: user?.name || 'User Name Placeholder',
       icon: 'pi pi-fw pi-user',
+      template: (item, options) => {
+        return menuUserOrganizationTemplate(user, true, item, options);
+      },
       items: [
         {
           label: 'Alterar Perfil',
@@ -155,7 +199,9 @@ const Main: React.FC<MainProps> = ({ children, isToshowMain }) => {
     if (menuMode === 'static-inactive') setMenuMode('static');
   }, [showMenu, menuMode]);
 
-  const topBarEnd = <Menubar style={{ border: 0 }} model={topBarMenuItems} />;
+  const topBarEnd = (
+    <Menubar className="layout-topbar-menu" model={topBarMenuItems} />
+  );
 
   const containerClassName = classNames('layout-wrapper', {
     'layout-static': menuMode === 'static',

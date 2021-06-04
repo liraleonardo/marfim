@@ -1,6 +1,6 @@
 import { PageComponent } from 'react-router-guards';
 import { GuardFunction, Meta } from 'react-router-guards/dist/types';
-import DashboardPage from '../pages/DashboardPage';
+import HomePage from '../pages/HomePage';
 import NotFoundPage from '../pages/NotFoundPage';
 import OrganizationPage from '../pages/Organization/OrganizationPage';
 import OrganizationFormPage from '../pages/Organization/OrganizationFormPage';
@@ -53,15 +53,15 @@ export default (): RouteProps[] => [
     component: SignUpPage,
   },
   {
-    key: 'dashboardPage',
+    key: 'homePage',
     path: '/',
     exact: true,
-    component: DashboardPage,
+    component: HomePage,
     loading: 'Custom loading for home page...',
     error: 'Custom error for home page',
     meta: {
       [WITH_AUTH]: true,
-      [SHOW_ROUTE_LABEL]: 'Dashboard',
+      [SHOW_ROUTE_LABEL]: 'Home',
       [SHOW_MENU]: true,
       [MENU_ICON]: 'pi pi-fw pi-chart-line',
       [PUBLIC_MENU]: true,
@@ -168,7 +168,7 @@ export default (): RouteProps[] => [
     component: RolePage,
     meta: {
       [WITH_AUTH]: true,
-      [SHOW_ROUTE_LABEL]: 'Controle de Acesso',
+      [SHOW_ROUTE_LABEL]: 'Perfis de Acesso',
       [SHOW_MENU]: true,
       [MENU_ICON]: 'pi pi-fw pi-unlock',
       [MENU_PERMISSIONS]: ['ROLES_READ', 'ROLES_ALL'],

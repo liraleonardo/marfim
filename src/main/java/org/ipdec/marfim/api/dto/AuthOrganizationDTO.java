@@ -16,6 +16,7 @@ import java.util.List;
 public class AuthOrganizationDTO {
     private Long id;
     private String name;
+    private String avatarUrl;
     private List<AuthOrganizationRoleDTO> userRoles;
 
 }

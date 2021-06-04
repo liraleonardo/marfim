@@ -47,7 +47,7 @@ public class AuthenticationUtilService {
         Map<Organization, List<Role>> groupedRoles = user.getRoles().stream().collect(Collectors.groupingBy(role -> role.getOrganization()));
         groupedRoles.keySet().forEach(organization -> {
             List<AuthOrganizationRoleDTO> roles = groupedRoles.get(organization).stream().map(AuthOrganizationRoleDTO::new).collect(Collectors.toList());
-            organizationDTOS.add(new AuthOrganizationDTO(organization.getId(),organization.getName(),roles));
+            organizationDTOS.add(new AuthOrganizationDTO(organization.getId(),organization.getName(), organization.getAvatarUrl(),roles));
         });
 
         //for all OrganizationUser, check if a organization is missing, and add it without roles
@@ -56,7 +56,7 @@ public class AuthenticationUtilService {
                         organizationDTOS.stream().noneMatch(organizationDTO ->
                                 organizationDTO.getId().longValue() == organization.getId().longValue()
                         )
-                ).map(organization -> new AuthOrganizationDTO(organization.getId(), organization.getName(), new ArrayList<>()))
+                ).map(organization -> new AuthOrganizationDTO(organization.getId(), organization.getName(), organization.getAvatarUrl(), new ArrayList<>()))
                 .collect(Collectors.toList());
         organizationDTOS.addAll(missingOrganizations);
 
@@ -73,7 +73,8 @@ public class AuthenticationUtilService {
 
     private List<AuthOrganizationDTO> getAllOrganizations(){
         return organizationService.findAll().stream()
-                .map(organization -> new AuthOrganizationDTO(organization.getId(),organization.getName(),null))
+                .map(organization ->
+                        new AuthOrganizationDTO(organization.getId(),organization.getName(),organization.getAvatarUrl(),null))
                 .collect(Collectors.toList());
     }
 
